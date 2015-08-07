@@ -35,17 +35,16 @@ class Verisure(object):
 
     def __enter__(self):
         """ Enter context manager, open session """
-        self._session = requests.Session()
         self.login()
         return self
 
     def __exit__(self, exception_type, exception_value, exception_traceback):
         """ Exit context manager, close session """
-        self._session.close()
-        self._session = None
+        self.logout()
 
     def login(self):
         """ Login to mypages """
+        self._session = requests.Session()
         auth = {
             'j_username': self._username,
             'j_password': self._password
@@ -62,6 +61,11 @@ class Verisure(object):
                 'status code: {} - {}'.format(
                     response.status_code,
                     response.text))
+
+    def logout(self):
+        """ Ends session """
+        self._session.close()
+        self._session = None
 
     def _read_status(self, url):
         """ Read all statuses of a device type """
