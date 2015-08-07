@@ -1,5 +1,5 @@
 """
-A python3 module for reading and changing status of verisure devices through
+A python module for reading and changing status of verisure devices through
 mypages.
 """
 from __future__ import print_function
