@@ -14,7 +14,16 @@ URL_SMARTPLUG_STATUS = DOMAIN + '/overview/smartplug'
 URL_ETHERNET_STATUS = DOMAIN + '/overview/ethernetstatus'
 URL_START = DOMAIN + '/uk/start.html'
 URL_SMARTPLUG_ONOFF_CMD = DOMAIN + '/smartplugs/onoffplug.cmd'
+URL_ALARM_STATE_CHANGE_CMD = DOMAIN + '/remotecontrol/armstatechange.cmd'
 RESPONSE_TIMEOUT = 3
+
+SMARTPLUG_ON = 'on'
+SMARTPLUG_OFF = 'off'
+
+ALARM_STATUS_ARMED_HOME = 'ARMED_HOME'
+ALARM_STATUS_ARMED_AWAY = 'ARMED_AWAY'
+ALARM_STATUS_DISARMED = 'DISARMED'
+
 
 CSRF_REGEX = re.compile(
     r'\<input type="hidden" name="_csrf" value="' +
@@ -96,6 +105,13 @@ class MyPages(object):
             }
         self._set_status(URL_SMARTPLUG_ONOFF_CMD, data)
 
+    def set_alarm_status(self, code, state):
+        data = {
+            'code': code,
+            'state': state
+            }
+        self._set_status(URL_ALARM_STATE_CHANGE_CMD, data)
+
     def _set_status(self, url, data):
         """ set status of a component """
         req = requests.Request(
@@ -111,6 +127,7 @@ class MyPages(object):
                 'status code: {} - {}'.format(
                     response.status_code,
                     response.text))
+        return response.text
 
     def _get_csrf(self):
         """ Retreive X-CSRF-TOKEN from start.html """
