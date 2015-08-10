@@ -16,8 +16,9 @@ positional arguments:
     get       Read status of one or many device types
     set       Set status of a device
 ```
-### example
-Read alarm status
+## example
+
+### Read alarm status
 
 ``` python verisure.py user@example.com mypassword get alarm ```
 
@@ -35,6 +36,10 @@ AlarmStatus
 	name: Alex Poe
 ```
 
-set alarm status to disarmed
+### disarm
 
-``` python verisure.py user@example.com mypassword set alarm DISARMED ``` 
+``` python verisure.py user@example.com mypassword set alarm 1234 DISARMED ```
+
+### Turn on smartplug 
+
+``` python verisure.py user@example.com mypassword set smartplug '5AC2 4LXH' on ```
