@@ -3,8 +3,8 @@ API to communicate with mypages
 """
 
 import requests
-import json
 import re
+import HTMLParser
 
 DOMAIN = 'https://mypages.verisure.com'
 URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
@@ -16,6 +16,11 @@ URL_START = DOMAIN + '/uk/start.html'
 URL_SMARTPLUG_ONOFF_CMD = DOMAIN + '/smartplugs/onoffplug.cmd'
 URL_ALARM_STATE_CHANGE_CMD = DOMAIN + '/remotecontrol/armstatechange.cmd'
 RESPONSE_TIMEOUT = 3
+
+DEVICE_ALARM = 'alarm'
+DEVICE_SMARTPLUG = 'smartplug'
+DEVICE_ETHERNET = 'ethernet'
+DEVICE_CLIMATE = 'climate'
 
 SMARTPLUG_ON = 'on'
 SMARTPLUG_OFF = 'off'
@@ -39,6 +44,7 @@ class MyPages(object):
         self._password = password
         self._session = None
         self._csrf = ''
+        self.unescape = HTMLParser.HTMLParser().unescape
 
     def __enter__(self):
         """ Enter context manager, open session """
@@ -74,28 +80,32 @@ class MyPages(object):
         self._session.close()
         self._session = None
 
-    def _read_status(self, url):
+    def _read_status(self, device_type, url):
         """ Read all statuses of a device type """
         if not self._session:
             raise ConnectionError('Not logged in')
         response = self._session.get(url)
-        return json.loads(response.text)
+        status_array = None
+        exec(
+            "true, false = True, False\n" +
+            "status_array = " + self.unescape(response.text))
+        return [DeviceStatus(device_type, status) for status in status_array]
 
     def get_alarm_status(self):
         """ Get status from alarm devices """
-        return self._read_status(URL_ALARM_STATUS)
+        return self._read_status(DEVICE_ALARM, URL_ALARM_STATUS)
 
     def get_climate_status(self):
         """ Get status from climate devices """
-        return self._read_status(URL_CLIMATE_STATUS)
+        return self._read_status(DEVICE_CLIMATE, URL_CLIMATE_STATUS)
 
     def get_smartplug_status(self):
         """ Get status of smartplug devices """
-        return self._read_status(URL_SMARTPLUG_STATUS)
+        return self._read_status(DEVICE_SMARTPLUG, URL_SMARTPLUG_STATUS)
 
     def get_ethernet_status(self):
         """ Get status of ethernet devices """
-        return self._read_status(URL_ETHERNET_STATUS)
+        return self._read_status(DEVICE_ETHERNET, URL_ETHERNET_STATUS)
 
     def set_smartplug_status(self, device_id, value):
         """ set status of a smartplug component (on, off) """
@@ -139,3 +149,9 @@ class MyPages(object):
                     response.text))
         match = CSRF_REGEX.search(response.text)
         return match.group('csrf')
+
+
+class DeviceStatus(object):
+    def __init__(self, device_type, status):
+        self.device_type = device_type
+        self.__dict__.update(status)

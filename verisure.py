@@ -2,11 +2,23 @@
 
 from __future__ import print_function
 import argparse
+
 from mypages import MyPages
 from mypages import (
     SMARTPLUG_ON, SMARTPLUG_OFF,
-    ALARM_STATUS_ARMED_HOME, ALARM_STATUS_ARMED_AWAY, ALARM_STATUS_DISARMED
+    ALARM_STATUS_ARMED_HOME, ALARM_STATUS_ARMED_AWAY, ALARM_STATUS_DISARMED,
+    DEVICE_ALARM, DEVICE_SMARTPLUG, DEVICE_ETHERNET, DEVICE_CLIMATE
     )
+
+COMMAND_GET = 'get'
+COMMAND_SET = 'set'
+
+
+def print_status(status):
+    for device in status:
+        print(device.device_type)
+        for item in device.__dict__.iteritems():
+            print('\t{}: {}'.format(item[0], item[1]))
 
 # pylint: disable=C0103
 if __name__ == "__main__":
@@ -25,18 +37,23 @@ if __name__ == "__main__":
 
     # Get command
     get_parser = commandsparser.add_parser(
-        'get',
+        COMMAND_GET,
         help='Read status of one or many device types')
     get_parser.add_argument(
         'devices',
         nargs='+',
-        choices=['alarm', 'climate', 'smartplug', 'ethernet'],
+        choices=[
+            DEVICE_ALARM,
+            DEVICE_CLIMATE,
+            DEVICE_SMARTPLUG,
+            DEVICE_ETHERNET
+            ],
         help='Read status for device type',
         default=[])
 
     # Set command
     set_parser = commandsparser.add_parser(
-        'set',
+        COMMAND_SET,
         help='Set status of a device')
     set_device = set_parser.add_subparsers(
         help='device',
@@ -44,7 +61,7 @@ if __name__ == "__main__":
 
     # Set smartplug
     set_smartplug = set_device.add_parser(
-        'smartplug',
+        DEVICE_SMARTPLUG,
         help='set smartplug value')
     set_smartplug.add_argument(
         'serial_number',
@@ -57,7 +74,9 @@ if __name__ == "__main__":
         help='new value')
 
     # Set alarm
-    set_alarm = set_device.add_parser('alarm', help='set alarm status')
+    set_alarm = set_device.add_parser(
+        DEVICE_ALARM,
+        help='set alarm status')
     set_alarm.add_argument(
         'code',
         help='alarm code')
@@ -72,18 +91,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with MyPages(args.username, args.password) as verisure:
-        if args.command == 'get':
+        if args.command == COMMAND_GET:
             for device in args.devices:
-                if device == 'alarm':
-                    print(verisure.get_alarm_status())
-                if device == 'climate':
-                    print(verisure.get_climate_status())
-                if device == 'smartplug':
-                    print(verisure.get_smartplug_status())
-                if device == 'ethernet':
-                    print(verisure.get_ethernet_status())
-        if args.command == 'set':
-            if args.device == 'smartplug':
-                verisure.set_smartplug_status(args.serial_number, args.new_value)
-            if args.device == 'alarm':
-                verisure.set_alarm_status(args.code, args.new_status)
+                if device == DEVICE_ALARM:
+                    print_status(verisure.get_alarm_status())
+                if device == DEVICE_CLIMATE:
+                    print_status(verisure.get_climate_status())
+                if device == DEVICE_SMARTPLUG:
+                    print_status(verisure.get_smartplug_status())
+                if device == DEVICE_ETHERNET:
+                    print_status(verisure.get_ethernet_status())
+        if args.command == COMMAND_SET:
+            if args.device == DEVICE_SMARTPLUG:
+                verisure.set_smartplug_status(
+                    args.serial_number,
+                    args.new_value)
+            if args.device == DEVICE_ALARM:
+                verisure.set_alarm_status(
+                    args.code,
+                    args.new_status)
