@@ -36,7 +36,7 @@ AlarmStatus
 	name: Alex Poe
 ```
 
-### disarm
+### Disarm
 
 ``` python verisure.py user@example.com mypassword set alarm 1234 DISARMED ```
 

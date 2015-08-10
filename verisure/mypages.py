@@ -5,7 +5,7 @@ API to communicate with mypages
 import requests
 import re
 
-# this import is depending on python version 
+# this import is depending on python version
 try:
     import HTMLParser
     unescape = HTMLParser.HTMLParser().unescape
@@ -154,14 +154,18 @@ class DeviceStatus(object):
     def __init__(self, status):
         self.__dict__.update(status)
 
+
 class EthernetStatus(DeviceStatus):
     pass
+
 
 class SmartplugStatus(DeviceStatus):
     pass
 
+
 class AlarmStatus(DeviceStatus):
     pass
+
 
 class ClimateStatus(DeviceStatus):
     pass
