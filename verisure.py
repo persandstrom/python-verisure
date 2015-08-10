@@ -7,18 +7,22 @@ from mypages import MyPages
 from mypages import (
     SMARTPLUG_ON, SMARTPLUG_OFF,
     ALARM_STATUS_ARMED_HOME, ALARM_STATUS_ARMED_AWAY, ALARM_STATUS_DISARMED,
-    DEVICE_ALARM, DEVICE_SMARTPLUG, DEVICE_ETHERNET, DEVICE_CLIMATE
     )
 
 COMMAND_GET = 'get'
 COMMAND_SET = 'set'
 
+DEVICE_ALARM = 'alarm'
+DEVICE_SMARTPLUG = 'smartplug'
+DEVICE_ETHERNET = 'ethernet'
+DEVICE_CLIMATE = 'climate'
+
 
 def print_status(status):
     for device in status:
-        print(device.device_type)
-        for item in device.__dict__.iteritems():
-            print('\t{}: {}'.format(item[0], item[1]))
+        print(device.__class__.__name__)
+        for key, value in device.__dict__.items():
+            print('\t{}: {}'.format(key, value))
 
 # pylint: disable=C0103
 if __name__ == "__main__":
