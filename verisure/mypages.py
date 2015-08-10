@@ -70,11 +70,7 @@ class MyPages(object):
             data=auth
             ).prepare()
         response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
-        if response.status_code != 200:
-            raise ConnectionError(
-                'status code: {} - {}'.format(
-                    response.status_code,
-                    response.text))
+        MyPages.validate_response(response)
 
     def logout(self):
         """ Ends session """
@@ -115,6 +111,7 @@ class MyPages(object):
         self._set_status(URL_SMARTPLUG_ONOFF_CMD, data)
 
     def set_alarm_status(self, code, state):
+        """ set status of alarm component """
         data = {
             'code': code,
             'state': state
@@ -131,23 +128,23 @@ class MyPages(object):
             data=data
             ).prepare()
         response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
-        if response.status_code != 200:
-            raise ConnectionError(
-                'status code: {} - {}'.format(
-                    response.status_code,
-                    response.text))
+        MyPages.validate_response(response)
         return response.text
 
     def _get_csrf(self):
         """ Retreive X-CSRF-TOKEN from start.html """
         response = self._session.get(URL_START, timeout=RESPONSE_TIMEOUT)
+        MyPages.validate_response(response)
+        match = CSRF_REGEX.search(response.text)
+        return match.group('csrf')
+
+    def validate_response(response):
+        """ Verify that response is OK """
         if response.status_code != 200:
             raise ConnectionError(
                 'status code: {} - {}'.format(
                     response.status_code,
                     response.text))
-        match = CSRF_REGEX.search(response.text)
-        return match.group('csrf')
 
 
 class DeviceStatus(object):
