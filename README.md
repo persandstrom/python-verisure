@@ -18,8 +18,11 @@ positional arguments:
 ```
 ### example
 Read alarm status
+
 ``` python verisure.py user@example.com mypassword get alarm ```
+
 output:
+
 ```
 AlarmStatus
 	status: unarmed
@@ -31,3 +34,7 @@ AlarmStatus
 	id: 1
 	name: Alex Poe
 ```
+
+set alarm status to disarmed
+
+``` python verisure.py user@example.com mypassword set alarm DISARMED ``` 
