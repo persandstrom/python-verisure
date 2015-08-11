@@ -3,22 +3,20 @@
 from __future__ import print_function
 import argparse
 
-from mypages import MyPages
-from mypages import (
-    SMARTPLUG_ON, SMARTPLUG_OFF,
-    ALARM_STATUS_ARMED_HOME, ALARM_STATUS_ARMED_AWAY, ALARM_STATUS_DISARMED,
-    )
+from verisure import MyPages
+from verisure import Alarm, Climate, Ethernet, Smartplug
 
 COMMAND_GET = 'get'
 COMMAND_SET = 'set'
 
-DEVICE_ALARM = 'alarm'
-DEVICE_SMARTPLUG = 'smartplug'
-DEVICE_ETHERNET = 'ethernet'
-DEVICE_CLIMATE = 'climate'
+DEVICE_ALARM = Alarm.__name__.lower()
+DEVICE_SMARTPLUG = Smartplug.__name__.lower()
+DEVICE_ETHERNET = Ethernet.__name__.lower()
+DEVICE_CLIMATE = Climate.__name__.lower()
 
 
 def print_status(status):
+    ''' print the status of a device '''
     for device in status:
         print(device.__class__.__name__)
         for key, value in device.__dict__.items():
@@ -73,8 +71,8 @@ if __name__ == "__main__":
     set_smartplug.add_argument(
         'new_value',
         choices=[
-            SMARTPLUG_ON,
-            SMARTPLUG_OFF],
+            Smartplug.STATE_ON,
+            Smartplug.STATE_OFF],
         help='new value')
 
     # Set alarm
@@ -87,23 +85,23 @@ if __name__ == "__main__":
     set_alarm.add_argument(
         'new_status',
         choices=[
-            ALARM_STATUS_ARMED_HOME,
-            ALARM_STATUS_ARMED_AWAY,
-            ALARM_STATUS_DISARMED],
+            Alarm.STATE_ARMED_HOME,
+            Alarm.STATE_ARMED_AWAY,
+            Alarm.STATE_DISARMED],
         help='new status')
 
     args = parser.parse_args()
 
     with MyPages(args.username, args.password) as verisure:
         if args.command == COMMAND_GET:
-            for device in args.devices:
-                if device == DEVICE_ALARM:
+            for dev in args.devices:
+                if dev == DEVICE_ALARM:
                     print_status(verisure.get_alarm_status())
-                if device == DEVICE_CLIMATE:
+                if dev == DEVICE_CLIMATE:
                     print_status(verisure.get_climate_status())
-                if device == DEVICE_SMARTPLUG:
+                if dev == DEVICE_SMARTPLUG:
                     print_status(verisure.get_smartplug_status())
-                if device == DEVICE_ETHERNET:
+                if dev == DEVICE_ETHERNET:
                     print_status(verisure.get_ethernet_status())
         if args.command == COMMAND_SET:
             if args.device == DEVICE_SMARTPLUG:

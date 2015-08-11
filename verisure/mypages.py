@@ -8,10 +8,10 @@ import re
 # this import is depending on python version
 try:
     import HTMLParser
-    unescape = HTMLParser.HTMLParser().unescape
-except:
+    UNESCAPE = HTMLParser.HTMLParser().unescape
+except ImportError:
     import html
-    unescape = html.unescape
+    UNESCAPE = html.unescape
 
 DOMAIN = 'https://mypages.verisure.com'
 URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
@@ -23,14 +23,6 @@ URL_START = DOMAIN + '/uk/start.html'
 URL_SMARTPLUG_ONOFF_CMD = DOMAIN + '/smartplugs/onoffplug.cmd'
 URL_ALARM_STATE_CHANGE_CMD = DOMAIN + '/remotecontrol/armstatechange.cmd'
 RESPONSE_TIMEOUT = 3
-
-SMARTPLUG_ON = 'on'
-SMARTPLUG_OFF = 'off'
-
-ALARM_STATUS_ARMED_HOME = 'ARMED_HOME'
-ALARM_STATUS_ARMED_AWAY = 'ARMED_AWAY'
-ALARM_STATUS_DISARMED = 'DISARMED'
-
 
 CSRF_REGEX = re.compile(
     r'\<input type="hidden" name="_csrf" value="' +
@@ -70,7 +62,7 @@ class MyPages(object):
             data=auth
             ).prepare()
         response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
-        MyPages.validate_response(response)
+        validate_response(response)
 
     def logout(self):
         """ Ends session """
@@ -83,24 +75,24 @@ class MyPages(object):
             raise ConnectionError('Not logged in')
         response = self._session.get(url)
         true, false = True, False
-        status_array = eval(unescape(response.text))
+        status_array = eval(UNESCAPE(response.text))
         return [device_status(status) for status in status_array]
 
     def get_alarm_status(self):
         """ Get status from alarm devices """
-        return self._read_status(AlarmStatus, URL_ALARM_STATUS)
+        return self._read_status(Alarm, URL_ALARM_STATUS)
 
     def get_climate_status(self):
         """ Get status from climate devices """
-        return self._read_status(ClimateStatus, URL_CLIMATE_STATUS)
+        return self._read_status(Climate, URL_CLIMATE_STATUS)
 
     def get_smartplug_status(self):
         """ Get status of smartplug devices """
-        return self._read_status(SmartplugStatus, URL_SMARTPLUG_STATUS)
+        return self._read_status(Smartplug, URL_SMARTPLUG_STATUS)
 
     def get_ethernet_status(self):
         """ Get status of ethernet devices """
-        return self._read_status(EthernetStatus, URL_ETHERNET_STATUS)
+        return self._read_status(Ethernet, URL_ETHERNET_STATUS)
 
     def set_smartplug_status(self, device_id, value):
         """ set status of a smartplug component (on, off) """
@@ -128,41 +120,50 @@ class MyPages(object):
             data=data
             ).prepare()
         response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
-        MyPages.validate_response(response)
+        validate_response(response)
         return response.text
 
     def _get_csrf(self):
         """ Retreive X-CSRF-TOKEN from start.html """
         response = self._session.get(URL_START, timeout=RESPONSE_TIMEOUT)
-        MyPages.validate_response(response)
+        validate_response(response)
         match = CSRF_REGEX.search(response.text)
         return match.group('csrf')
 
-    def validate_response(response):
-        """ Verify that response is OK """
-        if response.status_code != 200:
-            raise ConnectionError(
-                'status code: {} - {}'.format(
-                    response.status_code,
-                    response.text))
+
+def validate_response(response):
+    """ Verify that response is OK """
+    if response.status_code != 200:
+        raise ConnectionError(
+            'status code: {} - {}'.format(
+                response.status_code,
+                response.text))
 
 
-class DeviceStatus(object):
+class Device(object):
+    ''' Baseclass for mypages devices '''
     def __init__(self, status):
         self.__dict__.update(status)
 
 
-class EthernetStatus(DeviceStatus):
+class Ethernet(Device):
+    ''' Represents an Ethernet device from mypages '''
     pass
 
 
-class SmartplugStatus(DeviceStatus):
-    pass
+class Smartplug(Device):
+    ''' Represents a Smartplug device from mypages '''
+    STATE_ON = 'on'
+    STATE_OFF = 'off'
 
 
-class AlarmStatus(DeviceStatus):
-    pass
+class Alarm(Device):
+    ''' Represents an alarm device from mypages '''
+    STATE_ARMED_HOME = 'ARMED_HOME'
+    STATE_ARMED_AWAY = 'ARMED_AWAY'
+    STATE_DISARMED = 'DISARMED'
 
 
-class ClimateStatus(DeviceStatus):
+class Climate(Device):
+    ''' Represents a Climate device from mypages '''
     pass
