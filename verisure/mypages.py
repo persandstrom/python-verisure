@@ -15,19 +15,46 @@ except ImportError:
 
 DOMAIN = 'https://mypages.verisure.com'
 URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
-URL_ALARM_STATUS = DOMAIN + '/remotecontrol'
-URL_CLIMATE_STATUS = DOMAIN + '/overview/climatedevice'
-URL_SMARTPLUG_STATUS = DOMAIN + '/overview/smartplug'
-URL_ETHERNET_STATUS = DOMAIN + '/overview/ethernetstatus'
 URL_START = DOMAIN + '/uk/start.html'
-URL_SMARTPLUG_ONOFF_CMD = DOMAIN + '/smartplugs/onoffplug.cmd'
-URL_ALARM_STATE_CHANGE_CMD = DOMAIN + '/remotecontrol/armstatechange.cmd'
+
+OVERVIEW_URL = {
+    'alarm': DOMAIN + '/remotecontrol',
+    'climate': DOMAIN + '/overview/climatedevice',
+    'ethernet': DOMAIN + '/overview/ethernetstatus',
+    'heatpump': DOMAIN + '/overview/heatpump',
+    'mousedetection': DOMAIN + '/overview/mousedetection',
+    'smartcam': DOMAIN + '/overview/smartcam',
+    'smartplug': DOMAIN + '/overview/smartplug',
+    'vacationmode': DOMAIN + '/overview/vacationmode',
+    }
+
+
+def get_overviews():
+    ''' return a list of avalible overviews '''
+    return OVERVIEW_URL.keys()
+
+COMMAND_URL = {
+    'alarm': DOMAIN + '/remotecontrol/armstatechange.cmd',
+    'smartplug': DOMAIN + '/smartplugs/onoffplug.cmd'
+    }
+
 RESPONSE_TIMEOUT = 3
+
+SMARTPLUG_ON = 'on'
+SMARTPLUG_OFF = 'off'
+ALARM_ARMED_HOME = 'ARMED_HOME'
+ALARM_ARMED_AWAY = 'ARMED_AWAY'
+ALARM_DISARMED = 'DISARMED'
 
 CSRF_REGEX = re.compile(
     r'\<input type="hidden" name="_csrf" value="' +
     r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
     r'" /\>')
+
+
+class Error(Exception):
+    ''' mypages error '''
+    pass
 
 
 class MyPages(object):
@@ -69,30 +96,24 @@ class MyPages(object):
         self._session.close()
         self._session = None
 
-    def _read_status(self, device_status, url):
+    def _read_status(self, overview_type):
         """ Read all statuses of a device type """
         if not self._session:
             raise ConnectionError('Not logged in')
+        url = OVERVIEW_URL[overview_type]
         response = self._session.get(url)
         true, false = True, False
-        status_array = eval(UNESCAPE(response.text))
-        return [device_status(status) for status in status_array]
+        status = eval(UNESCAPE(response.text))
+        if isinstance(status, list):
+            return [Overview(overview_type, val) for val in status]
+        return Overview(overview_type, status)
 
-    def get_alarm_status(self):
-        """ Get status from alarm devices """
-        return self._read_status(Alarm, URL_ALARM_STATUS)
-
-    def get_climate_status(self):
-        """ Get status from climate devices """
-        return self._read_status(Climate, URL_CLIMATE_STATUS)
-
-    def get_smartplug_status(self):
-        """ Get status of smartplug devices """
-        return self._read_status(Smartplug, URL_SMARTPLUG_STATUS)
-
-    def get_ethernet_status(self):
-        """ Get status of ethernet devices """
-        return self._read_status(Ethernet, URL_ETHERNET_STATUS)
+    def get_overview(self, overview):
+        ''' Read overview from mypages '''
+        if overview not in get_overviews():
+            raise Error('overview {} not recognised'.format(
+                overview))
+        return self._read_status(overview)
 
     def set_smartplug_status(self, device_id, value):
         """ set status of a smartplug component (on, off) """
@@ -100,7 +121,7 @@ class MyPages(object):
             'targetDeviceLabel': device_id,
             'targetOn': value
             }
-        self._set_status(URL_SMARTPLUG_ONOFF_CMD, data)
+        self._set_status(COMMAND_URL['smartplug'], data)
 
     def set_alarm_status(self, code, state):
         """ set status of alarm component """
@@ -108,7 +129,7 @@ class MyPages(object):
             'code': code,
             'state': state
             }
-        self._set_status(URL_ALARM_STATE_CHANGE_CMD, data)
+        self._set_status(COMMAND_URL['alarm'], data)
 
     def _set_status(self, url, data):
         """ set status of a component """
@@ -140,30 +161,19 @@ def validate_response(response):
                 response.text))
 
 
-class Device(object):
-    ''' Baseclass for mypages devices '''
-    def __init__(self, status):
+class Overview(object):
+    ''' mypages device overview '''
+    def __init__(self, overview_type, status):
         self.__dict__.update(status)
+        self._overview_type = overview_type
 
+    @property
+    def name(self):
+        ''' name of the overview type '''
+        return self._overview_type
 
-class Ethernet(Device):
-    ''' Represents an Ethernet device from mypages '''
-    pass
-
-
-class Smartplug(Device):
-    ''' Represents a Smartplug device from mypages '''
-    STATE_ON = 'on'
-    STATE_OFF = 'off'
-
-
-class Alarm(Device):
-    ''' Represents an alarm device from mypages '''
-    STATE_ARMED_HOME = 'ARMED_HOME'
-    STATE_ARMED_AWAY = 'ARMED_AWAY'
-    STATE_DISARMED = 'DISARMED'
-
-
-class Climate(Device):
-    ''' Represents a Climate device from mypages '''
-    pass
+    @property
+    def status(self):
+        ''' return all status items as a list '''
+        return [(key, value) for (key, value)
+                in self.__dict__.items() if not key.startswith('_')]
