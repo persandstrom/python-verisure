@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     # Set smartplug
     set_smartplug = set_device.add_parser(
-        'smartplug',
+        DEVICE_SMARTPLUG,
         help='set smartplug value')
     set_smartplug.add_argument(
         'serial_number',
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     # Set alarm
     set_alarm = set_device.add_parser(
-        'alarm',
+        DEVICE_ALARM,
         help='set alarm status')
     set_alarm.add_argument(
         'code',
@@ -93,11 +93,11 @@ if __name__ == "__main__":
             for dev in args.devices:
                 print_overviews(verisure.get_overview(dev))
         if args.command == COMMAND_SET:
-            if args.device == 'smartplug':
+            if args.device == DEVICE_SMARTPLUG:
                 verisure.set_smartplug_status(
                     args.serial_number,
                     args.new_value)
-            if args.device == 'alarm':
+            if args.device == DEVICE_ALARM:
                 verisure.set_alarm_status(
                     args.code,
                     args.new_status)

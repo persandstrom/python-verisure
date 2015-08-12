@@ -5,6 +5,21 @@ API to communicate with mypages
 import requests
 import re
 
+DEVICE_ALARM = 'alarm'
+DEVICE_CLIMATE = 'climate'
+DEVICE_ETHERNET = 'ethernet'
+DEVICE_HEATPUMP = 'heatpump'
+DEVICE_MOUSEDETECTION = 'mousedetection'
+DEVICE_SMARTCAM = 'smartcam'
+DEVICE_SMARTPLUG = 'smartplug'
+DEVICE_VACATIONMODE = 'vacationmode'
+
+SMARTPLUG_ON = 'on'
+SMARTPLUG_OFF = 'off'
+ALARM_ARMED_HOME = 'ARMED_HOME'
+ALARM_ARMED_AWAY = 'ARMED_AWAY'
+ALARM_DISARMED = 'DISARMED'
+
 # this import is depending on python version
 try:
     import HTMLParser
@@ -18,14 +33,14 @@ URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
 URL_START = DOMAIN + '/uk/start.html'
 
 OVERVIEW_URL = {
-    'alarm': DOMAIN + '/remotecontrol',
-    'climate': DOMAIN + '/overview/climatedevice',
-    'ethernet': DOMAIN + '/overview/ethernetstatus',
-    'heatpump': DOMAIN + '/overview/heatpump',
-    'mousedetection': DOMAIN + '/overview/mousedetection',
-    'smartcam': DOMAIN + '/overview/smartcam',
-    'smartplug': DOMAIN + '/overview/smartplug',
-    'vacationmode': DOMAIN + '/overview/vacationmode',
+    DEVICE_ALARM: DOMAIN + '/remotecontrol',
+    DEVICE_CLIMATE: DOMAIN + '/overview/climatedevice',
+    DEVICE_ETHERNET: DOMAIN + '/overview/ethernetstatus',
+    DEVICE_HEATPUMP: DOMAIN + '/overview/heatpump',
+    DEVICE_MOUSEDETECTION: DOMAIN + '/overview/mousedetection',
+    DEVICE_SMARTCAM: DOMAIN + '/overview/smartcam',
+    DEVICE_SMARTPLUG: DOMAIN + '/overview/smartplug',
+    DEVICE_VACATIONMODE: DOMAIN + '/overview/vacationmode',
     }
 
 
@@ -34,17 +49,11 @@ def get_overviews():
     return OVERVIEW_URL.keys()
 
 COMMAND_URL = {
-    'alarm': DOMAIN + '/remotecontrol/armstatechange.cmd',
-    'smartplug': DOMAIN + '/smartplugs/onoffplug.cmd'
+    DEVICE_ALARM: DOMAIN + '/remotecontrol/armstatechange.cmd',
+    DEVICE_SMARTPLUG: DOMAIN + '/smartplugs/onoffplug.cmd'
     }
 
 RESPONSE_TIMEOUT = 3
-
-SMARTPLUG_ON = 'on'
-SMARTPLUG_OFF = 'off'
-ALARM_ARMED_HOME = 'ARMED_HOME'
-ALARM_ARMED_AWAY = 'ARMED_AWAY'
-ALARM_DISARMED = 'DISARMED'
 
 CSRF_REGEX = re.compile(
     r'\<input type="hidden" name="_csrf" value="' +
