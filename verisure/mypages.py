@@ -125,7 +125,7 @@ class MyPages(object):
             'targetDeviceLabel': device_id,
             'targetOn': value
             }
-        self._set_status(_COMMAND_URL['smartplug'], data)
+        self._set_status(MyPages.COMMAND_URL[MyPages.DEVICE_SMARTPLUG], data)
 
     def set_alarm_status(self, code, state):
         """ set status of alarm component """
@@ -133,7 +133,7 @@ class MyPages(object):
             'code': code,
             'state': state
             }
-        self._set_status(COMMAND_URL['alarm'], data)
+        self._set_status(MyPages.COMMAND_URL[MyPages.DEVICE_ALARM], data)
 
     def _set_status(self, url, data):
         """ set status of a component """
@@ -144,15 +144,19 @@ class MyPages(object):
             headers={'X-CSRF-TOKEN': self._get_csrf()},
             data=data
             ).prepare()
-        response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
+        response = self._session.send(
+            req,
+            timeout=MyPages.RESPONSE_TIMEOUT)
         validate_response(response)
         return response.text
 
     def _get_csrf(self):
         """ Retreive X-CSRF-TOKEN from start.html """
-        response = self._session.get(URL_START, timeout=RESPONSE_TIMEOUT)
+        response = self._session.get(
+                MyPages.URL_START,
+                timeout=MyPages.RESPONSE_TIMEOUT)
         validate_response(response)
-        match = CSRF_REGEX.search(response.text)
+        match = MyPages.CSRF_REGEX.search(response.text)
         return match.group('csrf')
 
 
