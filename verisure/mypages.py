@@ -5,21 +5,6 @@ API to communicate with mypages
 import requests
 import re
 
-DEVICE_ALARM = 'alarm'
-DEVICE_CLIMATE = 'climate'
-DEVICE_ETHERNET = 'ethernet'
-DEVICE_HEATPUMP = 'heatpump'
-DEVICE_MOUSEDETECTION = 'mousedetection'
-DEVICE_SMARTCAM = 'smartcam'
-DEVICE_SMARTPLUG = 'smartplug'
-DEVICE_VACATIONMODE = 'vacationmode'
-
-SMARTPLUG_ON = 'on'
-SMARTPLUG_OFF = 'off'
-ALARM_ARMED_HOME = 'ARMED_HOME'
-ALARM_ARMED_AWAY = 'ARMED_AWAY'
-ALARM_DISARMED = 'DISARMED'
-
 # this import is depending on python version
 try:
     import HTMLParser
@@ -28,39 +13,6 @@ except ImportError:
     import html
     UNESCAPE = html.unescape
 
-DOMAIN = 'https://mypages.verisure.com'
-URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
-URL_START = DOMAIN + '/uk/start.html'
-
-OVERVIEW_URL = {
-    DEVICE_ALARM: DOMAIN + '/remotecontrol',
-    DEVICE_CLIMATE: DOMAIN + '/overview/climatedevice',
-    DEVICE_ETHERNET: DOMAIN + '/overview/ethernetstatus',
-    DEVICE_HEATPUMP: DOMAIN + '/overview/heatpump',
-    DEVICE_MOUSEDETECTION: DOMAIN + '/overview/mousedetection',
-    DEVICE_SMARTCAM: DOMAIN + '/overview/smartcam',
-    DEVICE_SMARTPLUG: DOMAIN + '/overview/smartplug',
-    DEVICE_VACATIONMODE: DOMAIN + '/overview/vacationmode',
-    }
-
-
-def get_overviews():
-    ''' return a list of avalible overviews '''
-    return OVERVIEW_URL.keys()
-
-COMMAND_URL = {
-    DEVICE_ALARM: DOMAIN + '/remotecontrol/armstatechange.cmd',
-    DEVICE_SMARTPLUG: DOMAIN + '/smartplugs/onoffplug.cmd'
-    }
-
-RESPONSE_TIMEOUT = 3
-
-CSRF_REGEX = re.compile(
-    r'\<input type="hidden" name="_csrf" value="' +
-    r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
-    r'" /\>')
-
-
 class Error(Exception):
     ''' mypages error '''
     pass
@@ -68,6 +20,49 @@ class Error(Exception):
 
 class MyPages(object):
     """ Interface to verisure MyPages """
+    
+    DEVICE_ALARM = 'alarm'
+    DEVICE_CLIMATE = 'climate'
+    DEVICE_ETHERNET = 'ethernet'
+    DEVICE_HEATPUMP = 'heatpump'
+    DEVICE_MOUSEDETECTION = 'mousedetection'
+    DEVICE_SMARTCAM = 'smartcam'
+    DEVICE_SMARTPLUG = 'smartplug'
+    DEVICE_VACATIONMODE = 'vacationmode'
+
+    SMARTPLUG_ON = 'on'
+    SMARTPLUG_OFF = 'off'
+    ALARM_ARMED_HOME = 'ARMED_HOME'
+    ALARM_ARMED_AWAY = 'ARMED_AWAY'
+    ALARM_DISARMED = 'DISARMED'
+
+    DOMAIN = 'https://mypages.verisure.com'
+    URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
+    URL_START = DOMAIN + '/uk/start.html'
+
+    OVERVIEW_URL = {
+        DEVICE_ALARM: DOMAIN + '/remotecontrol',
+        DEVICE_CLIMATE: DOMAIN + '/overview/climatedevice',
+        DEVICE_ETHERNET: DOMAIN + '/overview/ethernetstatus',
+        DEVICE_HEATPUMP: DOMAIN + '/overview/heatpump',
+        DEVICE_MOUSEDETECTION: DOMAIN + '/overview/mousedetection',
+        DEVICE_SMARTCAM: DOMAIN + '/overview/smartcam',
+        DEVICE_SMARTPLUG: DOMAIN + '/overview/smartplug',
+        DEVICE_VACATIONMODE: DOMAIN + '/overview/vacationmode',
+        }
+
+    COMMAND_URL = {
+        DEVICE_ALARM: DOMAIN + '/remotecontrol/armstatechange.cmd',
+        DEVICE_SMARTPLUG: DOMAIN + '/smartplugs/onoffplug.cmd'
+        }
+
+    RESPONSE_TIMEOUT = 3
+
+    CSRF_REGEX = re.compile(
+        r'\<input type="hidden" name="_csrf" value="' +
+        r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
+        r'" /\>')
+
 
     def __init__(self, username, password):
         self._username = username
@@ -93,11 +88,11 @@ class MyPages(object):
             }
         req = requests.Request(
             'POST',
-            URL_LOGIN,
+            MyPages.URL_LOGIN,
             cookies=dict(self._session.cookies),
             data=auth
             ).prepare()
-        response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
+        response = self._session.send(req, timeout=MyPages.RESPONSE_TIMEOUT)
         validate_response(response)
 
     def logout(self):
@@ -109,7 +104,7 @@ class MyPages(object):
         """ Read all statuses of a device type """
         if not self._session:
             raise ConnectionError('Not logged in')
-        url = OVERVIEW_URL[overview_type]
+        url = MyPages.OVERVIEW_URL[overview_type]
         response = self._session.get(url)
         true, false = True, False
         status = eval(UNESCAPE(response.text))
@@ -119,7 +114,7 @@ class MyPages(object):
 
     def get_overview(self, overview):
         ''' Read overview from mypages '''
-        if overview not in get_overviews():
+        if overview not in MyPages.OVERVIEW_URL.keys():
             raise Error('overview {} not recognised'.format(
                 overview))
         return self._read_status(overview)
@@ -130,7 +125,7 @@ class MyPages(object):
             'targetDeviceLabel': device_id,
             'targetOn': value
             }
-        self._set_status(COMMAND_URL['smartplug'], data)
+        self._set_status(_COMMAND_URL['smartplug'], data)
 
     def set_alarm_status(self, code, state):
         """ set status of alarm component """

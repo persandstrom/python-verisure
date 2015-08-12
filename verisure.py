@@ -45,7 +45,16 @@ if __name__ == "__main__":
     get_parser.add_argument(
         'devices',
         nargs='+',
-        choices=get_overviews(),
+        choices=[
+            MyPages.DEVICE_ALARM,
+            MyPages.DEVICE_CLIMATE,
+            MyPages.DEVICE_ETHERNET,
+            MyPages.DEVICE_HEATPUMP,
+            MyPages.DEVICE_MOUSEDETECTION,
+            MyPages.DEVICE_SMARTCAM,
+            MyPages.DEVICE_SMARTPLUG,
+            MyPages.DEVICE_VACATIONMODE
+            ],
         help='Read status for device type',
         default=[])
 
@@ -59,7 +68,7 @@ if __name__ == "__main__":
 
     # Set smartplug
     set_smartplug = set_device.add_parser(
-        DEVICE_SMARTPLUG,
+        MyPages.DEVICE_SMARTPLUG,
         help='set smartplug value')
     set_smartplug.add_argument(
         'serial_number',
@@ -67,13 +76,13 @@ if __name__ == "__main__":
     set_smartplug.add_argument(
         'new_value',
         choices=[
-            SMARTPLUG_ON,
-            SMARTPLUG_OFF],
+            MyPages.SMARTPLUG_ON,
+            MyPages.SMARTPLUG_OFF],
         help='new value')
 
     # Set alarm
     set_alarm = set_device.add_parser(
-        DEVICE_ALARM,
+        MyPages.DEVICE_ALARM,
         help='set alarm status')
     set_alarm.add_argument(
         'code',
@@ -81,9 +90,9 @@ if __name__ == "__main__":
     set_alarm.add_argument(
         'new_status',
         choices=[
-            ALARM_ARMED_HOME,
-            ALARM_ARMED_AWAY,
-            ALARM_DISARMED],
+            MyPages.ALARM_ARMED_HOME,
+            MyPages.ALARM_ARMED_AWAY,
+            MyPages.ALARM_DISARMED],
         help='new status')
 
     args = parser.parse_args()
@@ -93,11 +102,11 @@ if __name__ == "__main__":
             for dev in args.devices:
                 print_overviews(verisure.get_overview(dev))
         if args.command == COMMAND_SET:
-            if args.device == DEVICE_SMARTPLUG:
+            if args.device == MyPages.DEVICE_SMARTPLUG:
                 verisure.set_smartplug_status(
                     args.serial_number,
                     args.new_value)
-            if args.device == DEVICE_ALARM:
+            if args.device == MyPages.DEVICE_ALARM:
                 verisure.set_alarm_status(
                     args.code,
                     args.new_status)
