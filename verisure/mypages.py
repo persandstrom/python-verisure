@@ -167,13 +167,11 @@ class Overview(object):
         self.__dict__.update(status)
         self._overview_type = overview_type
 
-    @property
-    def name(self):
+    def get_typename(self):
         ''' name of the overview type '''
         return self._overview_type
 
-    @property
-    def status(self):
+    def get_status(self):
         ''' return all status items as a list '''
         return [(key, value) for (key, value)
                 in self.__dict__.items() if not key.startswith('_')]

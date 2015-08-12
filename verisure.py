@@ -11,16 +11,16 @@ COMMAND_SET = 'set'
 
 def print_overviews(overviews):
     ''' print the status of a device '''
-    if not isinstance(overviews, list):
-        overview = overviews
-        print(overview.name)
-        for key, value in overview.status:
-            print('\t{}: {}'.format(key, value))
-        return
-    for overview in overviews:
-        print(overview.name)
-        for key, value in overview.status:
-            print('\t{}: {}'.format(key, value))
+    if isinstance(overviews, list):
+        for overview in overviews:
+            print_overview(overview)
+    else:
+        print_overview(overviews)
+
+def print_overview(overview):
+    print(overview.get_typename())
+    for key, value in overview.get_status():
+        print('\t{}: {}'.format(key, value))
 
 
 # pylint: disable=C0103
