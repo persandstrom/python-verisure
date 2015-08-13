@@ -3,7 +3,7 @@
 from __future__ import print_function
 import argparse
 
-from verisure import *
+from verisure import MyPages
 
 COMMAND_GET = 'get'
 COMMAND_SET = 'set'
@@ -16,6 +16,7 @@ def print_overviews(overviews):
             print_overview(overview)
     else:
         print_overview(overviews)
+
 
 def print_overview(overview):
     print(overview.get_typename())

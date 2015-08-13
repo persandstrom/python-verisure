@@ -13,14 +13,25 @@ except ImportError:
     import html
     UNESCAPE = html.unescape
 
+
 class Error(Exception):
     ''' mypages error '''
     pass
 
 
+class LoginError(Error):
+    ''' login failed '''
+    pass
+
+
+class ResponseError(Error):
+    ''' Enexcpected response '''
+    pass
+
+
 class MyPages(object):
     """ Interface to verisure MyPages """
-    
+
     DEVICE_ALARM = 'alarm'
     DEVICE_CLIMATE = 'climate'
     DEVICE_ETHERNET = 'ethernet'
@@ -63,7 +74,6 @@ class MyPages(object):
         r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
         r'" /\>')
 
-
     def __init__(self, username, password):
         self._username = username
         self._password = password
@@ -94,6 +104,9 @@ class MyPages(object):
             ).prepare()
         response = self._session.send(req, timeout=MyPages.RESPONSE_TIMEOUT)
         validate_response(response)
+        status = json_to_dict(response.text)
+        if not status['status'] == 'ok':
+            raise LoginError(status['message'])
 
     def logout(self):
         """ Ends session """
@@ -102,12 +115,10 @@ class MyPages(object):
 
     def _read_status(self, overview_type):
         """ Read all statuses of a device type """
-        if not self._session:
-            raise ConnectionError('Not logged in')
+        self._ensure_session()
         url = MyPages.OVERVIEW_URL[overview_type]
         response = self._session.get(url)
-        true, false = True, False
-        status = eval(UNESCAPE(response.text))
+        status = json_to_dict(response.text)
         if isinstance(status, list):
             return [Overview(overview_type, val) for val in status]
         return Overview(overview_type, status)
@@ -137,6 +148,7 @@ class MyPages(object):
 
     def _set_status(self, url, data):
         """ set status of a component """
+        self._ensure_session()
         req = requests.Request(
             'POST',
             url,
@@ -153,17 +165,29 @@ class MyPages(object):
     def _get_csrf(self):
         """ Retreive X-CSRF-TOKEN from start.html """
         response = self._session.get(
-                MyPages.URL_START,
-                timeout=MyPages.RESPONSE_TIMEOUT)
+            MyPages.URL_START,
+            timeout=MyPages.RESPONSE_TIMEOUT)
         validate_response(response)
         match = MyPages.CSRF_REGEX.search(response.text)
         return match.group('csrf')
+
+    def _ensure_session(self):
+        ''' ensures that a session is created '''
+        if not self._session:
+            raise Error('Session not started')
+
+
+# pylint: disable=W0612,W0123
+def json_to_dict(json):
+    ''' transform json with unicode characters to dict '''
+    true, false, null = True, False, None
+    return eval(UNESCAPE(json))
 
 
 def validate_response(response):
     """ Verify that response is OK """
     if response.status_code != 200:
-        raise ConnectionError(
+        raise ResponseError(
             'status code: {} - {}'.format(
                 response.status_code,
                 response.text))
