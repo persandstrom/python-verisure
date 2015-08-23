@@ -16,7 +16,6 @@ positional arguments:
     get       Read status of one or many device types
     set       Set status of a device
 ```
-## example
 
 ### Read alarm status
 
@@ -43,3 +42,24 @@ AlarmStatus
 ### Turn on smartplug 
 
 ``` python verisure.py user@example.com mypassword set smartplug '5AC2 4LXH' on ```
+
+## Module usage
+
+### Installation
+sudo pip install git+https://github.com/persandstrom/python-verisure.git
+
+
+### Read alarm status
+```
+import verisure
+
+myPages = verisure.MyPages('user@example.com', 'password')
+myPages.login()
+alarm_overview = myPages.get_overview(verisure.MyPages.DEVICE_ALARM)
+myPages.logout()
+print(alarm_overview[0].status)
+```
+
+
+
+
