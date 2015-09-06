@@ -25,7 +25,7 @@ class LoginError(Error):
 
 
 class ResponseError(Error):
-    ''' Enexcpected response '''
+    ''' Unexcpected response '''
     pass
 
 
