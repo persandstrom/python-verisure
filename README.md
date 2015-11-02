@@ -60,6 +60,12 @@ myPages.logout()
 print(alarm_overview[0].status)
 ```
 
-
-
-
+### Set alarm status
+```
+myPages = verisure.MyPages('user@example.com', 'password')
+myPages.login()
+myPages.set_alarm_status('1234', verisure.MyPages.ARMED_HOME)
+myPages.wait_while_pending()
+myPages.logout()
+print(alarm_overview[0].status)
+```
