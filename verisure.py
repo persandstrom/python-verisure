@@ -45,7 +45,7 @@ if __name__ == "__main__":
         help='Read status of one or many device types')
     get_parser.add_argument(
         'devices',
-        nargs='+',
+        nargs='*',
         choices=[
             MyPages.DEVICE_ALARM,
             MyPages.DEVICE_CLIMATE,
@@ -54,10 +54,10 @@ if __name__ == "__main__":
             MyPages.DEVICE_MOUSEDETECTION,
             MyPages.DEVICE_SMARTCAM,
             MyPages.DEVICE_SMARTPLUG,
-            MyPages.DEVICE_VACATIONMODE
+            MyPages.DEVICE_VACATIONMODE,
+            'all'
             ],
-        help='Read status for device type',
-        default=[])
+        help='Read status for device type')
 
     # Set command
     set_parser = commandsparser.add_parser(
@@ -100,8 +100,11 @@ if __name__ == "__main__":
 
     with MyPages(args.username, args.password) as verisure:
         if args.command == COMMAND_GET:
-            for dev in args.devices:
-                print_overviews(verisure.get_overview(dev))
+            if 'all' in args.devices:
+                print_overviews(verisure.get_overviews())
+            else:
+                for dev in args.devices:
+                    print_overviews(verisure.get_overview(dev))
         if args.command == COMMAND_SET:
             if args.device == MyPages.DEVICE_SMARTPLUG:
                 verisure.set_smartplug_status(

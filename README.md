@@ -35,6 +35,10 @@ AlarmStatus
 	name: Alex Poe
 ```
 
+### Read status from all devices
+
+``` python verisure.py user@example.com mypassword get all ```
+
 ### Disarm
 
 ``` python verisure.py user@example.com mypassword set alarm 1234 DISARMED ```
@@ -42,6 +46,7 @@ AlarmStatus
 ### Turn on smartplug 
 
 ``` python verisure.py user@example.com mypassword set smartplug '5AC2 4LXH' on ```
+
 
 ## Module usage
 
@@ -62,10 +67,21 @@ print(alarm_overview[0].status)
 
 ### Set alarm status
 ```
+import verisure
+
 myPages = verisure.MyPages('user@example.com', 'password')
 myPages.login()
 myPages.set_alarm_status('1234', verisure.MyPages.ARMED_HOME)
 myPages.wait_while_pending()
 myPages.logout()
-print(alarm_overview[0].status)
+```
+
+### Read status of all devices
+```
+import verisure
+
+myPages = verisure.MyPages('user@example.com', 'password')
+myPages.login()
+overviews = myPages.get_overviews()
+myPages.logout()
 ```

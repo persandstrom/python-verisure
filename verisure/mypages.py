@@ -46,6 +46,12 @@ class MyPages(object):
     DEVICE_SMARTPLUG = 'smartplug'
     DEVICE_VACATIONMODE = 'vacationmode'
 
+    ALL_DEVICES = [
+        DEVICE_ALARM, DEVICE_CLIMATE, DEVICE_ETHERNET, DEVICE_HEATPUMP,
+        DEVICE_MOUSEDETECTION, DEVICE_SMARTCAM, DEVICE_SMARTPLUG,
+        DEVICE_VACATIONMODE,
+        ]
+
     SMARTPLUG_ON = 'on'
     SMARTPLUG_OFF = 'off'
     ALARM_ARMED_HOME = 'ARMED_HOME'
@@ -138,7 +144,7 @@ class MyPages(object):
         status = _json_to_dict(response.text)
         if isinstance(status, list):
             return [Overview(overview_type, val) for val in status]
-        return Overview(overview_type, status)
+        return [Overview(overview_type, status)]
 
     def get_overview(self, overview):
         """ Read overview of a device type from mypages
@@ -152,10 +158,21 @@ class MyPages(object):
 
         """
 
-        if overview not in MyPages.OVERVIEW_URL.keys():
+        if overview not in MyPages.ALL_DEVICES:
             raise Error('overview {} not recognised'.format(
                 overview))
         return self._read_status(overview)
+
+    def get_overviews(self):
+        """ Read overviews of all device types from mypages
+            Returns: An array of overviews for all device types
+
+        """
+
+        overviews = []
+        for device in self.ALL_DEVICES:
+            overviews.extend(self._read_status(device))
+        return overviews
 
     def wait_while_pending(self, max_request_count=100):
         """ Wait for pending alarm to finish
