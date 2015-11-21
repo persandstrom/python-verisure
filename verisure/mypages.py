@@ -41,6 +41,7 @@ class MyPages(object):
     DEVICE_CLIMATE = 'climate'
     DEVICE_ETHERNET = 'ethernet'
     DEVICE_HEATPUMP = 'heatpump'
+    DEVICE_LOCK = 'lock'
     DEVICE_MOUSEDETECTION = 'mousedetection'
     DEVICE_SMARTCAM = 'smartcam'
     DEVICE_SMARTPLUG = 'smartplug'
@@ -48,8 +49,8 @@ class MyPages(object):
 
     ALL_DEVICES = [
         DEVICE_ALARM, DEVICE_CLIMATE, DEVICE_ETHERNET, DEVICE_HEATPUMP,
-        DEVICE_MOUSEDETECTION, DEVICE_SMARTCAM, DEVICE_SMARTPLUG,
-        DEVICE_VACATIONMODE,
+        DEVICE_LOCK, DEVICE_MOUSEDETECTION, DEVICE_SMARTCAM,
+        DEVICE_SMARTPLUG, DEVICE_VACATIONMODE,
         ]
 
     SMARTPLUG_ON = 'on'
@@ -57,6 +58,8 @@ class MyPages(object):
     ALARM_ARMED_HOME = 'ARMED_HOME'
     ALARM_ARMED_AWAY = 'ARMED_AWAY'
     ALARM_DISARMED = 'DISARMED'
+    LOCK_LOCKED = 'LOCKED'
+    LOCK_UNLOCKED = 'UNLOCKED'
 
     DOMAIN = 'https://mypages.verisure.com'
     URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
@@ -67,6 +70,7 @@ class MyPages(object):
         DEVICE_CLIMATE: DOMAIN + '/overview/climatedevice',
         DEVICE_ETHERNET: DOMAIN + '/overview/ethernetstatus',
         DEVICE_HEATPUMP: DOMAIN + '/overview/heatpump',
+        DEVICE_LOCK: DOMAIN + '/remotecontrol',
         DEVICE_MOUSEDETECTION: DOMAIN + '/overview/mousedetection',
         DEVICE_SMARTCAM: DOMAIN + '/overview/smartcam',
         DEVICE_SMARTPLUG: DOMAIN + '/overview/smartplug',
@@ -75,6 +79,7 @@ class MyPages(object):
 
     COMMAND_URL = {
         DEVICE_ALARM: DOMAIN + '/remotecontrol/armstatechange.cmd',
+        DEVICE_LOCK: DOMAIN + '/remotecontrol/lockunlock.cmd',
         DEVICE_SMARTPLUG: DOMAIN + '/smartplugs/onoffplug.cmd'
         }
 
@@ -202,7 +207,6 @@ class MyPages(object):
                 value (str): 'on' or 'off'
 
         """
-
         data = {
             'targetDeviceLabel': device_id,
             'targetOn': value
@@ -222,6 +226,22 @@ class MyPages(object):
             'state': state
             }
         self._post(MyPages.COMMAND_URL[MyPages.DEVICE_ALARM], data)
+
+    def set_lock_status(self, code, device_id, state):
+        """ set status of alarm component
+
+            Args:
+                code (str): Personal alarm code (four digits)
+                device_id (str): lock device id
+                state (str): 'LOCKED', or 'UNLOCKED'
+
+        """
+        data = {
+            'code': code,
+            'deviceLabel': device_id,
+            'state': state
+            }
+        self._post(MyPages.COMMAND_URL[MyPages.DEVICE_LOCK], data)
 
     def _post(self, url, data):
         """ set status of a component """

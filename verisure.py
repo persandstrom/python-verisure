@@ -51,6 +51,7 @@ if __name__ == "__main__":
             MyPages.DEVICE_CLIMATE,
             MyPages.DEVICE_ETHERNET,
             MyPages.DEVICE_HEATPUMP,
+            MyPages.DEVICE_LOCK,
             MyPages.DEVICE_MOUSEDETECTION,
             MyPages.DEVICE_SMARTCAM,
             MyPages.DEVICE_SMARTPLUG,
@@ -96,6 +97,23 @@ if __name__ == "__main__":
             MyPages.ALARM_DISARMED],
         help='new status')
 
+    # Set lock
+    set_lock = set_device.add_parser(
+        MyPages.DEVICE_LOCK,
+        help='set lock status')
+    set_lock.add_argument(
+        'code',
+        help='alarm code')
+    set_lock.add_argument(
+        'serial_number',
+        help='serial number')
+    set_lock.add_argument(
+        'new_status',
+        choices=[
+            MyPages.LOCK_LOCKED,
+            MyPages.LOCK_UNLOCKED],
+        help='new status')
+
     args = parser.parse_args()
 
     with MyPages(args.username, args.password) as verisure:
@@ -113,4 +131,9 @@ if __name__ == "__main__":
             if args.device == MyPages.DEVICE_ALARM:
                 verisure.set_alarm_status(
                     args.code,
+                    args.new_status)
+            if args.device == MyPages.DEVICE_LOCK:
+                verisure.set_lock_status(
+                    args.code,
+                    args.serial_number,
                     args.new_status)
