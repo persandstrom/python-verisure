@@ -1,6 +1,17 @@
 # python-verisure
 A python module for reading and changing status of verisure devices through mypages. Compatible with both Python2.7 and Python3.
 
+### supported devices:
+    alarm (get, set)
+    climate (get)
+    ethernet (get)
+    heatpump (get)
+    lock (get, set)
+    mousedetection (get)
+    smartcam (get)
+    smartplug (get, set)
+    vacationmode (get)
+
 
 ## Command line usage
 
@@ -24,7 +35,7 @@ positional arguments:
 output:
 
 ```
-AlarmStatus
+alarm
 	status: unarmed
 	notAllowedReason: 
 	changeAllowed: True
@@ -55,12 +66,14 @@ sudo pip install git+https://github.com/persandstrom/python-verisure.git
 
 
 ### Read alarm status
+
+
 ```
 import verisure
 
 myPages = verisure.MyPages('user@example.com', 'password')
 myPages.login()
-alarm_overview = myPages.get_overview(verisure.MyPages.DEVICE_ALARM)
+alarm_overview = myPages.alarm.get()
 myPages.logout()
 print(alarm_overview[0].status)
 ```
@@ -71,8 +84,18 @@ import verisure
 
 myPages = verisure.MyPages('user@example.com', 'password')
 myPages.login()
-myPages.set_alarm_status('1234', verisure.MyPages.ARMED_HOME)
-myPages.wait_while_pending()
+myPages.alarm.set('1234', verisure.ALARM_ARMED_HOME)
+myPages.alarm.wait_while_pending()
+myPages.logout()
+```
+
+### Turn on smartplug
+```
+import verisure
+
+myPages = verisure.MyPages('user@example.com', 'password')
+myPages.login()
+myPages.alarm.set('1A2B 3C4D', verisure.SMARTPLUG_ON)
 myPages.logout()
 ```
 

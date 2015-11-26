@@ -62,8 +62,8 @@ class Session(object):
             data=auth
             ).prepare()
         response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
-        validate_response(response)
-        status = _json_to_dict(response.text)
+        self.validate_response(response)
+        status = self.json_to_dict(response.text)
         if not status['status'] == 'ok':
             raise LoginError(status['message'])
 
@@ -82,7 +82,7 @@ class Session(object):
 
         self._ensure_session()
         response = self._session.get(DOMAIN + url)
-        return _json_to_dict(response.text)
+        return self.json_to_dict(response.text)
 
     def post(self, url, data):
         """ set status of a component """
@@ -98,7 +98,7 @@ class Session(object):
         response = self._session.send(
             req,
             timeout=RESPONSE_TIMEOUT)
-        validate_response(response)
+        self.validate_response(response)
         return response.text
 
     def _get_csrf(self):
@@ -107,7 +107,7 @@ class Session(object):
         response = self._session.get(
             URL_START,
             timeout=RESPONSE_TIMEOUT)
-        validate_response(response)
+        self.validate_response(response)
         match = CSRF_REGEX.search(response.text)
         return match.group('csrf')
 
@@ -117,18 +117,21 @@ class Session(object):
         if not self._session:
             raise Error('Session not started')
 
-def validate_response(response):
-    """ Verify that response is OK """
+    # pylint: disable=W0612,W0123
+    @staticmethod
+    def json_to_dict(json):
+        ''' transform json with unicode characters to dict '''
 
-    if response.status_code != 200:
-        raise ResponseError(
-            'status code: {} - {}'.format(
-                response.status_code,
-                response.text))
+        true, false, null = True, False, None
+        return eval(UNESCAPE(json))
 
-# pylint: disable=W0612,W0123
-def _json_to_dict(json):
-    ''' transform json with unicode characters to dict '''
+    @staticmethod
+    def validate_response(response):
+        """ Verify that response is OK """
 
-    true, false, null = True, False, None
-    return eval(UNESCAPE(json))
+        if response.status_code != 200:
+            raise ResponseError(
+                'status code: {} - {}'.format(
+                    response.status_code,
+                    response.text))
+

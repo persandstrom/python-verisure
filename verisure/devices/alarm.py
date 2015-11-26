@@ -15,10 +15,6 @@ class Alarm(object):
         session (verisure.session): current session
     """
 
-    ALARM_ARMED_HOME = 'ARMED_HOME'
-    ALARM_ARMED_AWAY = 'ARMED_AWAY'
-    ALARM_DISARMED = 'DISARMED'
-
     def __init__(self, session):
         self._session = session
 
@@ -48,16 +44,16 @@ class Alarm(object):
             Args:
                 max_request_count (int): maximum number of post requests
 
-            Returns: True if success eler False
+            Returns: retries if success else -1
 
         """
 
         for counter in range(max_request_count):
             data = {'counter': counter}
-            response = self._session.send(CHECK_STATE, data)
-            if 'hasResult' not in response:
+            response = self._session.json_to_dict(self._session.post(CHECK_STATE, data))
+            if 'hasResult' not in response or not response['hasResult']:
                 break
-            if 'hasPending' not in response:
-                return True
+            if 'hasPending' in response and not response['hasPending']:
+                return counter
             counter = counter + 1
-        return False
+        return -1

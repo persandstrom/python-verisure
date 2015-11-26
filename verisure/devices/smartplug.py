@@ -15,9 +15,6 @@ class Smartplug(object):
         session (verisure.session): Current session
     """
 
-    SMARTPLUG_ON = 'on'
-    SMARTPLUG_OFF = 'off'
-
     def __init__(self, session):
         self._session = session
 

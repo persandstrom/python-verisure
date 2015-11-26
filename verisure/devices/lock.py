@@ -14,8 +14,6 @@ class Lock(object):
     Args:
         session (verisure.session): Current session
     """
-    LOCK_LOCKED = 'LOCKED'
-    LOCK_UNLOCKED = 'UNLOCKED'
 
     def __init__(self, session):
         self._session = session
