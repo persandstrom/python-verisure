@@ -1,0 +1,52 @@
+from .overview import Overview
+
+OVERVIEW_URL = '/remotecontrol'
+COMMAND_URL = '/remotecontrol/armstatechange.cmd'
+CHECK_STATE = '/remotecontrol/checkstate.cmd'
+
+class Alarm(object):
+
+    ALARM_ARMED_HOME = 'ARMED_HOME'
+    ALARM_ARMED_AWAY = 'ARMED_AWAY'
+    ALARM_DISARMED = 'DISARMED'
+
+    def __init__(self, session):
+        self._session = session
+
+    def get(self):
+        status = self._session.get(OVERVIEW_URL)
+        return [Overview('alarm', val) for val in status]
+
+    def set(self, code, state):
+        """ set status of alarm component
+
+            Args:
+                code (str): Personal alarm code (four digits)
+                state (str): 'ARMED_HOME', 'ARMED_AWAY' or 'DISARMED'
+
+        """
+        data = {
+            'code': code,
+            'state': state
+            }
+        return not self._session.post(COMMAND_URL, data)
+
+    def wait_while_pending(self, max_request_count=100):
+        """ Wait for pending alarm to finish
+
+            Args:
+                max_request_count (int): maximum number of post requests
+
+            Returns: True if success eler False
+
+        """
+
+        for counter in range(max_request_count):
+            data = {'counter': counter}
+            response = self._session.send(CHECK_STATE, data)
+            if 'hasResult' not in response:
+                break
+            if 'hasPending' not in response:
+                return True
+            counter = counter + 1
+        return False

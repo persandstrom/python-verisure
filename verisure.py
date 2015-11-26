@@ -47,15 +47,15 @@ if __name__ == "__main__":
         'devices',
         nargs='*',
         choices=[
-            MyPages.DEVICE_ALARM,
-            MyPages.DEVICE_CLIMATE,
-            MyPages.DEVICE_ETHERNET,
-            MyPages.DEVICE_HEATPUMP,
-            MyPages.DEVICE_LOCK,
-            MyPages.DEVICE_MOUSEDETECTION,
-            MyPages.DEVICE_SMARTCAM,
-            MyPages.DEVICE_SMARTPLUG,
-            MyPages.DEVICE_VACATIONMODE,
+            'alarm',
+            'climate',
+            'ethernet',
+            'heatpump',
+            'lock',
+            'mousedetection',
+            'smartcam',
+            'smartplug',
+            'vacationmode',
             'all'
             ],
         help='Read status for device type')
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     # Set smartplug
     set_smartplug = set_device.add_parser(
-        MyPages.DEVICE_SMARTPLUG,
+        'smartplug',
         help='set smartplug value')
     set_smartplug.add_argument(
         'serial_number',
@@ -78,13 +78,13 @@ if __name__ == "__main__":
     set_smartplug.add_argument(
         'new_value',
         choices=[
-            MyPages.SMARTPLUG_ON,
-            MyPages.SMARTPLUG_OFF],
+            'on',
+            'off'],
         help='new value')
 
     # Set alarm
     set_alarm = set_device.add_parser(
-        MyPages.DEVICE_ALARM,
+        'alarm',
         help='set alarm status')
     set_alarm.add_argument(
         'code',
@@ -92,14 +92,14 @@ if __name__ == "__main__":
     set_alarm.add_argument(
         'new_status',
         choices=[
-            MyPages.ALARM_ARMED_HOME,
-            MyPages.ALARM_ARMED_AWAY,
-            MyPages.ALARM_DISARMED],
+            'ARMED_HOME',
+            'ARMED_AWAY',
+            'DISARMED'],
         help='new status')
 
     # Set lock
     set_lock = set_device.add_parser(
-        MyPages.DEVICE_LOCK,
+        'lock',
         help='set lock status')
     set_lock.add_argument(
         'code',
@@ -110,8 +110,8 @@ if __name__ == "__main__":
     set_lock.add_argument(
         'new_status',
         choices=[
-            MyPages.LOCK_LOCKED,
-            MyPages.LOCK_UNLOCKED],
+            'LOCKED',
+            'UNLOCKED'],
         help='new status')
 
     args = parser.parse_args()
@@ -122,18 +122,18 @@ if __name__ == "__main__":
                 print_overviews(verisure.get_overviews())
             else:
                 for dev in args.devices:
-                    print_overviews(verisure.get_overview(dev))
+                    print_overviews(verisure.__dict__[dev].get())
         if args.command == COMMAND_SET:
-            if args.device == MyPages.DEVICE_SMARTPLUG:
-                verisure.set_smartplug_status(
+            if args.device == 'smartplug':
+                print(verisure.smartplug.set(
                     args.serial_number,
-                    args.new_value)
-            if args.device == MyPages.DEVICE_ALARM:
-                verisure.set_alarm_status(
+                    args.new_value))
+            if args.device == 'alarm':
+                print(verisure.alarm.set(
                     args.code,
-                    args.new_status)
-            if args.device == MyPages.DEVICE_LOCK:
-                verisure.set_lock_status(
+                    args.new_status))
+            if args.device == 'lock':
+                print(verisure.lock.set(
                     args.code,
                     args.serial_number,
-                    args.new_status)
+                    args.new_status))

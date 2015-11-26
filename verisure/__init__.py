@@ -7,11 +7,13 @@ __all__ = [
     'Error',
     'LoginError',
     'ResponseError',
-    'MyPages'
+    'MyPages',
+    'Session',
     ]
 
-from .mypages import (
+from .mypages import MyPages
+from .session import (
+    Session,
     Error,
     LoginError,
-    ResponseError,
-    MyPages)
+    ResponseError)

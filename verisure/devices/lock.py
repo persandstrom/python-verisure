@@ -1,0 +1,33 @@
+from .overview import Overview
+
+OVERVIEW_URL = '/remotecontrol'
+COMMAND_URL = '/remotecontrol/lockunlock.cmd'
+
+
+class Lock(object):
+    
+    LOCK_LOCKED = 'LOCKED'
+    LOCK_UNLOCKED = 'UNLOCKED'
+
+    def __init__(self, session):
+        self._session = session
+
+    def get(self):
+        status = self._session.get(OVERVIEW_URL)
+        return [Overview('lock', val) for val in status]
+
+    def set(self, code, device_id, state):
+        """ set status of alarm component
+
+            Args:
+                code (str): Personal alarm code (four digits)
+                device_id (str): lock device id
+                state (str): 'LOCKED', or 'UNLOCKED'
+
+        """
+        data = {
+            'code': code,
+            'deviceLabel': device_id,
+            'state': state
+            }
+        return not self._session.post(COMMAND_URL, data)
