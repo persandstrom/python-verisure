@@ -10,7 +10,7 @@ COMMAND_SET = 'set'
 
 
 def print_overviews(overviews):
-    ''' print the status of a device '''
+    ''' print the overviews of devices '''
     if isinstance(overviews, list):
         for overview in overviews:
             print_overview(overview)
@@ -19,6 +19,7 @@ def print_overviews(overviews):
 
 
 def print_overview(overview):
+    """ print the overview of a device """
     print(overview.get_typename())
     for key, value in overview.get_status():
         print('\t{}: {}'.format(key, value))
