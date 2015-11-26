@@ -95,7 +95,7 @@ import verisure
 
 myPages = verisure.MyPages('user@example.com', 'password')
 myPages.login()
-myPages.alarm.set('1A2B 3C4D', verisure.SMARTPLUG_ON)
+myPages.smartplug.set('1A2B 3C4D', verisure.SMARTPLUG_ON)
 myPages.logout()
 ```
 
