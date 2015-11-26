@@ -1,10 +1,19 @@
+"""
+Alarm device
+"""
 from .overview import Overview
 
 OVERVIEW_URL = '/remotecontrol'
 COMMAND_URL = '/remotecontrol/armstatechange.cmd'
 CHECK_STATE = '/remotecontrol/checkstate.cmd'
 
+
 class Alarm(object):
+    """ Alarm device
+
+    Args:
+        session (verisure.session): current session
+    """
 
     ALARM_ARMED_HOME = 'ARMED_HOME'
     ALARM_ARMED_AWAY = 'ARMED_AWAY'
@@ -14,8 +23,10 @@ class Alarm(object):
         self._session = session
 
     def get(self):
+        """ get device overview """
         status = self._session.get(OVERVIEW_URL)
-        return [Overview('alarm', val) for val in status]
+        return [Overview('alarm', val) for val in status
+                if val['type'] == 'ARM_STATE']
 
     def set(self, code, state):
         """ set status of alarm component

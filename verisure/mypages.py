@@ -17,7 +17,7 @@ class MyPages(object):
 
     def __init__(self, username, password):
         self._session = Session(username, password)
-        
+
         self.alarm = devices.Alarm(self._session)
         self.climate = devices.Climate(self._session)
         self.ethernet = devices.Ethernet(self._session)
@@ -46,6 +46,7 @@ class MyPages(object):
         self._session.login()
 
     def get_overviews(self):
+        """ Get overviews from all devices """
         overviews = []
         overviews.extend(self.alarm.get())
         overviews.extend(self.climate.get())

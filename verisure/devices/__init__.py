@@ -1,5 +1,7 @@
+""" submodule containing supported devices """
+
 __all__ = [
-    'Alarn',
+    'Alarm',
     'Climate',
     'Ethernet',
     'Heatpump',

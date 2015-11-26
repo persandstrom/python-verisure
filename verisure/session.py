@@ -1,3 +1,5 @@
+""" Represents a MyPages session """
+
 import re
 import requests
 
@@ -15,9 +17,9 @@ URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
 URL_START = DOMAIN + '/uk/start.html'
 RESPONSE_TIMEOUT = 3
 CSRF_REGEX = re.compile(
-        r'\<input type="hidden" name="_csrf" value="' +
-        r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
-        r'" /\>')
+    r'\<input type="hidden" name="_csrf" value="' +
+    r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
+    r'" /\>')
 
 class Error(Exception):
     ''' mypages error '''
@@ -35,13 +37,13 @@ class ResponseError(Error):
 
 
 class Session(object):
-    
+    """ Verisure session """
     def __init__(self, username, password):
         self._session = None
         self._username = username
         self._password = password
         self._csrf = ''
-    
+
     def login(self):
         """ Login to mypages
 
@@ -74,8 +76,7 @@ class Session(object):
         """
         self._session.close()
         self._session = None
-    
-    
+
     def get(self, url):
         """ Read all statuses of a device type """
 

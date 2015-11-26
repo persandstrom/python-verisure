@@ -1,3 +1,7 @@
+"""
+Lock device
+"""
+
 from .overview import Overview
 
 OVERVIEW_URL = '/remotecontrol'
@@ -5,7 +9,11 @@ COMMAND_URL = '/remotecontrol/lockunlock.cmd'
 
 
 class Lock(object):
-    
+    """ Lock device
+
+    Args:
+        session (verisure.session): Current session
+    """
     LOCK_LOCKED = 'LOCKED'
     LOCK_UNLOCKED = 'UNLOCKED'
 
@@ -13,8 +21,10 @@ class Lock(object):
         self._session = session
 
     def get(self):
+        """ Get device overview """
         status = self._session.get(OVERVIEW_URL)
-        return [Overview('lock', val) for val in status]
+        return [Overview('lock', val) for val in status
+                if val['type'] == 'DOOR_LOCK']
 
     def set(self, code, device_id, state):
         """ set status of alarm component

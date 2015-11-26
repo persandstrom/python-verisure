@@ -1,3 +1,8 @@
+"""
+Overview of device, deynamically created from the device attributes
+"""
+
+
 class Overview(object):
     ''' mypages device overview
 

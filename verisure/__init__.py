@@ -8,12 +8,10 @@ __all__ = [
     'LoginError',
     'ResponseError',
     'MyPages',
-    'Session',
     ]
 
 from .mypages import MyPages
 from .session import (
-    Session,
     Error,
     LoginError,
     ResponseError)
