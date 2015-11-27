@@ -63,7 +63,11 @@ class Session(object):
             ).prepare()
         response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
         self.validate_response(response)
-        status = self.json_to_dict(response.text)
+        status = None
+        try:
+            status = self.json_to_dict(response.text)
+        except:
+            raise LoginError('Login failed, myPages might be down')
         if not status['status'] == 'ok':
             raise LoginError(status['message'])
 
