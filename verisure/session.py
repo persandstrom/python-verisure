@@ -21,6 +21,7 @@ CSRF_REGEX = re.compile(
     r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
     r'" /\>')
 
+
 class Error(Exception):
     ''' mypages error '''
     pass
@@ -70,6 +71,7 @@ class Session(object):
             raise LoginError('Login failed, myPages might be down')
         if not status['status'] == 'ok':
             raise LoginError(status['message'])
+        self._csrf = self._get_csrf()
 
     def logout(self):
         """ Ends session
@@ -96,7 +98,7 @@ class Session(object):
             'POST',
             DOMAIN + url,
             cookies=dict(self._session.cookies),
-            headers={'X-CSRF-TOKEN': self._get_csrf()}, #  WHY DO THIS EVERY TIME??
+            headers={'X-CSRF-TOKEN': self._csrf},
             data=data
             ).prepare()
         response = self._session.send(

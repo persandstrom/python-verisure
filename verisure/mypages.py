@@ -14,7 +14,6 @@ class MyPages(object):
         password (str): Password used to log in to mypages
     """
 
-
     def __init__(self, username, password):
         self._session = Session(username, password)
 
@@ -58,7 +57,6 @@ class MyPages(object):
         overviews.extend(self.smartplug.get())
         overviews.extend(self.vacationmode.get())
         return overviews
-
 
     def logout(self):
         """ Ends session
