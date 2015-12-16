@@ -37,6 +37,21 @@ class ResponseError(Error):
     pass
 
 
+class LoggedOutError(ResponseError):
+    ''' Unexcpected response '''
+    pass
+
+
+class TemporarilyUnavailableError(ResponseError):
+    ''' My Pages is temporarily unavailable '''
+    pass
+
+
+class MaintenanceError(ResponseError):
+    ''' My Pages is currently in maintenance '''
+    pass
+
+
 class Session(object):
     """ Verisure session """
     def __init__(self, username, password):
@@ -87,7 +102,11 @@ class Session(object):
         """ Read all statuses of a device type """
 
         self._ensure_session()
-        response = self._session.get(DOMAIN + url)
+        try:
+            response = self._session.get(DOMAIN + url)
+        except Exception, e:
+            raise Error(e)
+        self.validate_response(response)
         return self.json_to_dict(response.text)
 
     def post(self, url, data):
@@ -129,15 +148,24 @@ class Session(object):
         ''' transform json with unicode characters to dict '''
 
         true, false, null = True, False, None
-        return eval(UNESCAPE(json))
+        try:
+            orgJson = json.encode('utf-8')
+            return eval(UNESCAPE(json))
+        except Exception, e:
+            raise ResponseError('Unable to convert to JSON, Error: {0} - Data: {1}'.format(e, orgJson))
 
     @staticmethod
     def validate_response(response):
         """ Verify that response is OK """
-
+        if "<title>My Pages is temporarily unavailable -  Verisure</title>" in response.text:
+            raise TemporarilyUnavailableError('Temporarily unavailable')
+        elif "<title>My Pages - Maintenance -  Verisure</title>" in response.text:
+            raise MaintenanceError('Maintenance')
+        elif "<title>Choose country - My Pages - Verisure</title>" in response.text:
+            raise LoggedOutError('Not logged in')
         if response.status_code != 200:
             raise ResponseError(
-                'status code: {} - {}'.format(
+                'Unable to validate response form My Pages, status code: {0} - Data: {1}'.format(
                     response.status_code,
-                    response.text))
+                    response.text.encode('utf-8')))
 
