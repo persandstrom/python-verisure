@@ -5,19 +5,23 @@ mypages.
 
 __all__ = [
     'Error',
+    'LoggedOutError',
     'LoginError',
-    'ResponseError',
+    'MaintenanceError',
     'MyPages',
+    'ResponseError',
+    'TemporarilyUnavailableError',
     ]
 
 from .mypages import MyPages
 from .session import (
     Error,
-    LoginError,
-    ResponseError,
     LoggedOutError,
+    LoginError,
+    MaintenanceError,
+    ResponseError,
     TemporarilyUnavailableError,
-    MaintenanceError)
+    )
 
 
 ALARM_ARMED_HOME = 'ARMED_HOME'

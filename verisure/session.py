@@ -57,7 +57,7 @@ class MaintenanceError(ResponseError):
 
 class Session(object):
     """ Verisure session """
-    
+
     def __init__(self, username, password):
         self._session = None
         self._username = username
@@ -151,7 +151,7 @@ class Session(object):
     def json_to_dict(json):
         ''' transform json with unicode characters to dict '''
 
-        true, false, null = True, False, None
+        true, false, null = True, False, None  # noqa
         try:
             orgJson = json.encode('utf-8')
             return eval(UNESCAPE(json))
@@ -162,7 +162,8 @@ class Session(object):
                     raise TemporarilyUnavailableError('Temporarily unavailable')
                 elif match.group('title') == u'My Pages - Maintenance -  Verisure':
                     raise MaintenanceError('Maintenance')
-                elif match.group('title') == u'Choose country - My Pages - Verisure' or match.group('title') == u'Log in - My Pages - Verisure':
+                elif (match.group('title') == u'Choose country - My Pages - Verisure' or
+                      match.group('title') == u'Log in - My Pages - Verisure'):
                     raise LoggedOutError('Not logged in')
                 else:
                     raise ResponseError(match.group('title'))
@@ -179,7 +180,8 @@ class Session(object):
                     raise TemporarilyUnavailableError('Temporarily unavailable')
                 elif match.group('title') == u'My Pages - Maintenance -  Verisure':
                     raise MaintenanceError('Maintenance')
-                elif match.group('title') == u'Choose country - My Pages - Verisure' or match.group('title') == u'Log in - My Pages - Verisure':
+                elif (match.group('title') == u'Choose country - My Pages - Verisure' or
+                      match.group('title') == u'Log in - My Pages - Verisure'):
                     raise LoggedOutError('Not logged in')
                 else:
                     raise ResponseError(match.group('title'))
