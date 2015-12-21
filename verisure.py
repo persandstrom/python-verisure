@@ -1,6 +1,7 @@
 """ Command line interface for Verisure MyPages """
 
 from __future__ import print_function
+
 import argparse
 
 from verisure import MyPages

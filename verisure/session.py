@@ -1,6 +1,7 @@
 """ Represents a MyPages session """
 
 import re
+
 import requests
 
 # this import is depending on python version
@@ -56,6 +57,7 @@ class MaintenanceError(ResponseError):
 
 class Session(object):
     """ Verisure session """
+
     def __init__(self, username, password):
         self._session = None
         self._username = username
@@ -81,11 +83,7 @@ class Session(object):
             ).prepare()
         response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
         self.validate_response(response)
-        status = None
-        try:
-            status = self.json_to_dict(response.text)
-        except:
-            raise LoginError('Login failed, myPages might be down')
+        status = self.json_to_dict(response.text)
         if not status['status'] == 'ok':
             raise LoginError(status['message'])
         self._csrf = self._get_csrf()
@@ -149,7 +147,7 @@ class Session(object):
     def json_to_dict(json):
         ''' transform json with unicode characters to dict '''
 
-        true, false, null = True, False, None
+        true, false, null = True, False, None  # noqa
         try:
             orgJson = json.encode('utf-8')
             return eval(UNESCAPE(json))
@@ -160,7 +158,8 @@ class Session(object):
                     raise TemporarilyUnavailableError('Temporarily unavailable')
                 elif match.group('title') == u'My Pages - Maintenance -  Verisure':
                     raise MaintenanceError('Maintenance')
-                elif match.group('title') == u'Choose country - My Pages - Verisure' or match.group('title') == u'Log in - My Pages - Verisure':
+                elif (match.group('title') == u'Choose country - My Pages - Verisure' or
+                      match.group('title') == u'Log in - My Pages - Verisure'):
                     raise LoggedOutError('Not logged in')
                 else:
                     raise ResponseError(match.group('title'))
@@ -177,7 +176,8 @@ class Session(object):
                     raise TemporarilyUnavailableError('Temporarily unavailable')
                 elif match.group('title') == u'My Pages - Maintenance -  Verisure':
                     raise MaintenanceError('Maintenance')
-                elif match.group('title') == u'Choose country - My Pages - Verisure' or match.group('title') == u'Log in - My Pages - Verisure':
+                elif (match.group('title') == u'Choose country - My Pages - Verisure' or
+                      match.group('title') == u'Log in - My Pages - Verisure'):
                     raise LoggedOutError('Not logged in')
                 else:
                     raise ResponseError(match.group('title'))
@@ -185,4 +185,3 @@ class Session(object):
                 'Unable to validate response form My Pages, status code: {0} - Data: {1}'.format(
                     response.status_code,
                     response.text.encode('utf-8')))
-
