@@ -2,6 +2,7 @@
 Alarm device
 """
 from .overview import Overview
+import time
 
 OVERVIEW_URL = '/remotecontrol'
 COMMAND_URL = '/remotecontrol/armstatechange.cmd'
@@ -56,4 +57,5 @@ class Alarm(object):
             if 'hasPending' in response and not response['hasPending']:
                 return counter
             counter = counter + 1
+            time.sleep(1)
         return -1
