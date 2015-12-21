@@ -106,7 +106,7 @@ class Session(object):
         self._ensure_session()
         try:
             response = self._session.get(DOMAIN + url)
-        except Exception, e:
+        except Exception as e:
             raise Error(e)
         self.validate_response(response)
         return self.json_to_dict(response.text)
@@ -153,7 +153,7 @@ class Session(object):
         try:
             orgJson = json.encode('utf-8')
             return eval(UNESCAPE(json))
-        except Exception, e:
+        except Exception as e:
             match = TITLE_REGEX.search(orgJson)
             if match:
                 if match.group('title') == u'My Pages is temporarily unavailable -  Verisure':
