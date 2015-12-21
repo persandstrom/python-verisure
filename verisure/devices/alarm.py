@@ -2,6 +2,7 @@
 Alarm device
 """
 from .overview import Overview
+import time
 
 OVERVIEW_URL = '/remotecontrol'
 COMMAND_URL = '/remotecontrol/armstatechange.cmd'
@@ -51,9 +52,10 @@ class Alarm(object):
         for counter in range(max_request_count):
             data = {'counter': counter}
             response = self._session.json_to_dict(self._session.post(CHECK_STATE, data))
-            if 'hasResult' not in response or not response['hasResult']:
+            if 'hasResult' not in response:
                 break
             if 'hasPending' in response and not response['hasPending']:
                 return counter
             counter = counter + 1
+            time.sleep(1)
         return -1
