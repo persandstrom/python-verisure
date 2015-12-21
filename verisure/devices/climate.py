@@ -6,6 +6,7 @@ from .overview import Overview
 
 OVERVIEW_URL = '/overview/climatedevice'
 
+
 class Climate(object):
     """ Climate device
 
