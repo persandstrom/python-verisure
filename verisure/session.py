@@ -1,6 +1,7 @@
 """ Represents a MyPages session """
 
 import re
+
 import requests
 
 # this import is depending on python version
@@ -39,6 +40,7 @@ class ResponseError(Error):
 
 class Session(object):
     """ Verisure session """
+    
     def __init__(self, username, password):
         self._session = None
         self._username = username

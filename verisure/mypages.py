@@ -3,6 +3,7 @@ API to communicate with Verisure mypages
 """
 
 from verisure.session import Session
+
 import verisure.devices as devices
 
 

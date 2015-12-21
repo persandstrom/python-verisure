@@ -6,8 +6,7 @@ setup(
     name='python-verisure',
     version='0.3.3',
     description='read and change status of verisure devices through mypages.',
-    long_description=
-    'A module for reading and changing status of ' +
+    long_description='A module for reading and changing status of ' +
     'verisure devices through mypages. Compatible ' +
     'with both Python2.7 and Python3.',
     url='http://github.com/persandstrom/python-verisure',
