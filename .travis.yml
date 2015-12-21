@@ -5,12 +5,7 @@ python:
     - "3.3"
     - "3.4"
     - "3.5"
-matrix:
-    fast_finish: true
 install:
     - pip install -r requirements-dev.txt
 script:
-    - make test_coverage
-    - make flake8
-after_success:
-    - coveralls
+    flake8 *.py verisure
