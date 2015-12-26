@@ -62,7 +62,9 @@ alarm
 ## Module usage
 
 ### Installation
-sudo pip install git+https://github.com/persandstrom/python-verisure.git
+``` pip install vsure ```
+or
+``` pip install git+https://github.com/persandstrom/python-verisure.git ```
 
 
 ### Read alarm status

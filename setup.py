@@ -3,24 +3,26 @@
 from setuptools import setup
 
 setup(
-    name='python-verisure',
-    version='0.4.1',
-    description='read and change status of verisure devices through mypages.',
+    name='vsure',
+    version='0.4.3',
+    description='Read and change status of verisure devices through mypages.',
     long_description='A module for reading and changing status of ' +
     'verisure devices through mypages. Compatible ' +
     'with both Python2.7 and Python3.',
     url='http://github.com/persandstrom/python-verisure',
     author='Per Sandstrom',
+    author_email='per.j.sandstrom@gmail.com',
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'Topic :: Software Development :: Home Automation',
+        'Topic :: Home Automation',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         ],
     keywords='home automation verisure',
     install_requires=['requests>=2.0'],
