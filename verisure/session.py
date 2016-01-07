@@ -2,8 +2,6 @@
 
 import json
 
-import re
-
 from bs4 import BeautifulSoup
 
 import requests
@@ -13,12 +11,6 @@ DOMAIN = 'https://mypages.verisure.com'
 URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
 URL_START = DOMAIN + '/uk/start.html'
 RESPONSE_TIMEOUT = 3
-CSRF_REGEX = re.compile(
-    r'\<input type="hidden" name="_csrf" value="' +
-    r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
-    r'" /\>')
-
-# TITLE_REGEX = re.compile(r'\<title\>(?P<title>(.*))\</title\>')
 
 
 class Error(Exception):
@@ -129,8 +121,8 @@ class Session(object):
             URL_START,
             timeout=RESPONSE_TIMEOUT)
         self.validate_response(response)
-        match = CSRF_REGEX.search(response.text)
-        return match.group('csrf')
+        soup = BeautifulSoup(response.text, 'html.parser')
+        return soup.body.find(attrs={'name': '_csrf'})['value']
 
     def _ensure_session(self):
         ''' ensures that a session is created '''
