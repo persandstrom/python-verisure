@@ -1,2 +1,2 @@
 requests
-beautifulsoap4
+beautifulsoap4>=4.4.1
