@@ -88,7 +88,6 @@ class Session(object):
 
     def get(self, url):
         """ Read all statuses of a device type """
-
         self._ensure_session()
         try:
             response = self._session.get(DOMAIN + url)
@@ -99,7 +98,6 @@ class Session(object):
 
     def post(self, url, data):
         """ set status of a component """
-
         self._ensure_session()
         req = requests.Request(
             'POST',
@@ -116,7 +114,6 @@ class Session(object):
 
     def _get_csrf(self):
         """ Retreive X-CSRF-TOKEN from start.html """
-
         response = self._session.get(
             URL_START,
             timeout=RESPONSE_TIMEOUT)
@@ -126,7 +123,6 @@ class Session(object):
 
     def _ensure_session(self):
         ''' ensures that a session is created '''
-
         if not self._session:
             raise Error('Session not started')
 
