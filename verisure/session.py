@@ -1,12 +1,13 @@
 """ Represents a MyPages session """
 
+import json
+
 import re
 
-import json
+from bs4 import BeautifulSoup
 
 import requests
 
-from bs4 import BeautifulSoup
 
 DOMAIN = 'https://mypages.verisure.com'
 URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
