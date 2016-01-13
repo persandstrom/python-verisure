@@ -7,7 +7,7 @@ from .overview import Overview
 
 OVERVIEW_URL = '/overview/smartplug'
 COMMAND_URL = '/smartplugs/onoffplug.cmd'
-SETTING_URL = '/settings/smartplug'
+DETAILS_URL = '/smarthome/{}/details'
 
 
 class Smartplug(object):
@@ -38,11 +38,23 @@ class Smartplug(object):
             }
         return not self._session.post(COMMAND_URL, data)
 
-    def get_settings(self):
-        return self._session.get(SETTING_URL)
+    def get_details(self, device_id):
+        """ Get details from a smartplug
+
+        Args:
+            device_id (str): Id of the smartplug
+        """
+        return self._session.get(DETAILS_URL.format(
+            device_id.upper().replace(' ', '%20')))
 
     def set_location(self, device_id, location):
-        details_url = '/smarthome/{}/details'.format(
+        """ Set smartplug location
+
+        Args:
+            device_id (str): Id of the smartplug
+            location (str): New location
+        """
+        details_url = DETAILS_URL.format(
             device_id.upper().replace(' ', '%20'))
         details = self._session.get(details_url)
         details['location'] = location
