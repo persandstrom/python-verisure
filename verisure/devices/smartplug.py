@@ -7,6 +7,7 @@ from .overview import Overview
 
 OVERVIEW_URL = '/overview/smartplug'
 COMMAND_URL = '/smartplugs/onoffplug.cmd'
+SETTING_URL = '/settings/smartplug'
 
 
 class Smartplug(object):
@@ -36,6 +37,16 @@ class Smartplug(object):
             'targetOn': value
             }
         return not self._session.post(COMMAND_URL, data)
+
+    def get_settings(self):
+        return self._session.get(SETTING_URL)
+
+    def set_location(self, device_id, location):
+        details_url = '/smarthome/{}/details'.format(
+            device_id.upper().replace(' ', '%20'))
+        details = self._session.get(details_url)
+        details['location'] = location
+        self._session.put(details_url, details)
 
     def wait_while_updating(self, device_id, value, max_request_count=100):
         """ Wait for device status to update

@@ -97,7 +97,7 @@ class Session(object):
         return self.json_to_dict(response.text)
 
     def post(self, url, data):
-        """ set status of a component """
+        """ send post request """
         self._ensure_session()
         req = requests.Request(
             'POST',
@@ -105,6 +105,24 @@ class Session(object):
             cookies=dict(self._session.cookies),
             headers={'X-CSRF-TOKEN': self._csrf},
             data=data
+            ).prepare()
+        response = self._session.send(
+            req,
+            timeout=RESPONSE_TIMEOUT)
+        self.validate_response(response)
+        return response.text
+
+    def put(self, url, data):
+        """ send put request """
+        self._ensure_session()
+        req = requests.Request(
+            'PUT',
+            DOMAIN + url,
+            cookies=dict(self._session.cookies),
+            headers={
+                'X-CSRF-TOKEN': self._csrf,
+                'content-type': 'application/json'},
+            data=json.dumps(data)
             ).prepare()
         response = self._session.send(
             req,
