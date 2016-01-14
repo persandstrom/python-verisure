@@ -74,8 +74,8 @@ class Smartplug(object):
 
         for counter in range(max_request_count):
             if [overview for overview in self.get()
-                    if overview.id == device_id
-                    and overview.status == value]:
+                    if (overview.id == device_id
+                    and overview.status == value)]:
                 return counter
             time.sleep(1)
         return -1
