@@ -46,12 +46,17 @@ class Lock(object):
         return self._session.get(AUTORELOCK_URL)
 
     def set_autorelock(self, device_id, autorelock):
-        data = {
-            "_csrf": self._session.csrf,
-            "_doorLockDevices[0].autoRelockEnabled":
-                "on" if autorelock else "off",
-            "doorLockDevices[0].autoRelockEnabled":
-                "true" if autorelock else "false",
-            "enabledDoorLocks": device_id
-        }
+        if autorelock:
+            data = {
+                "_csrf": self._session.csrf,
+                "_doorLockDevices[0].autoRelockEnabled": "on",
+                "doorLockDevices[0].autoRelockEnabled": "true",
+                "enabledDoorLocks": device_id
+            }
+        else:
+            data = {
+                "_csrf": self._session.csrf,
+                "_doorLockDevices[0].autoRelockEnabled": "on",
+                "enabledDoorLocks": ""
+            }
         return not self._session.post(SETAUTORELOCK_URL, data)
