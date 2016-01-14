@@ -8,7 +8,6 @@ from verisure import MyPages
 
 COMMAND_GET = 'get'
 COMMAND_SET = 'set'
-COMMAND_SETTINGS = 'settings'
 
 
 def print_overviews(overviews):
@@ -62,17 +61,6 @@ if __name__ == "__main__":
             'all'
             ],
         help='Read status for device type')
-
-    # Settings command
-    get_parser = commandsparser.add_parser(
-        COMMAND_SETTINGS,
-        help='Read settings of a device types')
-    get_parser.add_argument(
-        'device',
-        choices=[
-            'smartplug',
-            ],
-        help='Read settings for device type')
 
     # Set command
     set_parser = commandsparser.add_parser(
@@ -137,8 +125,6 @@ if __name__ == "__main__":
             else:
                 for dev in args.devices:
                     print_overviews(verisure.__dict__[dev].get())
-        if args.command == COMMAND_SETTINGS:
-            print_overviews(verisure.__dict__[args.device].get_settings())
         if args.command == COMMAND_SET:
             if args.device == 'smartplug':
                 print(verisure.smartplug.set(
