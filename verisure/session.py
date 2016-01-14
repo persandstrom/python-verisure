@@ -50,7 +50,7 @@ class Session(object):
         self._session = None
         self._username = username
         self._password = password
-        self._csrf = ''
+        self.csrf = ''
 
     def login(self):
         """ Login to mypages
@@ -74,7 +74,7 @@ class Session(object):
         status = self.json_to_dict(response.text)
         if not status['status'] == 'ok':
             raise LoginError(status['message'])
-        self._csrf = self._get_csrf()
+        self.csrf = self._get_csrf()
 
     def logout(self):
         """ Ends session
@@ -103,7 +103,7 @@ class Session(object):
             'POST',
             DOMAIN + url,
             cookies=dict(self._session.cookies),
-            headers={'X-CSRF-TOKEN': self._csrf},
+            headers={'X-CSRF-TOKEN': self.csrf},
             data=data
             ).prepare()
         response = self._session.send(
@@ -120,7 +120,7 @@ class Session(object):
             DOMAIN + url,
             cookies=dict(self._session.cookies),
             headers={
-                'X-CSRF-TOKEN': self._csrf,
+                'X-CSRF-TOKEN': self.csrf,
                 'content-type': 'application/json'},
             data=json.dumps(data)
             ).prepare()
@@ -146,6 +146,8 @@ class Session(object):
 
     def json_to_dict(self, doc):
         ''' transform json with unicode characters to dict '''
+        if not doc:
+            return ''
         try:
             return json.loads(doc)
         except ValueError as e:
