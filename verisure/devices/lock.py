@@ -43,9 +43,16 @@ class Lock(object):
         return not self._session.post(COMMAND_URL, data)
 
     def get_autorelock(self):
+        """ Get autorelock status """
         return self._session.get(AUTORELOCK_URL)
 
     def set_autorelock(self, device_id, autorelock):
+        """ Set autorelock enabled
+
+            Args:
+                device_id (str): lock device id
+                autorelock (bool): True to set, else False
+        """
         if autorelock:
             data = {
                 "_csrf": self._session.csrf,
