@@ -6,6 +6,8 @@ from .overview import Overview
 
 OVERVIEW_URL = '/remotecontrol'
 COMMAND_URL = '/remotecontrol/lockunlock.cmd'
+AUTORELOCK_URL = '/settings/autorelock/'
+SETAUTORELOCK_URL = '/settings/setautorelock.cmd'
 
 
 class Lock(object):
@@ -39,3 +41,17 @@ class Lock(object):
             'state': state
             }
         return not self._session.post(COMMAND_URL, data)
+
+    def get_autorelock(self):
+        return self._session.get(AUTORELOCK_URL)
+
+    def set_autorelock(self, device_id, autorelock):
+        data = {
+            "_csrf": self._session.csrf,
+            "_doorLockDevices[0].autoRelockEnabled":
+                "on" if autorelock else "off",
+            "doorLockDevices[0].autoRelockEnabled":
+                "true" if autorelock else "false",
+            "enabledDoorLocks": device_id
+        }
+        return not self._session.post(SETAUTORELOCK_URL, data)
