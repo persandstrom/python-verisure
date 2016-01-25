@@ -2,6 +2,10 @@
 
 import json
 
+from bs4 import BeautifulSoup
+
+import requests
+
 # this import is depending on python version
 try:
     import HTMLParser
@@ -9,10 +13,6 @@ try:
 except ImportError:
     import html
     UNESCAPE = html.unescape
-
-from bs4 import BeautifulSoup
-
-import requests
 
 
 DOMAIN = 'https://mypages.verisure.com'
