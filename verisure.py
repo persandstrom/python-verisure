@@ -23,7 +23,7 @@ def print_overview(overview):
     """ print the overview of a device """
     print(overview.get_typename())
     for key, value in overview.get_status():
-        print('\t{}: {}'.format(key, value))
+        print(u'\t{}: {}'.format(key, value))
 
 
 # pylint: disable=C0103

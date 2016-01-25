@@ -6,6 +6,14 @@ from bs4 import BeautifulSoup
 
 import requests
 
+# this import is depending on python version
+try:
+    import HTMLParser
+    UNESCAPE = HTMLParser.HTMLParser().unescape
+except ImportError:
+    import html
+    UNESCAPE = html.unescape
+
 
 DOMAIN = 'https://mypages.verisure.com'
 URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
@@ -94,7 +102,7 @@ class Session(object):
         except Exception as e:
             raise Error(e)
         self.validate_response(response)
-        return self.json_to_dict(response.text)
+        return self.json_to_dict(UNESCAPE(response.text))
 
     def post(self, url, data):
         """ send post request """
