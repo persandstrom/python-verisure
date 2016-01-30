@@ -8,4 +8,4 @@ python:
 install:
     - pip install -r requirements-dev.txt
 script:
-    flake8  *.py verisure
+    flake8 --ignore=E402 *.py verisure

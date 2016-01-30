@@ -35,7 +35,7 @@ class Smartplug(object):
         data = {
             'targetDeviceLabel': device_id,
             'targetOn': value
-            }
+        }
         return not self._session.post(COMMAND_URL, data)
 
     def get_details(self, device_id):

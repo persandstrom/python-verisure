@@ -37,7 +37,7 @@ class Alarm(object):
         data = {
             'code': code,
             'state': state
-            }
+        }
         return not self._session.post(COMMAND_URL, data)
 
     def wait_while_pending(self, max_request_count=100):

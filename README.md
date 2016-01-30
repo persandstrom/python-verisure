@@ -1,5 +1,5 @@
 # python-verisure
-A python module for reading and changing status of verisure devices through mypages. Compatible with both Python2.7 and Python3.
+A python module for reading and changing status of verisure devices through mypages. Compatible with both Python2 (2.6+) and Python3.
 
 ### Legal Disclaimer
 This software is not affiliated with Verisure Holding AB and the developers take no legal responsibility for the functionality or security of your Verisure Alarms and devices.

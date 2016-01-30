@@ -2,7 +2,7 @@
 
 import json
 
-from bs4 import BeautifulSoup
+import re
 
 import requests
 
@@ -19,6 +19,13 @@ DOMAIN = 'https://mypages.verisure.com'
 URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
 URL_START = DOMAIN + '/uk/start.html'
 RESPONSE_TIMEOUT = 3
+
+CSRF_REGEX = re.compile(
+    r'\<input type="hidden" name="_csrf" value="' +
+    r'(?P<csrf>(.*?))' +
+    r'" /\>')
+
+TITLE_REGEX = re.compile(r'\<title\>(?P<title>(.*))\</title\>')
 
 
 class Error(Exception):
@@ -70,13 +77,13 @@ class Session(object):
         auth = {
             'j_username': self._username,
             'j_password': self._password
-            }
+        }
         req = requests.Request(
             'POST',
             URL_LOGIN,
             cookies=dict(self._session.cookies),
             data=auth
-            ).prepare()
+        ).prepare()
         response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
         self.validate_response(response)
         status = self.json_to_dict(response.text)
@@ -113,7 +120,7 @@ class Session(object):
             cookies=dict(self._session.cookies),
             headers={'X-CSRF-TOKEN': self.csrf},
             data=data
-            ).prepare()
+        ).prepare()
         response = self._session.send(
             req,
             timeout=RESPONSE_TIMEOUT)
@@ -131,7 +138,7 @@ class Session(object):
                 'X-CSRF-TOKEN': self.csrf,
                 'content-type': 'application/json'},
             data=json.dumps(data)
-            ).prepare()
+        ).prepare()
         response = self._session.send(
             req,
             timeout=RESPONSE_TIMEOUT)
@@ -144,8 +151,8 @@ class Session(object):
             URL_START,
             timeout=RESPONSE_TIMEOUT)
         self.validate_response(response)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        return soup.body.find(attrs={'name': '_csrf'})['value']
+        match = CSRF_REGEX.search(response.text)
+        return match.group('csrf')
 
     def _ensure_session(self):
         ''' ensures that a session is created '''
@@ -180,15 +187,15 @@ class Session(object):
     @staticmethod
     def raise_response_error(doc, default_error):
         """ Create correct error type from response """
-        soup = BeautifulSoup(doc, 'html.parser')
-        if not soup.tile:
+        match = TITLE_REGEX.search(doc)
+        if not match:
             raise default_error
-        if soup.title == 'My Pages is temporarily unavailable -  Verisure':
+        if match == 'My Pages is temporarily unavailable -  Verisure':
             raise TemporarilyUnavailableError('Temporarily unavailable')
-        if soup.title == 'My Pages - Maintenance -  Verisure':
+        if match == 'My Pages - Maintenance -  Verisure':
             raise MaintenanceError('Maintenance')
-        if soup.title == 'Choose country - My Pages - Verisure':
+        if match == 'Choose country - My Pages - Verisure':
             raise LoggedOutError('Not logged in')
-        if soup.title == 'Log in - My Pages - Verisure':
+        if match == 'Log in - My Pages - Verisure':
             raise LoggedOutError('Not logged in')
-        raise ResponseError(soup.title)
+        raise ResponseError(match)
