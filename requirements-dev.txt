@@ -1,3 +1,2 @@
 flake8
 flake8-blind-except
-# Upper bound because of https://github.com/public/flake8-import-order/issues/42
