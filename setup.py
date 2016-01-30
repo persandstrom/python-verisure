@@ -25,6 +25,6 @@ setup(
         'Programming Language :: Python :: 3.5',
         ],
     keywords='home automation verisure',
-    install_requires=['requests>=2.9.1', 'beautifulsoup4>=4.4.1'],
+    install_requires=['requests>=2.9.1'],
     packages=['verisure', 'verisure.devices'],
     zip_safe=True)
