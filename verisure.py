@@ -59,7 +59,7 @@ if __name__ == "__main__":
             'smartplug',
             'vacationmode',
             'all'
-            ],
+        ],
         help='Read status for device type')
 
     # Set command

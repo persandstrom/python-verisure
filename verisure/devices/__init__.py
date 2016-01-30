@@ -10,7 +10,7 @@ __all__ = [
     'Smartcam',
     'Smartplug',
     'Vacationmode',
-    ]
+]
 
 from .alarm import Alarm
 from .climate import Climate

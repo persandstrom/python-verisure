@@ -23,7 +23,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
-        ],
+    ],
     keywords='home automation verisure',
     install_requires=['requests>=2.9.1'],
     packages=['verisure', 'verisure.devices'],

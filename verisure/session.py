@@ -77,13 +77,13 @@ class Session(object):
         auth = {
             'j_username': self._username,
             'j_password': self._password
-            }
+        }
         req = requests.Request(
             'POST',
             URL_LOGIN,
             cookies=dict(self._session.cookies),
             data=auth
-            ).prepare()
+        ).prepare()
         response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
         self.validate_response(response)
         status = self.json_to_dict(response.text)
@@ -120,7 +120,7 @@ class Session(object):
             cookies=dict(self._session.cookies),
             headers={'X-CSRF-TOKEN': self.csrf},
             data=data
-            ).prepare()
+        ).prepare()
         response = self._session.send(
             req,
             timeout=RESPONSE_TIMEOUT)
@@ -138,7 +138,7 @@ class Session(object):
                 'X-CSRF-TOKEN': self.csrf,
                 'content-type': 'application/json'},
             data=json.dumps(data)
-            ).prepare()
+        ).prepare()
         response = self._session.send(
             req,
             timeout=RESPONSE_TIMEOUT)
