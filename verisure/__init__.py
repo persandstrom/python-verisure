@@ -11,7 +11,7 @@ __all__ = [
     'MyPages',
     'ResponseError',
     'TemporarilyUnavailableError',
-    ]
+]
 
 from .mypages import MyPages
 from .session import (
@@ -21,7 +21,7 @@ from .session import (
     MaintenanceError,
     ResponseError,
     TemporarilyUnavailableError,
-    )
+)
 
 
 ALARM_ARMED_HOME = 'ARMED_HOME'
