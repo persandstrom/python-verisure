@@ -1,6 +1,7 @@
 """
 Lock device
 """
+import time
 
 from .overview import Overview
 
@@ -8,6 +9,7 @@ OVERVIEW_URL = '/remotecontrol'
 COMMAND_URL = '/remotecontrol/lockunlock.cmd'
 AUTORELOCK_URL = '/settings/autorelock/'
 SETAUTORELOCK_URL = '/settings/setautorelock.cmd'
+CHECK_STATE = '/remotecontrol/checkstate.cmd'
 
 
 class Lock(object):
@@ -67,3 +69,25 @@ class Lock(object):
                 "enabledDoorLocks": ""
             }
         return not self._session.post(SETAUTORELOCK_URL, data)
+
+    def wait_while_pending(self, max_request_count=100):
+        """ Wait for pending lockstatus to finish
+
+            Args:
+                max_request_count (int): maximum number of post requests
+
+            Returns: retries if success else -1
+
+        """
+
+        for counter in range(max_request_count):
+            data = {'counter': counter}
+            response = self._session.json_to_dict(
+                self._session.post(CHECK_STATE, data))
+            if 'hasResult' not in response:
+                break
+            if 'hasPending' in response and not response['hasPending']:
+                return counter
+            counter = counter + 1
+            time.sleep(1)
+        return -1
