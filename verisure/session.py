@@ -170,7 +170,7 @@ class Session(object):
                 doc,
                 ResponseError(
                     'Unable to convert to JSON, '
-                    'Error: {0} - Data: {1}'.format(e, doc)))
+                    'Error: {0} - Data: {1}'.format(e, doc.encode('utf-8'))))
 
     def validate_response(self, response):
         """ Verify that response is OK """
@@ -190,12 +190,12 @@ class Session(object):
         match = TITLE_REGEX.search(doc)
         if not match:
             raise default_error
-        if match == 'My Pages is temporarily unavailable -  Verisure':
+        if match.group('title') == 'My Pages is temporarily unavailable -  Verisure':
             raise TemporarilyUnavailableError('Temporarily unavailable')
-        if match == 'My Pages - Maintenance -  Verisure':
+        if match.group('title') == 'My Pages - Maintenance -  Verisure':
             raise MaintenanceError('Maintenance')
-        if match == 'Choose country - My Pages - Verisure':
+        if match.group('title') == 'Choose country - My Pages - Verisure':
             raise LoggedOutError('Not logged in')
-        if match == 'Log in - My Pages - Verisure':
+        if match.group('title') == 'Log in - My Pages - Verisure':
             raise LoggedOutError('Not logged in')
         raise ResponseError(match)
