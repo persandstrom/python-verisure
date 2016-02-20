@@ -8,11 +8,11 @@ This software is not affiliated with Verisure Holding AB and the developers take
     alarm (get, set)
     climate (get)
     ethernet (get)
-    heatpump (get)
     lock (get, set)
     mousedetection (get)
     smartcam (get)
     smartplug (get, set)
+    temperaturecontrol (get)
     vacationmode (get)
 
 

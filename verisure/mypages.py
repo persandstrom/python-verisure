@@ -21,11 +21,11 @@ class MyPages(object):
         self.alarm = devices.Alarm(self._session)
         self.climate = devices.Climate(self._session)
         self.ethernet = devices.Ethernet(self._session)
-        self.heatpump = devices.Heatpump(self._session)
         self.lock = devices.Lock(self._session)
         self.mousedetection = devices.Mousedetection(self._session)
         self.smartcam = devices.Smartcam(self._session)
         self.smartplug = devices.Smartplug(self._session)
+        self.temperaturecontrol = devices.Temperaturecontrol(self._session)
         self.vacationmode = devices.Vacationmode(self._session)
 
     def __enter__(self):
@@ -51,7 +51,7 @@ class MyPages(object):
         overviews.extend(self.alarm.get())
         overviews.extend(self.climate.get())
         overviews.extend(self.ethernet.get())
-        overviews.extend(self.heatpump.get())
+        overviews.extend(self.temperaturecontrol.get())
         overviews.extend(self.lock.get())
         overviews.extend(self.mousedetection.get())
         overviews.extend(self.smartcam.get())

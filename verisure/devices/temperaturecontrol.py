@@ -1,14 +1,14 @@
 """
-Heatpump device
+Temperaturecontrol device
 """
 
 from .overview import Overview
 
-OVERVIEW_URL = '/overview/heatpump'
+OVERVIEW_URL = '/overview/temperaturecontrol'
 
 
-class Heatpump(object):
-    """ Heatpump device
+class Temperaturecontrol(object):
+    """ Temperaturecontrol device
 
     Args:
         session (verisure.session): Current session
@@ -19,4 +19,4 @@ class Heatpump(object):
     def get(self):
         """ Get device overview """
         status = self._session.get(OVERVIEW_URL)
-        return [Overview('heatpump', val) for val in status]
+        return [Overview('temperaturecontrol', val) for val in status]

@@ -52,11 +52,11 @@ if __name__ == "__main__":
             'alarm',
             'climate',
             'ethernet',
-            'heatpump',
             'lock',
             'mousedetection',
             'smartcam',
             'smartplug',
+            'temperaturecontrol',
             'vacationmode',
             'all'
         ],
