@@ -44,7 +44,7 @@ class ResponseError(Error):
 
 
 class LoggedOutError(ResponseError):
-    ''' Unexcpected response '''
+    ''' User logged out '''
     pass
 
 
@@ -55,6 +55,11 @@ class TemporarilyUnavailableError(ResponseError):
 
 class MaintenanceError(ResponseError):
     ''' My Pages is currently in maintenance '''
+    pass
+
+
+class RequestError(Error):
+    ''' Wrapped requests.exceptions.RequestException '''
     pass
 
 
@@ -84,7 +89,11 @@ class Session(object):
             cookies=dict(self._session.cookies),
             data=auth
         ).prepare()
-        response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
+        response = None
+        try:
+            response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
+        except requests.exceptions.RequestException as e:
+            raise RequestError(e)
         self.validate_response(response)
         status = self.json_to_dict(response.text)
         if not status['status'] == 'ok':
@@ -104,10 +113,11 @@ class Session(object):
     def get(self, url):
         """ Read all statuses of a device type """
         self._ensure_session()
+        response = None
         try:
             response = self._session.get(DOMAIN + url)
-        except Exception as e:
-            raise Error(e)
+        except requests.exceptions.RequestException as e:
+            raise RequestError(e)
         self.validate_response(response)
         return self.json_to_dict(UNESCAPE(response.text))
 
@@ -121,9 +131,13 @@ class Session(object):
             headers={'X-CSRF-TOKEN': self.csrf},
             data=data
         ).prepare()
-        response = self._session.send(
-            req,
-            timeout=RESPONSE_TIMEOUT)
+        response = None
+        try:
+            response = self._session.send(
+                req,
+                timeout=RESPONSE_TIMEOUT)
+        except requests.exceptions.RequestException as e:
+            raise RequestError(e)
         self.validate_response(response)
         return response.text
 
@@ -139,17 +153,25 @@ class Session(object):
                 'content-type': 'application/json'},
             data=json.dumps(data)
         ).prepare()
-        response = self._session.send(
-            req,
-            timeout=RESPONSE_TIMEOUT)
+        response = None
+        try:
+            response = self._session.send(
+                req,
+                timeout=RESPONSE_TIMEOUT)
+        except requests.exceptions.RequestException as e:
+            raise RequestError(e)
         self.validate_response(response)
         return response.text
 
     def _get_csrf(self):
         """ Retreive X-CSRF-TOKEN from start.html """
-        response = self._session.get(
-            URL_START,
-            timeout=RESPONSE_TIMEOUT)
+        response = None
+        try:
+            response = self._session.get(
+                URL_START,
+                timeout=RESPONSE_TIMEOUT)
+        except requests.exceptions.RequestException as e:
+            raise RequestError(e)
         self.validate_response(response)
         match = CSRF_REGEX.search(response.text)
         return match.group('csrf')
