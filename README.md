@@ -9,6 +9,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
     climate (get)
     ethernet (get)
     lock (get, set)
+    nest (get)
     mousedetection (get)
     smartcam (get)
     smartplug (get, set)
