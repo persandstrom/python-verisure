@@ -54,6 +54,7 @@ if __name__ == "__main__":
             'ethernet',
             'lock',
             'mousedetection',
+            'nest',
             'smartcam',
             'smartplug',
             'temperaturecontrol',
