@@ -20,4 +20,4 @@ class Ethernet(object):
     def get(self):
         """ Get device overview """
         status = self._session.get(OVERVIEW_URL)
-        return [Overview('ethernet', val) for val in status]
+        return [Overview('ethernet', status)]
