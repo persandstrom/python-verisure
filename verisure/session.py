@@ -139,7 +139,7 @@ class Session(object):
         except requests.exceptions.RequestException as e:
             raise RequestError(e)
         self.validate_response(response)
-        return response.text
+        return self.json_to_dict(UNESCAPE(response.text))
 
     def put(self, url, data):
         """ send put request """
