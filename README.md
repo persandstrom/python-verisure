@@ -6,7 +6,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### supported devices:
     alarm (get, set)
-    climate (get)
+    climate (get, history)
     ethernet (get)
     lock (get, set)
     nest (get)
@@ -25,11 +25,12 @@ usage: verisure.py [-h] username password {get,set} ...
 Read or change status of verisure devices
 
 positional arguments:
-  username    MySite username
-  password    MySite password
-  {get,set}   commands
-    get       Read status of one or many device types
-    set       Set status of a device
+  username           MySite username
+  password           MySite password
+  {get,set,history}  commands
+    get              Read status of one or many device types
+    set              Set status of a device
+    history          Get history of a device
 ```
 
 ### Read alarm status

@@ -3,11 +3,13 @@
 from __future__ import print_function
 
 import argparse
+import pprint
 
 from verisure import MyPages
 
 COMMAND_GET = 'get'
 COMMAND_SET = 'set'
+COMMAND_HISTORY = 'history'
 
 
 def print_overviews(overviews):
@@ -117,6 +119,23 @@ if __name__ == "__main__":
             'UNLOCKED'],
         help='new status')
 
+    # History command
+    history_parser = commandsparser.add_parser(
+        COMMAND_HISTORY,
+        help='Get history of a device')
+    history_device = history_parser.add_subparsers(
+        help='device',
+        dest='device')
+
+    # Get climate history
+    history_climate = history_device.add_parser(
+        'climate',
+        help='get climate history')
+    history_climate.add_argument(
+        'serial_numbers',
+        nargs='+',
+        help='serial numbers')
+
     args = parser.parse_args()
 
     with MyPages(args.username, args.password) as verisure:
@@ -140,3 +159,7 @@ if __name__ == "__main__":
                     args.code,
                     args.serial_number,
                     args.new_status))
+        if args.command == COMMAND_HISTORY:
+            if args.device == 'climate':
+                pprint.PrettyPrinter().pprint(verisure.climate.get_history(
+                    *args.serial_numbers))
