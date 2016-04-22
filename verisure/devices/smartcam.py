@@ -5,7 +5,7 @@ Smartcam device
 
 from .overview import Overview
 
-OVERVIEW_URL = '/overview/smartcam'
+OVERVIEW_URL = '/overview/camera'
 
 
 class Smartcam(object):
