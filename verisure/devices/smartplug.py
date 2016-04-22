@@ -5,7 +5,7 @@ import time
 
 from .overview import Overview
 
-OVERVIEW_URL = '/overview/smartplug'
+OVERVIEW_URL = '/settings/smartplug'
 COMMAND_URL = '/smartplugs/onoffplug.cmd'
 DETAILS_URL = '/smarthome/{}/details'
 
