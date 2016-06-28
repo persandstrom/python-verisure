@@ -66,7 +66,7 @@ alarm
 
 ``` python verisure.py user@example.com mypassword set smartplug '5AC2 4LXH' on ```
 
-### Get event log with filter for and and disarm events
+### Get event log with filter for arm and disarm events
 
 ``` python verisure.py user@example.com mypassword eventlog -f ARM DISARM ```
 
