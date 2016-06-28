@@ -4,6 +4,7 @@ __all__ = [
     'Alarm',
     'Climate',
     'Ethernet',
+    'Eventlog',
     'Lock',
     'Mousedetection',
     'Nest',
@@ -16,6 +17,7 @@ __all__ = [
 from .alarm import Alarm
 from .climate import Climate
 from .ethernet import Ethernet
+from .eventlog import Eventlog
 from .lock import Lock
 from .mousedetection import Mousedetection
 from .nest import Nest

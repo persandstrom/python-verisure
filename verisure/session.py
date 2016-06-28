@@ -4,7 +4,6 @@ import json
 
 import re
 
-import requests
 
 # this import is depending on python version
 try:
@@ -13,6 +12,8 @@ try:
 except ImportError:
     import html
     UNESCAPE = html.unescape
+
+import requests
 
 
 DOMAIN = 'https://mypages.verisure.com'
@@ -92,8 +93,8 @@ class Session(object):
         response = None
         try:
             response = self._session.send(req, timeout=RESPONSE_TIMEOUT)
-        except requests.exceptions.RequestException as e:
-            raise RequestError(e)
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
         self.validate_response(response)
         status = self.json_to_dict(response.text)
         if not status['status'] == 'ok':
@@ -110,16 +111,20 @@ class Session(object):
         self._session.close()
         self._session = None
 
-    def get(self, url):
+    def get(self, url, to_json=True, **params):
         """ Read all statuses of a device type """
         self._ensure_session()
         response = None
         try:
-            response = self._session.get(DOMAIN + url)
-        except requests.exceptions.RequestException as e:
-            raise RequestError(e)
+            response = self._session.get(
+                DOMAIN + url,
+                params=params)
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
         self.validate_response(response)
-        return self.json_to_dict(UNESCAPE(response.text))
+        if to_json:
+            return self.json_to_dict(UNESCAPE(response.text))
+        return response.text
 
     def post(self, url, data):
         """ send post request """
@@ -136,8 +141,8 @@ class Session(object):
             response = self._session.send(
                 req,
                 timeout=RESPONSE_TIMEOUT)
-        except requests.exceptions.RequestException as e:
-            raise RequestError(e)
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
         self.validate_response(response)
         return self.json_to_dict(UNESCAPE(response.text))
 
@@ -158,8 +163,8 @@ class Session(object):
             response = self._session.send(
                 req,
                 timeout=RESPONSE_TIMEOUT)
-        except requests.exceptions.RequestException as e:
-            raise RequestError(e)
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
         self.validate_response(response)
         return response.text
 
@@ -170,8 +175,8 @@ class Session(object):
             response = self._session.get(
                 URL_START,
                 timeout=RESPONSE_TIMEOUT)
-        except requests.exceptions.RequestException as e:
-            raise RequestError(e)
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
         self.validate_response(response)
         match = CSRF_REGEX.search(response.text)
         return match.group('csrf')
@@ -187,12 +192,12 @@ class Session(object):
             return ''
         try:
             return json.loads(doc)
-        except ValueError as e:
+        except ValueError as ex:
             self.raise_response_error(
                 doc,
                 ResponseError(
                     'Unable to convert to JSON, '
-                    'Error: {0} - Data: {1}'.format(e, doc.encode('utf-8'))))
+                    'Error: {0} - Data: {1}'.format(ex, doc.encode('utf-8'))))
 
     def validate_response(self, response):
         """ Verify that response is OK """
@@ -212,7 +217,8 @@ class Session(object):
         match = TITLE_REGEX.search(doc)
         if not match:
             raise default_error
-        if match.group('title') == 'My Pages is temporarily unavailable -  Verisure':
+        if match.group('title') == ("My Pages is temporarily unavailable"
+                                    "-  Verisure"):
             raise TemporarilyUnavailableError('Temporarily unavailable')
         if match.group('title') == 'My Pages - Maintenance -  Verisure':
             raise MaintenanceError('Maintenance')
