@@ -8,6 +8,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
     alarm (get, set)
     climate (get, history)
     ethernet (get)
+    eventlog (get)
     lock (get, set)
     nest (get)
     mousedetection (get)
@@ -31,6 +32,8 @@ positional arguments:
     get              Read status of one or many device types
     set              Set status of a device
     history          Get history of a device
+    eventlog         Get event log
+
 ```
 
 ### Read alarm status
@@ -63,6 +66,9 @@ alarm
 
 ``` python verisure.py user@example.com mypassword set smartplug '5AC2 4LXH' on ```
 
+### Get event log with filter for and and disarm events
+
+``` python verisure.py user@example.com mypassword eventlog -f ARM DISARM ```
 
 ## Module usage
 
@@ -115,3 +121,15 @@ myPages.login()
 overviews = myPages.get_overviews()
 myPages.logout()
 ```
+
+### Get event log
+```
+import verisure
+
+myPages = verisure.MyPages('user@example.com', 'password')
+myPages.login()
+# read three pages of log
+events = myPages.eventlog.get(pages=3)
+myPages.logout()
+```
+

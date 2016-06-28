@@ -15,12 +15,14 @@ class MyPages(object):
         password (str): Password used to log in to mypages
     """
 
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, username, password):
         self._session = Session(username, password)
 
         self.alarm = devices.Alarm(self._session)
         self.climate = devices.Climate(self._session)
         self.ethernet = devices.Ethernet(self._session)
+        self.eventlog = devices.Eventlog(self._session)
         self.lock = devices.Lock(self._session)
         self.mousedetection = devices.Mousedetection(self._session)
         self.nest = devices.Nest(self._session)

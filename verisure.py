@@ -10,6 +10,7 @@ from verisure import MyPages
 COMMAND_GET = 'get'
 COMMAND_SET = 'set'
 COMMAND_HISTORY = 'history'
+COMMAND_EVENTLOG = 'eventlog'
 
 
 def print_overviews(overviews):
@@ -136,6 +137,34 @@ if __name__ == "__main__":
         nargs='+',
         help='serial numbers')
 
+    # Event log command
+    eventlog_parser = commandsparser.add_parser(
+        COMMAND_EVENTLOG,
+        help='Get event log')
+    eventlog_parser.add_argument(
+        '-p', '--pages',
+        type=int,
+        default=1,
+        help='Number of pages to request')
+    eventlog_parser.add_argument(
+        '-o', '--offset',
+        type=int,
+        default=0,
+        help='Page offset')
+    eventlog_parser.add_argument(
+        '-f', '--filter',
+        nargs='*',
+        default=[],
+        choices=[
+            'ARM',
+            'DISARM',
+            'FIRE',
+            'INTRUSION',
+            'TECHNICAL',
+            'SOS',
+            'WARNING'],
+        help='Filter event log')
+
     args = parser.parse_args()
 
     with MyPages(args.username, args.password) as verisure:
@@ -163,3 +192,6 @@ if __name__ == "__main__":
             if args.device == 'climate':
                 pprint.PrettyPrinter().pprint(verisure.climate.get_history(
                     *args.serial_numbers))
+        if args.command == COMMAND_EVENTLOG:
+            pprint.PrettyPrinter().pprint(
+                verisure.eventlog.get(args.pages, args.offset, *args.filter))
