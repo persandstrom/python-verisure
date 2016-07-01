@@ -63,7 +63,7 @@ class EventlogParser(HTMLPARSER):
             self.recording = name == 'class' and (
                 value == 'eventlog-list--title' or
                 value == 'eventlog-list--datetime' or
-                value == 'eventlog-list--details')
+                value == 'eventlog-list--details-text hidden')
 
     def handle_endtag(self, tag):
         if tag == 'div':
@@ -77,8 +77,10 @@ class EventlogParser(HTMLPARSER):
         elif len(self.eventlogitem) == 1:
             self.eventlogitem['date'] = data.strip()
         elif len(self.eventlogitem) == 2:
-            self.eventlogitem['details'] = data
+            self.eventlogitem['device'] = data
         elif len(self.eventlogitem) == 3:
-            self.eventlogitem['details'] += ' ' + data.strip()
+            self.eventlogitem['location'] = data.replace('-', '').strip()
+        elif len(self.eventlogitem) == 4:
+            self.eventlogitem['details'] = data.strip()
             self.eventlog.append(self.eventlogitem)
             self.eventlogitem = {}
