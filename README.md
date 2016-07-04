@@ -17,6 +17,11 @@ This software is not affiliated with Verisure Holding AB and the developers take
     temperaturecontrol (get)
     vacationmode (get)
 
+## Installation
+``` pip install vsure ```
+or
+``` pip install git+https://github.com/persandstrom/python-verisure.git ```
+
 
 ## Command line usage
 
@@ -71,12 +76,6 @@ alarm
 ``` vsure user@example.com mypassword eventlog -f ARM DISARM ```
 
 ## Module usage
-
-### Installation
-``` pip install vsure ```
-or
-``` pip install git+https://github.com/persandstrom/python-verisure.git ```
-
 
 ### Read alarm status
 
