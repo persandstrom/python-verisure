@@ -21,7 +21,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 ## Command line usage
 
 ```
-usage: verisure.py [-h] username password {get,set} ...
+usage: vsure [-h] username password {get,set} ...
 
 Read or change status of verisure devices
 
@@ -38,7 +38,7 @@ positional arguments:
 
 ### Read alarm status
 
-``` python verisure.py user@example.com mypassword get alarm ```
+``` vsure user@example.com mypassword get alarm ```
 
 output:
 
@@ -56,19 +56,19 @@ alarm
 
 ### Read status from all devices
 
-``` python verisure.py user@example.com mypassword get all ```
+``` vsure user@example.com mypassword get all ```
 
 ### Disarm
 
-``` python verisure.py user@example.com mypassword set alarm 1234 DISARMED ```
+``` vsure user@example.com mypassword set alarm 1234 DISARMED ```
 
 ### Turn on smartplug 
 
-``` python verisure.py user@example.com mypassword set smartplug '5AC2 4LXH' on ```
+``` vsure user@example.com mypassword set smartplug '5AC2 4LXH' on ```
 
 ### Get event log with filter for arm and disarm events
 
-``` python verisure.py user@example.com mypassword eventlog -f ARM DISARM ```
+``` vsure user@example.com mypassword eventlog -f ARM DISARM ```
 
 ## Module usage
 

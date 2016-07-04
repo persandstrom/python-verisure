@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='vsure',
-    version='0.9.1',
+    version='0.10.0',
     description='Read and change status of verisure devices through mypages.',
     long_description='A module for reading and changing status of ' +
     'verisure devices through mypages. Compatible ' +
@@ -28,4 +28,9 @@ setup(
     keywords='home automation verisure',
     install_requires=['requests>=2.9.1'],
     packages=['verisure', 'verisure.devices'],
-    zip_safe=True)
+    zip_safe=True,
+    entry_points={
+        'console_scripts': [
+            'vsure=verisure.__main__:main',
+        ]
+    })
