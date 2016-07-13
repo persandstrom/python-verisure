@@ -7,6 +7,7 @@ from .overview import Overview
 OVERVIEW_URL = '/overview/ethernetstatus'
 
 
+# pylint: disable=too-few-public-methods
 class Ethernet(object):
     """ Ethernet device
 

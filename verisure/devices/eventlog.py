@@ -15,6 +15,7 @@ EVENTLOG_ITEMS_URL = '/eventlog/eventlog_items.dyn'
 EVENTLOG_FILTER_URL = '/eventlog/filterEventLog.cmd'
 
 
+# pylint: disable=too-few-public-methods
 class Eventlog(object):
     """ Eventlog device
 
@@ -40,11 +41,12 @@ class Eventlog(object):
                 data={'eventLogFilter': logfilter})
         parser = EventlogParser()
         for page in range(1, pages + 1):
-            parser.feed(self._session.get(
+            result = self._session.get(
                 EVENTLOG_ITEMS_URL,
                 to_json=False,
                 eventlogPage=page,
-                offset=offset))
+                offset=offset)
+            parser.feed(result)
         return parser.eventlog
 
 
@@ -55,8 +57,10 @@ class EventlogParser(HTMLPARSER):
         self.eventlog = []
         self.eventlogitem = {}
         self.recording = False
+        self.details_join = False
 
     def handle_starttag(self, tag, attributes):
+        self.details_join = False
         if tag != 'div':
             return
         for name, value in attributes:
@@ -68,8 +72,15 @@ class EventlogParser(HTMLPARSER):
     def handle_endtag(self, tag):
         if tag == 'div':
             self.recording = False
+        if self.details_join:
+            self.eventlog.append(self.eventlogitem)
+            self.eventlogitem = {}
+            self.details_join = False
 
     def handle_data(self, data):
+        if self.details_join:
+            self.eventlogitem['details'] += data
+            return
         if not self.recording or not data.strip():
             return
         if len(self.eventlogitem) == 0:
@@ -81,6 +92,5 @@ class EventlogParser(HTMLPARSER):
         elif len(self.eventlogitem) == 3:
             self.eventlogitem['location'] = data.replace('-', '').strip()
         elif len(self.eventlogitem) == 4:
-            self.eventlogitem['details'] = data.strip()
-            self.eventlog.append(self.eventlogitem)
-            self.eventlogitem = {}
+            self.eventlogitem['details'] = data
+            self.details_join = True
