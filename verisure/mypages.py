@@ -16,8 +16,8 @@ class MyPages(object):
     """
 
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, username, password):
-        self._session = Session(username, password)
+    def __init__(self, username, password, file = None):
+        self._session = Session(username, password, file)
 
         self.alarm = devices.Alarm(self._session)
         self.climate = devices.Climate(self._session)
