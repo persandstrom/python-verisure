@@ -19,7 +19,7 @@ import requests
 DOMAIN = 'https://mypages.verisure.com'
 URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
 URL_START = DOMAIN + '/uk/start.html'
-RESPONSE_TIMEOUT = 3
+RESPONSE_TIMEOUT = 10
 
 CSRF_REGEX = re.compile(
     r'\<input type="hidden" name="_csrf" value="' +
