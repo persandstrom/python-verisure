@@ -1,8 +1,11 @@
 """ Represents a MyPages session """
 
 import json
-
 import re
+import sys
+import os.path
+from os import remove
+import pickle
 
 
 # this import is depending on python version
@@ -67,11 +70,14 @@ class RequestError(Error):
 class Session(object):
     """ Verisure session """
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, file):
         self._session = None
         self._username = username
         self._password = password
+        self._file = file
         self.csrf = ''
+        if self._file:
+            self._load_session()
 
     def login(self):
         """ Login to mypages
@@ -100,6 +106,8 @@ class Session(object):
         if not status['status'] == 'ok':
             raise LoginError(status['message'])
         self.csrf = self._get_csrf()
+        if self._file:
+            self._save_session()
 
     def logout(self):
         """ Ends session
@@ -110,6 +118,43 @@ class Session(object):
         """
         self._session.close()
         self._session = None
+        try:
+            if self._file:
+                remove(self._file)
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+
+    def _save_session(self):
+        """ Saves session to a file
+
+        Saves a session to a file that later can be loaded.
+
+        """
+        try:
+            f = open(self._file, 'wb')
+            pickle.dump(self._session, f)
+            f.close()
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
+
+    def _load_session(self):
+        """ Loads a session from a file
+
+        Loads a previously saved session from a file.
+
+        """
+        try:
+            if os.path.isfile(self._file):
+                f = open(self._file, 'rb')
+                self._session = pickle.load(f)
+                f.close()
+            else:
+                self.login()
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
 
     def get(self, url, to_json=True, **params):
         """ Read all statuses of a device type """
@@ -194,6 +239,7 @@ class Session(object):
             return json.loads(doc)
         except ValueError as ex:
             self.raise_response_error(
+                self,
                 doc,
                 ResponseError(
                     'Unable to convert to JSON, '
@@ -204,6 +250,7 @@ class Session(object):
         if response.status_code == 200:
             return
         self.raise_response_error(
+            self,
             response.text,
             ResponseError(
                 'Unable to validate response form My Pages'
@@ -212,7 +259,7 @@ class Session(object):
                     response.text.encode('utf-8'))))
 
     @staticmethod
-    def raise_response_error(doc, default_error):
+    def raise_response_error(self, doc, default_error):
         """ Create correct error type from response """
         match = TITLE_REGEX.search(doc)
         if not match:
@@ -223,7 +270,17 @@ class Session(object):
         if match.group('title') == 'My Pages - Maintenance -  Verisure':
             raise MaintenanceError('Maintenance')
         if match.group('title') == 'Choose country - My Pages - Verisure':
+            try:
+                if self._file:
+                    remove(self._file)
+            except:
+                print("Unexpected error:", sys.exc_info()[0])
             raise LoggedOutError('Not logged in')
         if match.group('title') == 'Log in - My Pages - Verisure':
+            try:
+                if self._file:
+                    remove(self._file)
+            except:
+                print("Unexpected error:", sys.exc_info()[0])
             raise LoggedOutError('Not logged in')
         raise ResponseError(match)
