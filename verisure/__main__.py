@@ -39,6 +39,10 @@ def main():
     parser.add_argument(
         'password',
         help='MySite password')
+    parser.add_argument(
+        '-i', '--installation',
+        help='Installation number',
+        default=1)
 
     commandsparser = parser.add_subparsers(
         help='commands',

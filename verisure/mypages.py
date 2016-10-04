@@ -13,11 +13,12 @@ class MyPages(object):
     Args:
         username (str): Username used to log in to mypages
         password (str): Password used to log in to mypages
+        installation (int): Installation number
     """
 
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, username, password):
-        self._session = Session(username, password)
+    def __init__(self, username, password, installation=1):
+        self._session = Session(username, password, installation)
 
         self.alarm = devices.Alarm(self._session)
         self.climate = devices.Climate(self._session)

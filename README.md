@@ -39,6 +39,10 @@ positional arguments:
     history          Get history of a device
     eventlog         Get event log
 
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INSTALLATION, --installation INSTALLATION
+                        Installation number
 ```
 
 ### Read alarm status

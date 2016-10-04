@@ -18,7 +18,7 @@ import requests
 
 DOMAIN = 'https://mypages.verisure.com'
 URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
-URL_START = DOMAIN + '/uk/start.html'
+URL_START = DOMAIN + '/uk/start.html?inst={inst}'
 RESPONSE_TIMEOUT = 10
 
 CSRF_REGEX = re.compile(
@@ -67,10 +67,11 @@ class RequestError(Error):
 class Session(object):
     """ Verisure session """
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, installation):
         self._session = None
         self._username = username
         self._password = password
+        self._installation = installation
         self.csrf = ''
 
     def login(self):
@@ -173,7 +174,7 @@ class Session(object):
         response = None
         try:
             response = self._session.get(
-                URL_START,
+                URL_START.format(inst=self._installation),
                 timeout=RESPONSE_TIMEOUT)
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
