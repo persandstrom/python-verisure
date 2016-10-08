@@ -112,6 +112,18 @@ class Session(object):
         self._session.close()
         self._session = None
 
+    def download(self, url):
+        """Download a file from mypages."""
+        self._ensure_session()
+        try:
+            from urllib.request import urlretrieve
+        except ImportError:
+            from urllib import urlretrieve
+        print(DOMAIN + url)
+        FILE = url.rsplit('/', 1)[1]
+        print(FILE)
+        urlretrieve(DOMAIN + url, FILE)
+
     def get(self, url, to_json=True, **params):
         """ Read all statuses of a device type """
         self._ensure_session()

@@ -8,6 +8,7 @@ from .overview import Overview
 OVERVIEW_URL = '/overview/camera'
 CAPTURE_URL = '/picturelog/camera/{}/capture.cmd'
 IMAGES_URL = '/picturelog/seriespage/0'
+DOWNLOAD_URL = '/camera/{}/image/{}.jpg'
 
 
 class Smartcam(object):
@@ -24,6 +25,13 @@ class Smartcam(object):
         """ Get device overview """
         status = self._session.get(OVERVIEW_URL)
         return [Overview('smartcam', val) for val in status]
+
+    def download_image(self, device_id, image_id):
+        """Download a image from mypages smartcam."""
+        image = self._session.download(DOWNLOAD_URL.format(
+            device_id.upper().replace(' ', '%20'),
+            image_id))
+        return image
 
     def get_imagelist(self):
         """ Get a list of current images from the device """
