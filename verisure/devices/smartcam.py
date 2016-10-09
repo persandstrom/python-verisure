@@ -4,6 +4,7 @@ Smartcam device
 
 import shutil
 from .overview import Overview
+from ..session import DOMAIN
 
 OVERVIEW_URL = '/overview/camera'
 CAPTURE_URL = '/picturelog/camera/{}/capture.cmd'
@@ -28,10 +29,10 @@ class Smartcam(object):
 
     def download_image(self, device_id, image_id):
         """Download a image from mypages smartcam."""
-        pic_url = (DOWNLOAD_URL.format(
+        pic_url = (DOMAIN + DOWNLOAD_URL.format(
             device_id.upper().replace(' ', '%20'),
             image_id))
-        image = self._session.get(pic_url, stream=True)
+        image = self._session._session.get(pic_url, stream=True)
         image_filename = pic_url.rsplit('/', 1)[1]
         with open(image_filename, 'wb') as f:
             image.raw.decode_content = True
