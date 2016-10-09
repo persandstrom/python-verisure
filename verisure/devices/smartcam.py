@@ -27,14 +27,14 @@ class Smartcam(object):
         status = self._session.get(OVERVIEW_URL)
         return [Overview('smartcam', val) for val in status]
 
-    def download_image(self, device_id, image_id):
+    def download_image(self, device_id, image_id, dest_path):
         """Download a image from mypages smartcam."""
         pic_url = (DOMAIN + DOWNLOAD_URL.format(
             device_id.upper().replace(' ', '%20'),
             image_id))
         image = self._session._session.get(pic_url, stream=True)
         image_filename = pic_url.rsplit('/', 1)[1]
-        with open(image_filename, 'wb') as f:
+        with open((dest_path + image_filename), 'wb') as f:
             image.raw.decode_content = True
             shutil.copyfileobj(image.raw, f)
         return
@@ -42,11 +42,6 @@ class Smartcam(object):
     def get_imagelist(self):
         """ Get a list of current images from the device """
         status = self._session.get(IMAGES_URL)
-        for key in status:
-            if key == 'totalAmount':
-                total_images = status['totalAmount']
-                print('Total amount of images available for download:',
-                      total_images)
         image_series = status['imageSeries']
         image_data_list = [li['images'] for li in image_series]
         n = len(image_data_list)
@@ -54,7 +49,6 @@ class Smartcam(object):
         for i in range(0, n):
             image_id = [li['id'] for li in image_data_list[i]]
             image_ids.append(image_id)
-        print("Image_id's to use for download:", image_ids)
         return image_ids
 
     def capture(self, device_id):
