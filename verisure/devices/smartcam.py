@@ -2,6 +2,7 @@
 Smartcam device
 """
 
+import os
 from .overview import Overview
 
 OVERVIEW_URL = '/overview/camera'
@@ -31,7 +32,8 @@ class Smartcam(object):
             device_id.upper().replace(' ', '%20'),
             image_id)
         image_filename = pic_url.rsplit('/', 1)[1]
-        self._session.download(pic_url, (dest_path + image_filename))
+        self._session.download(pic_url, (os.path.join(
+            dest_path, image_filename)))
         return
 
     def get_imagelist(self):
