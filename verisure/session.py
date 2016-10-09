@@ -3,6 +3,7 @@
 import json
 
 import re
+import shutil
 
 
 # this import is depending on python version
@@ -111,6 +112,19 @@ class Session(object):
         """
         self._session.close()
         self._session = None
+
+    def download(self, url, dest):
+        """Download a file from MyPages."""
+        self._ensure_session()
+        try:
+            response = self._session.get(
+                DOMAIN + url, stream=True)
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        self.validate_response(response)
+        with open((dest), 'wb') as f:
+            response.raw.decode_content = True
+            shutil.copyfileobj(response.raw, f)
 
     def get(self, url, to_json=True, **params):
         """ Read all statuses of a device type """
