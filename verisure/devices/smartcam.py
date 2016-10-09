@@ -2,7 +2,7 @@
 Smartcam device
 """
 
-
+import shutil
 from .overview import Overview
 
 OVERVIEW_URL = '/overview/camera'
@@ -28,10 +28,15 @@ class Smartcam(object):
 
     def download_image(self, device_id, image_id):
         """Download a image from mypages smartcam."""
-        image = self._session.download(DOWNLOAD_URL.format(
+        pic_url = (DOWNLOAD_URL.format(
             device_id.upper().replace(' ', '%20'),
             image_id))
-        return image
+        image = self._session.get(pic_url, stream=True)
+        image_filename = pic_url.rsplit('/', 1)[1]
+        with open(image_filename, 'wb') as f:
+            image.raw.decode_content = True
+            shutil.copyfileobj(image.raw, f)
+        return
 
     def get_imagelist(self):
         """ Get a list of current images from the device """
