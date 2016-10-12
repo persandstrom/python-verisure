@@ -42,10 +42,13 @@ class Smartcam(object):
         image_series = status['imageSeries']
         image_data_list = [li['images'] for li in image_series]
         n = len(image_data_list)
-        image_ids = []
+        image_ids = {}
         for i in range(0, n):
-            image_id = [li['id'] for li in image_data_list[i]]
-            image_ids.append(image_id)
+            lookup_image_id = [li['id'] for li in image_data_list[i]]
+            image_id = str(''.join(lookup_image_id))
+            lookup_device_id = [li['deviceLabel'] for li in image_data_list[i]]
+            device_id = str(''.join(lookup_device_id))
+            image_ids[image_id] = device_id
         return image_ids
 
     def capture(self, device_id):
