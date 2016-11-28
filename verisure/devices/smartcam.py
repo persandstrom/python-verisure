@@ -3,7 +3,6 @@ Smartcam device
 """
 
 import os
-from .overview import Overview
 
 OVERVIEW_URL = '/overview/camera'
 CAPTURE_URL = '/picturelog/camera/{}/capture.cmd'
@@ -20,11 +19,6 @@ class Smartcam(object):
 
     def __init__(self, session):
         self._session = session
-
-    def get(self):
-        """ Get device overview """
-        status = self._session.get(OVERVIEW_URL)
-        return [Overview('smartcam', val) for val in status]
 
     def download_image(self, device_id, image_id, dest_path):
         """Download a image from mypages smartcam."""

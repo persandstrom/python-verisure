@@ -3,8 +3,6 @@ Alarm device
 """
 import time
 
-from .overview import Overview
-
 OVERVIEW_URL = '/remotecontrol'
 COMMAND_URL = '/remotecontrol/armstatechange.cmd'
 CHECK_STATE = '/remotecontrol/checkstate.cmd'
@@ -19,12 +17,6 @@ class Alarm(object):
 
     def __init__(self, session):
         self._session = session
-
-    def get(self):
-        """ get device overview """
-        status = self._session.get(OVERVIEW_URL)
-        return [Overview('alarm', val) for val in status
-                if val['type'] == 'ARM_STATE']
 
     def set(self, code, state):
         """ set status of alarm component

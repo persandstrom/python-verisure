@@ -3,8 +3,6 @@ Lock device
 """
 import time
 
-from .overview import Overview
-
 OVERVIEW_URL = '/remotecontrol'
 COMMAND_URL = '/remotecontrol/lockunlock.cmd'
 AUTORELOCK_URL = '/settings/autorelock/'
@@ -22,11 +20,6 @@ class Lock(object):
     def __init__(self, session):
         self._session = session
 
-    def get(self):
-        """ Get device overview """
-        status = self._session.get(OVERVIEW_URL)
-        return [Overview('lock', val) for val in status
-                if val['type'] == 'DOOR_LOCK']
 
     def set(self, code, device_id, state):
         """ set status of alarm component
