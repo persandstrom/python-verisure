@@ -12,21 +12,31 @@ COMMAND_SET = 'set'
 COMMAND_HISTORY = 'history'
 COMMAND_EVENTLOG = 'eventlog'
 
-
-def print_overviews(overviews):
-    ''' print the overviews of devices '''
-    if isinstance(overviews, list):
-        for overview in overviews:
-            print_overview(overview)
-    else:
-        print_overview(overviews)
+try:
+    unicode = unicode
+except:
+    unicode = str
 
 
-def print_overview(overview):
-    """ print the overview of a device """
-    print(overview.get_typename())
-    for key, value in overview.get_status():
-        print(u'\t{}: {}'.format(key, value))
+def print_overview(overview, depth=0):
+    indent = '  ' * depth
+    for key, value in overview.__dict__.items():
+        if key.startswith('_'):
+            continue
+        if not value:
+            print('{}{}: {}'.format(indent, key, value))
+        elif isinstance(value, str):
+            print('{}{}: {}'.format(indent, key, value))
+        elif isinstance(value, unicode):
+            print('{}{}: {}'.format(indent, key, value.encode('utf8')))
+        elif isinstance(value, list):
+            for item in value:
+                print('{}{}:'.format(indent, key))
+                print_overview(item, depth + 1)
+        else:
+            print('{}{}:'.format(indent, key))
+            print_overview(value, depth + 1)
+
 
 
 def main():
@@ -174,7 +184,7 @@ def main():
     with MyPages(args.username, args.password) as verisure:
         if args.command == COMMAND_GET:
             if 'all' in args.devices:
-                print_overviews(verisure.get_overviews())
+                print_overview(verisure.get_overviews())
             else:
                 for dev in args.devices:
                     print_overviews(verisure.__dict__[dev].get())

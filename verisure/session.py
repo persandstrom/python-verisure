@@ -2,7 +2,8 @@ import base64
 import json
 import requests
 import pprint
-import xmltodict
+from .xmldeserializer import deserialize
+
 
 BASE_URL = 'https://e-api02.verisure.com/xbn/2/'
 LOGIN_URL = BASE_URL + 'cookie'
@@ -41,10 +42,9 @@ class ResponseError(Error):
 class Session(object):
     """ Verisure app session """
 
-    def __init__(self, username, password, installation):
+    def __init__(self, username, password):
         self._username = username
         self._password = password
-        self._installation = installation
         self._vid = None
 
 
@@ -68,8 +68,7 @@ class Session(object):
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         self.validate_response(response)
-        self._vid = xmltodict.parse(response.text)\
-                ['response']['createCookieResponse']['cookie']
+        self._vid = deserialize(response.text)[0].cookie
     
     def validate_response(self, response):
         """ Verify that response is OK """
@@ -91,8 +90,8 @@ class Session(object):
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         self.validate_response(response)
-        self._installations = xmltodict.parse(response.text)['response']
-        pprint.pprint(self._installation)
+        self._installations = deserialize(response.text)
+        return self._installations
 
     def get_overview(self):
         """ Get overview for installation """
@@ -100,12 +99,12 @@ class Session(object):
         try:
             response = requests.get(
                 OVERVIEW_URL.format(
-                    guid=self._installations['installation']['giid']),
+                    guid=self._installations[0].giid),
                 headers={'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         self.validate_response(response)
-        pprint.pprint(json.dumps(xmltodict.parse(response.text)['response']['installationOverview'], indent=4))
+        return deserialize(response.text)[0]
 
     def logout(self):
         pass

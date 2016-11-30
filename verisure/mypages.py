@@ -17,7 +17,7 @@ class MyPages(object):
 
     # pylint: disable=too-many-instance-attributes
     def __init__(self, username, password, installation=1):
-        self._session = Session(username, password, installation)
+        self._session = Session(username, password)
 
         self.alarm = devices.Alarm(self._session)
         self.climate = devices.Climate(self._session)
@@ -46,7 +46,7 @@ class MyPages(object):
 
     def get_overviews(self):
         """ Get overviews from all devices """
-        overview_dict = self._session.get_overview()
+        return self._session.get_overview()
 
 
     def logout(self):
