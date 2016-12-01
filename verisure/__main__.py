@@ -5,9 +5,9 @@ from __future__ import print_function
 import argparse
 import pprint
 
-from verisure import MyPages
+from verisure import session
 
-COMMAND_GET = 'get'
+COMMAND_OVERVIEW = 'overview'
 COMMAND_SET = 'set'
 COMMAND_HISTORY = 'history'
 COMMAND_EVENTLOG = 'eventlog'
@@ -18,10 +18,10 @@ except:
     unicode = str
 
 
-def print_overview(overview, depth=0):
+def print_overview(overview, depth, *names):
     indent = '  ' * depth
     for key, value in overview.__dict__.items():
-        if key.startswith('_'):
+        if key.startswith('_') or (names and key not in names and depth==0):
             continue
         if not value:
             print('{}{}: {}'.format(indent, key, value))
@@ -36,7 +36,6 @@ def print_overview(overview, depth=0):
         else:
             print('{}{}:'.format(indent, key))
             print_overview(value, depth + 1)
-
 
 
 def main():
@@ -58,26 +57,13 @@ def main():
         help='commands',
         dest='command')
 
-    # Get command
-    get_parser = commandsparser.add_parser(
-        COMMAND_GET,
+    # overview command
+    overview_parser = commandsparser.add_parser(
+        COMMAND_OVERVIEW,
         help='Read status of one or many device types')
-    get_parser.add_argument(
-        'devices',
+    overview_parser.add_argument(
+        'filter',
         nargs='*',
-        choices=[
-            'alarm',
-            'climate',
-            'ethernet',
-            'lock',
-            'mousedetection',
-            'nest',
-            'smartcam',
-            'smartplug',
-            'temperaturecontrol',
-            'vacationmode',
-            'all'
-        ],
         help='Read status for device type')
 
     # Set command
@@ -180,35 +166,31 @@ def main():
         help='Filter event log')
 
     args = parser.parse_args()
-
-    with MyPages(args.username, args.password) as verisure:
-        if args.command == COMMAND_GET:
-            if 'all' in args.devices:
-                print_overview(verisure.get_overviews())
-            else:
-                for dev in args.devices:
-                    print_overviews(verisure.__dict__[dev].get())
-        if args.command == COMMAND_SET:
-            if args.device == 'smartplug':
-                print(verisure.smartplug.set(
-                    args.serial_number,
-                    args.new_value))
-            if args.device == 'alarm':
-                print(verisure.alarm.set(
-                    args.code,
-                    args.new_status))
-            if args.device == 'lock':
-                print(verisure.lock.set(
-                    args.code,
-                    args.serial_number,
-                    args.new_status))
-        if args.command == COMMAND_HISTORY:
-            if args.device == 'climate':
-                pprint.PrettyPrinter().pprint(verisure.climate.get_history(
-                    *args.serial_numbers))
-        if args.command == COMMAND_EVENTLOG:
-            pprint.PrettyPrinter().pprint(
-                verisure.eventlog.get(args.pages, args.offset, *args.filter))
+    verisure = session.Session(args.username, args.password)
+    verisure.login()
+    if args.command == COMMAND_OVERVIEW:
+        print_overview(verisure.get_overview(), 0, *args.filter)
+    if args.command == COMMAND_SET:
+        if args.device == 'smartplug':
+            print(verisure.set_smartplug_state(
+                args.serial_number,
+                args.new_value == 'on'))
+        if args.device == 'alarm':
+            print(verisure.alarm.set(
+                args.code,
+                args.new_status))
+        if args.device == 'lock':
+            print(verisure.lock.set(
+                args.code,
+                args.serial_number,
+                args.new_status))
+    if args.command == COMMAND_HISTORY:
+        if args.device == 'climate':
+            pprint.PrettyPrinter().pprint(verisure.climate.get_history(
+                *args.serial_numbers))
+    if args.command == COMMAND_EVENTLOG:
+        pprint.PrettyPrinter().pprint(
+            verisure.eventlog.get(args.pages, args.offset, *args.filter))
 
 
 # pylint: disable=C0103
