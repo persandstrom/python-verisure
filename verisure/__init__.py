@@ -13,7 +13,6 @@ __all__ = [
     'TemporarilyUnavailableError',
 ]
 
-from .mypages import MyPages
 from .session import (
     Error,
     LoggedOutError,

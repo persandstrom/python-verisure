@@ -10,6 +10,9 @@ LOGIN_URL = BASE_URL + 'cookie'
 INSTALLATION_URL = BASE_URL + 'installation/search?email={username}'
 OVERVIEW_URL = BASE_URL + 'installation/{guid}/overview'
 SMARTPLUG_URL = BASE_URL + 'installation/{guid}/smartplug/state'
+ARMSTATE_URL = BASE_URL + 'installation/{guid}/armstate/code'
+HISTORY_URL = BASE_URL + 'installation/{guid}/eventlog'
+CLIMATE_URL = BASE_URL + 'installation/32267043035/climate/simple/search'
 RESPONSE_TIMEOUT = 10
 
 class Error(Exception):
@@ -121,6 +124,52 @@ class Session(object):
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         self.validate_response(response)
+
+    def set_arm_state(self, code, state):
+        response=None
+        try:
+            response = requests.put(
+                ARMSTATE_URL.format(
+                    guid=self._installations[0].giid),
+                headers={
+                    'Content-Type': 'application/json',
+                    'Cookie': 'vid={}'.format(self._vid)},
+                data=json.dumps({"code": str(code), "state": state}))
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        self.validate_response(response)
+
+    def get_history(self, pagesize, offset, *filters):
+        response=None
+        try:
+            response = requests.get(
+                HISTORY_URL.format(
+                    guid=self._installations[0].giid),
+                headers={
+                    'Cookie': 'vid={}'.format(self._vid)},
+                params={
+                    "offset": int(offset),
+                    "pagesize": int(pagesize)})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        self.validate_response(response)
+        return deserialize(response.text)[0]
+
+    def get_climate(self, device_label):
+        response=None
+        try:
+            response = requests.get(
+                CLIMATE_URL.format(
+                    guid=self._installations[0].giid),
+                headers={
+                    'Cookie': 'vid={}'.format(self._vid)},
+                params={
+                    "deviceLabel": device_label})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        self.validate_response(response)
+        return deserialize(response.text)[0]
+
 
     def logout(self):
         pass

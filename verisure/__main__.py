@@ -133,19 +133,18 @@ def main():
         'climate',
         help='get climate history')
     history_climate.add_argument(
-        'serial_numbers',
-        nargs='+',
-        help='serial numbers')
+        'device_label',
+        help='device label')
 
     # Event log command
     eventlog_parser = commandsparser.add_parser(
         COMMAND_EVENTLOG,
         help='Get event log')
     eventlog_parser.add_argument(
-        '-p', '--pages',
+        '-p', '--pagesize',
         type=int,
-        default=1,
-        help='Number of pages to request')
+        default=15,
+        help='Number of elements on one page')
     eventlog_parser.add_argument(
         '-o', '--offset',
         type=int,
@@ -176,7 +175,7 @@ def main():
                 args.serial_number,
                 args.new_value == 'on'))
         if args.device == 'alarm':
-            print(verisure.alarm.set(
+            print(verisure.set_arm_state(
                 args.code,
                 args.new_status))
         if args.device == 'lock':
@@ -186,11 +185,10 @@ def main():
                 args.new_status))
     if args.command == COMMAND_HISTORY:
         if args.device == 'climate':
-            pprint.PrettyPrinter().pprint(verisure.climate.get_history(
-                *args.serial_numbers))
+            print_overview(verisure.get_climate(args.device_label), 0)
     if args.command == COMMAND_EVENTLOG:
-        pprint.PrettyPrinter().pprint(
-            verisure.eventlog.get(args.pages, args.offset, *args.filter))
+        print_overview(
+            verisure.get_history(args.pagesize, args.offset, *args.filter), 0)
 
 
 # pylint: disable=C0103
