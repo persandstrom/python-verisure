@@ -50,7 +50,8 @@ class Session(object):
         self._username = username
         self._password = password
         self._vid = None
-
+        self._giid = None
+        self.installations = None
 
     def login(self):
         """ Login to verisure app api
@@ -73,7 +74,8 @@ class Session(object):
             raise RequestError(ex)
         self.validate_response(response)
         self._vid = deserialize(response.text)[0].cookie
-        self.get_installations()
+        self._get_installations()
+        self._giid = self.installations[0].giid
     
     def validate_response(self, response):
         """ Verify that response is OK """
@@ -85,7 +87,7 @@ class Session(object):
                 response.status_code,
                 response.text.encode('utf-8')))
 
-    def get_installations(self):
+    def _get_installations(self):
         """ Get information about installations """
         response=None
         try:
@@ -95,16 +97,18 @@ class Session(object):
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         self.validate_response(response)
-        self._installations = deserialize(response.text)
-        return self._installations
+        self.installations = deserialize(response.text)
 
+    def set_giid(self, giid):
+        self._giid = giid
+    
     def get_overview(self):
         """ Get overview for installation """
         response=None
         try:
             response = requests.get(
                 OVERVIEW_URL.format(
-                    guid=self._installations[0].giid),
+                    guid=self._giid),
                 headers={'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -116,7 +120,7 @@ class Session(object):
         try:
             response = requests.post(
                 SMARTPLUG_URL.format(
-                    guid=self._installations[0].giid),
+                    guid=self._giid),
                 headers={
                     'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)},
@@ -130,7 +134,7 @@ class Session(object):
         try:
             response = requests.put(
                 ARMSTATE_URL.format(
-                    guid=self._installations[0].giid),
+                    guid=self._giid),
                 headers={
                     'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)},
@@ -144,7 +148,7 @@ class Session(object):
         try:
             response = requests.get(
                 HISTORY_URL.format(
-                    guid=self._installations[0].giid),
+                    guid=self._giid),
                 headers={
                     'Cookie': 'vid={}'.format(self._vid)},
                 params={
@@ -160,7 +164,7 @@ class Session(object):
         try:
             response = requests.get(
                 CLIMATE_URL.format(
-                    guid=self._installations[0].giid),
+                    guid=self._giid),
                 headers={
                     'Cookie': 'vid={}'.format(self._vid)},
                 params={
@@ -169,7 +173,6 @@ class Session(object):
             raise RequestError(ex)
         self.validate_response(response)
         return deserialize(response.text)[0]
-
 
     def logout(self):
         pass

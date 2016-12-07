@@ -15,8 +15,6 @@ def deserialize_node(node, depth=0):
             fields[element.tag] = element.text
         elif not element.findall('./*'):
             fields[element.tag] = None
-        #elif element.find('./*').tag:
-        #    fields[element.tag] = deserialize_node(element)
         else:
             if not element.tag in fields:
                 fields[element.tag] = []

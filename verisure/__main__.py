@@ -11,6 +11,7 @@ COMMAND_OVERVIEW = 'overview'
 COMMAND_SET = 'set'
 COMMAND_HISTORY = 'history'
 COMMAND_EVENTLOG = 'eventlog'
+COMMAND_INSTALLATIONS = 'installations'
 
 try:
     unicode = unicode
@@ -20,22 +21,27 @@ except:
 
 def print_overview(overview, depth, *names):
     indent = '  ' * depth
-    for key, value in overview.__dict__.items():
-        if key.startswith('_') or (names and key not in names and depth==0):
-            continue
-        if not value:
-            print('{}{}: {}'.format(indent, key, value))
-        elif isinstance(value, str):
-            print('{}{}: {}'.format(indent, key, value))
-        elif isinstance(value, unicode):
-            print('{}{}: {}'.format(indent, key, value.encode('utf8')))
-        elif isinstance(value, list):
-            for item in value:
+    if isinstance(overview, list):
+        for item in overview:
+            print('{}{}:'.format(indent, item.__name__))
+            print_overview(item, depth + 1)
+    else:
+        for key, value in overview.__dict__.items():
+            if key.startswith('_') or (names and key not in names and depth==0):
+                continue
+            if not value:
+                print('{}{}: {}'.format(indent, key, value))
+            elif isinstance(value, str):
+                print('{}{}: {}'.format(indent, key, value))
+            elif isinstance(value, unicode):
+                print('{}{}: {}'.format(indent, key, value.encode('utf8')))
+            elif isinstance(value, list):
+                for item in value:
+                    print('{}{}:'.format(indent, key))
+                    print_overview(item, depth + 1)
+            else:
                 print('{}{}:'.format(indent, key))
-                print_overview(item, depth + 1)
-        else:
-            print('{}{}:'.format(indent, key))
-            print_overview(value, depth + 1)
+                print_overview(value, depth + 1)
 
 
 def main():
@@ -51,11 +57,17 @@ def main():
     parser.add_argument(
         '-i', '--installation',
         help='Installation number',
+        type=int,
         default=1)
 
     commandsparser = parser.add_subparsers(
         help='commands',
         dest='command')
+
+    # installations command
+    installations_parser = commandsparser.add_parser(
+        COMMAND_INSTALLATIONS,
+        help='Get information about installations')
 
     # overview command
     overview_parser = commandsparser.add_parser(
@@ -167,6 +179,9 @@ def main():
     args = parser.parse_args()
     verisure = session.Session(args.username, args.password)
     verisure.login()
+    verisure.set_giid(verisure.installations[args.installation - 1].giid)
+    if args.command == COMMAND_INSTALLATIONS:
+        print_overview(verisure.installations, 0)
     if args.command == COMMAND_OVERVIEW:
         print_overview(verisure.get_overview(), 0, *args.filter)
     if args.command == COMMAND_SET:
