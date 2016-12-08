@@ -6,14 +6,20 @@ from .xmldeserializer import deserialize
 
 
 BASE_URL = 'https://e-api02.verisure.com/xbn/2/'
+
+INSTALLATION_URL = BASE_URL + 'installation/{guid}/'
 LOGIN_URL = BASE_URL + 'cookie'
-INSTALLATION_URL = BASE_URL + 'installation/search?email={username}'
-OVERVIEW_URL = BASE_URL + 'installation/{guid}/overview'
-SMARTPLUG_URL = BASE_URL + 'installation/{guid}/smartplug/state'
-ARMSTATE_URL = BASE_URL + 'installation/{guid}/armstate/code'
-HISTORY_URL = BASE_URL + 'installation/{guid}/eventlog'
-CLIMATE_URL = BASE_URL + 'installation/32267043035/climate/simple/search'
 LOGOUT_URL = BASE_URL + 'cookie'
+
+GET_INSTALLATIONS_URL = BASE_URL + 'installation/search?email={username}'
+OVERVIEW_URL = INSTALLATION_URL + 'overview'
+SMARTPLUG_URL = INSTALLATION_URL + 'smartplug/state'
+SET_ARMSTATE_URL = INSTALLATION_URL + 'armstate/code'
+HISTORY_URL = INSTALLATION_URL + 'eventlog'
+CLIMATE_URL = INSTALLATION_URL + 'climate/simple/search'
+GET_LOCKSTATE_URL = INSTALLATION_URL + 'doorlockstate/search'
+SET_LOCKSTATE_URL = INSTALLATION_URL + 'device/{deviceLabel}/{state}'
+
 RESPONSE_TIMEOUT = 10
 
 class Error(Exception):
@@ -93,7 +99,7 @@ class Session(object):
         response=None
         try:
             response = requests.get(
-                INSTALLATION_URL.format(username=self._username),
+                GET_INSTALLATIONS_URL.format(username=self._username),
                 headers={'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -134,7 +140,7 @@ class Session(object):
         response=None
         try:
             response = requests.put(
-                ARMSTATE_URL.format(
+                SET_ARMSTATE_URL.format(
                     guid=self._giid),
                 headers={
                     'Content-Type': 'application/json',
@@ -170,6 +176,36 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)},
                 params={
                     "deviceLabel": device_label})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        self.validate_response(response)
+        return deserialize(response.text)[0]
+    
+    def get_lockstate(self):
+        response=None
+        try:
+            response = requests.get(
+                GET_LOCKSTATE_URL.format(
+                    guid=self._giid),
+                headers={
+                    'Cookie': 'vid={}'.format(self._vid)})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        self.validate_response(response)
+        return deserialize(response.text)[0]
+
+    def set_lockstate(self, code, device_label, state):
+        response=None
+        try:
+            response = requests.put(
+                GET_LOCKSTATE_URL.format(
+                    guid=self._giid,
+                    device_label=device_label,
+                    state=state
+                    ),
+                headers={
+                    'Cookie': 'vid={}'.format(self._vid)},
+                data=json.dumps({"code": str(code)}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         self.validate_response(response)

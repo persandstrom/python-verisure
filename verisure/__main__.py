@@ -128,8 +128,8 @@ def main():
     set_lock.add_argument(
         'new_status',
         choices=[
-            'LOCKED',
-            'UNLOCKED'],
+            'lock',
+            'unlock'],
         help='new status')
 
     # History command
@@ -204,7 +204,7 @@ def main():
     if args.command == COMMAND_EVENTLOG:
         print_overview(
             verisure.get_history(args.pagesize, args.offset, *args.filter), 0)
-    print(verisure.logout())
+    verisure.logout()
 
 
 # pylint: disable=C0103
