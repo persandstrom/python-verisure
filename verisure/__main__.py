@@ -204,6 +204,7 @@ def main():
     if args.command == COMMAND_EVENTLOG:
         print_overview(
             verisure.get_history(args.pagesize, args.offset, *args.filter), 0)
+    print(verisure.logout())
 
 
 # pylint: disable=C0103

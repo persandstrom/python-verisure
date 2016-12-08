@@ -13,6 +13,7 @@ SMARTPLUG_URL = BASE_URL + 'installation/{guid}/smartplug/state'
 ARMSTATE_URL = BASE_URL + 'installation/{guid}/armstate/code'
 HISTORY_URL = BASE_URL + 'installation/{guid}/eventlog'
 CLIMATE_URL = BASE_URL + 'installation/32267043035/climate/simple/search'
+LOGOUT_URL = BASE_URL + 'cookie'
 RESPONSE_TIMEOUT = 10
 
 class Error(Exception):
@@ -175,5 +176,13 @@ class Session(object):
         return deserialize(response.text)[0]
 
     def logout(self):
-        pass
-
+        response=None
+        try:
+            response = requests.delete(
+                LOGOUT_URL,
+                headers={
+                    'Cookie': 'vid={}'.format(self._vid)}
+                )
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        self.validate_response(response)
