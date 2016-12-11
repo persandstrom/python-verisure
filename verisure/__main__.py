@@ -3,7 +3,6 @@
 from __future__ import print_function
 
 import argparse
-import pprint
 
 from verisure import session
 
@@ -14,20 +13,25 @@ COMMAND_EVENTLOG = 'eventlog'
 COMMAND_INSTALLATIONS = 'installations'
 
 try:
-    unicode = unicode
-except:
+    # pylint: disable=undefined-variable,invalid-name
+    unicode = unicode # NOQA
+except NameError:
+    # pylint: disable=invalid-name
     unicode = str
 
 
-def print_overview(overview, depth, *names):
+def print_result(overview, depth, *names):
+    """ Print the result of a verisure request """
     indent = '  ' * depth
     if isinstance(overview, list):
         for item in overview:
             print('{}{}:'.format(indent, item.__name__))
-            print_overview(item, depth + 1)
+            print_result(item, depth + 1)
     else:
         for key, value in overview.__dict__.items():
-            if key.startswith('_') or (names and key not in names and depth==0):
+            if (
+                    key.startswith('_') or
+                    (names and key not in names and depth == 0)):
                 continue
             if not value:
                 print('{}{}: {}'.format(indent, key, value))
@@ -38,10 +42,10 @@ def print_overview(overview, depth, *names):
             elif isinstance(value, list):
                 for item in value:
                     print('{}{}:'.format(indent, key))
-                    print_overview(item, depth + 1)
+                    print_result(item, depth + 1)
             else:
                 print('{}{}:'.format(indent, key))
-                print_overview(value, depth + 1)
+                print_result(value, depth + 1)
 
 
 def main():
@@ -65,7 +69,7 @@ def main():
         dest='command')
 
     # installations command
-    installations_parser = commandsparser.add_parser(
+    commandsparser.add_parser(
         COMMAND_INSTALLATIONS,
         help='Get information about installations')
 
@@ -181,28 +185,28 @@ def main():
     verisure.login()
     verisure.set_giid(verisure.installations[args.installation - 1].giid)
     if args.command == COMMAND_INSTALLATIONS:
-        print_overview(verisure.installations, 0)
+        print_result(verisure.installations, 0)
     if args.command == COMMAND_OVERVIEW:
-        print_overview(verisure.get_overview(), 0, *args.filter)
+        print_result(verisure.get_overview(), 0, *args.filter)
     if args.command == COMMAND_SET:
         if args.device == 'smartplug':
-            print(verisure.set_smartplug_state(
+            print_result(verisure.set_smartplug_state(
                 args.serial_number,
-                args.new_value == 'on'))
+                args.new_value == 'on'), 0)
         if args.device == 'alarm':
-            print(verisure.set_arm_state(
+            print_result(verisure.set_arm_state(
                 args.code,
-                args.new_status))
+                args.new_status), 0)
         if args.device == 'lock':
-            print(verisure.lock.set(
+            print_result(verisure.set_lock_state(
                 args.code,
                 args.serial_number,
-                args.new_status))
+                args.new_status), 0)
     if args.command == COMMAND_HISTORY:
         if args.device == 'climate':
-            print_overview(verisure.get_climate(args.device_label), 0)
+            print_result(verisure.get_climate(args.device_label), 0)
     if args.command == COMMAND_EVENTLOG:
-        print_overview(
+        print_result(
             verisure.get_history(args.pagesize, args.offset, *args.filter), 0)
     verisure.logout()
 
