@@ -28,15 +28,13 @@ GET_LOCKSTATE_TRANSACTION_URL = \
     INSTALLATION_URL + 'doorlockstate/change/result/{transaction_id}'
 LOCKCONFIG_URL = INSTALLATION_URL + 'device/{device_label}/doorlockconfig'
 
-RESPONSE_TIMEOUT = 10
-
 
 def _validate_response(response):
     """ Verify that response is OK """
     if response.status_code == 200:
         return
     raise ResponseError(
-        'Unable to validate response form My Pages'
+        'Invalid response'
         ', status code: {0} - Data: {1}'.format(
             response.status_code,
             response.text.encode('utf-8')))

@@ -6,11 +6,10 @@ mypages.
 __all__ = [
     'Error',
     'LoginError',
-    'MyPages',
     'ResponseError',
 ]
 
-from .session import (
+from .session import ( # NOQA
     Error,
     LoginError,
     ResponseError,

@@ -1,9 +1,7 @@
 """ Command line interface for Verisure MyPages """
 
 from __future__ import print_function
-
 import argparse
-
 from verisure import session
 
 COMMAND_OVERVIEW = 'overview'
@@ -12,6 +10,7 @@ COMMAND_HISTORY = 'history'
 COMMAND_EVENTLOG = 'eventlog'
 COMMAND_INSTALLATIONS = 'installations'
 
+# Trick for python2 compability
 try:
     # pylint: disable=undefined-variable,invalid-name
     unicode = unicode # NOQA
