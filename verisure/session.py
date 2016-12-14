@@ -87,7 +87,7 @@ class Session(object):
                 'CPE/{username}:{password}'.format(
                     username=self._username,
                     password=self._password).encode('ascii')
-                ).decode('utf-8'))
+            ).decode('utf-8'))
         response = None
         try:
             response = requests.post(
@@ -284,7 +284,7 @@ class Session(object):
                     guid=self._giid,
                     device_label=device_label,
                     state=state
-                    ),
+                ),
                 headers={
                     'Cookie': 'vid={}'.format(self._vid)},
                 data=json.dumps({"code": str(code)}))
@@ -324,7 +324,7 @@ class Session(object):
                 LOCKCONFIG_URL.format(
                     guid=self._giid,
                     device_label=device_label
-                    ),
+                ),
                 headers={
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
@@ -355,7 +355,7 @@ class Session(object):
                 LOCKCONFIG_URL.format(
                     guid=self._giid,
                     device_label=device_label
-                    ),
+                ),
                 headers={
                     'Cookie': 'vid={}'.format(self._vid)},
                 data=data)
@@ -371,8 +371,7 @@ class Session(object):
             response = requests.delete(
                 LOGIN_URL,
                 headers={
-                    'Cookie': 'vid={}'.format(self._vid)}
-                )
+                    'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
