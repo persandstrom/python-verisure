@@ -7,7 +7,6 @@ import json
 import requests
 from .xmldeserializer import deserialize
 
-
 BASE_URL = 'https://e-api02.verisure.com/xbn/2/'
 
 INSTALLATION_URL = BASE_URL + 'installation/{guid}/'
@@ -280,12 +279,13 @@ class Session(object):
         response = None
         try:
             response = requests.put(
-                GET_LOCKSTATE_URL.format(
+                SET_LOCKSTATE_URL.format(
                     guid=self._giid,
                     device_label=device_label,
                     state=state
                 ),
                 headers={
+                    'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)},
                 data=json.dumps({"code": str(code)}))
         except requests.exceptions.RequestException as ex:
@@ -348,7 +348,7 @@ class Session(object):
             data['volume'] = volume
         if voice_level:
             data['voiceLevel'] = voice_level
-        if auto_lock_enabled:
+        if auto_lock_enabled is not None:
             data['autoLockEnabled'] = auto_lock_enabled
         try:
             response = requests.put(
@@ -357,12 +357,13 @@ class Session(object):
                     device_label=device_label
                 ),
                 headers={
+                    'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)},
-                data=data)
+                data=json.dumps(data))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return response.status_code == 200
 
     def logout(self):
         """ Logout and remove vid """
