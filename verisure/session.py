@@ -32,7 +32,7 @@ GET_IMAGESERIES_URL = \
     INSTALLATION_URL + 'device/customerimagecamera/imageseries/search'
 DOWNLOAD_IMAGE_URL = \
     INSTALLATION_URL + \
-    'device/{{device_id}}/customerimagecamera/image/{{image_id}}/'
+    'device/{{device_label}}/customerimagecamera/image/{{image_id}}/'
 
 
 def _validate_response(response):

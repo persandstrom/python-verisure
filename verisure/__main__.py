@@ -239,7 +239,7 @@ def main():
         print_result(
             verisure.get_history(args.pagesize, args.offset, *args.filter), 0)
     if args.command == COMMAND_CAPTURE:
-        print_result(verisure.capture_image(args.device_label), 0)
+        verisure.capture_image(args.device_label)
     if args.command == COMMAND_IMAGESERIES:
         print_result(verisure.get_camera_imageseries(), 0)
     if args.command == COMMAND_GETIMAGE:
