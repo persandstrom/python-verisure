@@ -26,6 +26,13 @@ SET_LOCKSTATE_URL = INSTALLATION_URL + 'device/{device_label}/{state}'
 GET_LOCKSTATE_TRANSACTION_URL = \
     INSTALLATION_URL + 'doorlockstate/change/result/{transaction_id}'
 LOCKCONFIG_URL = INSTALLATION_URL + 'device/{device_label}/doorlockconfig'
+IMAGECAPTURE_URL = \
+    INSTALLATION_URL + 'device/{device_label}/customerimagecamera/imagecapture'
+GET_IMAGESERIES_URL = \
+    INSTALLATION_URL + 'device/customerimagecamera/imageseries/search'
+DOWNLOAD_IMAGE_URL = \
+    INSTALLATION_URL + \
+    'device/{{device_id}}/customerimagecamera/image/{{image_id}}/'
 
 
 def _validate_response(response):
@@ -364,6 +371,77 @@ class Session(object):
             raise RequestError(ex)
         _validate_response(response)
         return response.status_code == 200
+
+    def capture_image(self, device_label):
+        """ Capture smartcam image
+
+        Args:
+            device_label (str): device label of camera
+        """
+        response = None
+        try:
+            response = requests.post(
+                IMAGECAPTURE_URL.format(
+                    guid=self._giid,
+                    device_label=device_label),
+                headers={
+                    'Content-Type': 'application/json',
+                    'Cookie': 'vid={}'.format(self._vid)})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        _validate_response(response)
+
+    def get_camera_imageseries(self, number_of_imageseries=10, offset=0):
+        """ Get smartcam image series
+
+        Args:
+            number_of_imageseries (int): number of image series to get
+            offset (int): skip offset amount of image series
+        """
+        response = None
+        try:
+            response = requests.get(
+                GET_IMAGESERIES_URL.format(
+                    guid=self._giid),
+                headers={
+                    'Cookie': 'vid={}'.format(self._vid)},
+                params={
+                    "numberOfImageSeries": int(number_of_imageseries),
+                    "offset": int(offset),
+                    "fromDate": "",
+                    "toDate": "",
+                    "onlyNotViewed": "",
+                    "_": self._giid})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        _validate_response(response)
+        return deserialize(response.text)[0]
+
+    def download_image(self, device_label, image_id, file_name):
+        """ Download image taken by a smartcam
+
+        Args:
+            device_label (str): device label of camera
+            image_id (str): image id from image series
+            file_name (str): path to file
+        """
+        response = None
+        try:
+            response = requests.get(
+                DOWNLOAD_IMAGE_URL.format(
+                    guid=self._giid,
+                    device_label=device_label,
+                    image_id=image_id),
+                headers={
+                    'Cookie': 'vid={}'.format(self._vid)},
+                stream=True)
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        _validate_response(response)
+        with open(file_name, 'wb') as image_file:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    image_file.write(chunk)
 
     def logout(self):
         """ Logout and remove vid """

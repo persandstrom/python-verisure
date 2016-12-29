@@ -9,6 +9,9 @@ COMMAND_SET = 'set'
 COMMAND_HISTORY = 'history'
 COMMAND_EVENTLOG = 'eventlog'
 COMMAND_INSTALLATIONS = 'installations'
+COMMAND_CAPTURE = 'capture'
+COMMAND_IMAGESERIES = 'imageseries'
+COMMAND_GETIMAGE = 'getimage'
 
 # Trick for python2 compability
 try:
@@ -47,6 +50,7 @@ def print_result(overview, depth, *names):
                 print_result(value, depth + 1)
 
 
+# pylint: disable=too-many-locals,too-many-statements
 def main():
     """ Start verisure command line """
     parser = argparse.ArgumentParser(
@@ -179,6 +183,33 @@ def main():
             'WARNING'],
         help='Filter event log')
 
+    # Capture command
+    capture_parser = commandsparser.add_parser(
+        COMMAND_CAPTURE,
+        help='Capture image')
+    capture_parser.add_argument(
+        'device_label',
+        help='Device label')
+
+    # Image series command
+    commandsparser.add_parser(
+        COMMAND_IMAGESERIES,
+        help='Get image series')
+
+    # Get image command
+    getimage_parser = commandsparser.add_parser(
+        COMMAND_GETIMAGE,
+        help='Download image')
+    getimage_parser.add_argument(
+        'device_label',
+        help='Device label')
+    getimage_parser.add_argument(
+        'image_id',
+        help='image ID')
+    getimage_parser.add_argument(
+        'file_name',
+        help='Output file name')
+
     args = parser.parse_args()
     verisure = session.Session(args.username, args.password)
     verisure.login()
@@ -207,6 +238,16 @@ def main():
     if args.command == COMMAND_EVENTLOG:
         print_result(
             verisure.get_history(args.pagesize, args.offset, *args.filter), 0)
+    if args.command == COMMAND_CAPTURE:
+        print_result(verisure.capture_image(args.device_label), 0)
+    if args.command == COMMAND_IMAGESERIES:
+        print_result(verisure.get_camera_imageseries(), 0)
+    if args.command == COMMAND_GETIMAGE:
+        print_result(
+            verisure.download_image(
+                args.device_label,
+                args.image_id,
+                args.file_name), 0)
     verisure.logout()
 
 
