@@ -2,7 +2,8 @@
 
 from __future__ import print_function
 import argparse
-from verisure import session
+import verisure
+#from verisure import session
 
 COMMAND_OVERVIEW = 'overview'
 COMMAND_SET = 'set'
@@ -57,10 +58,10 @@ def main():
         description='Read or change status of verisure devices')
     parser.add_argument(
         'username',
-        help='MySite username')
+        help='MyPages username')
     parser.add_argument(
         'password',
-        help='MySite password')
+        help='MyPages password')
     parser.add_argument(
         '-i', '--installation',
         help='Installation number',
@@ -98,8 +99,8 @@ def main():
         'smartplug',
         help='set smartplug value')
     set_smartplug.add_argument(
-        'serial_number',
-        help='serial number')
+        'device_label',
+        help='device label')
     set_smartplug.add_argument(
         'new_value',
         choices=[
@@ -211,44 +212,44 @@ def main():
         help='Output file name')
 
     args = parser.parse_args()
-    verisure = session.Session(args.username, args.password)
-    verisure.login()
-    verisure.set_giid(verisure.installations[args.installation - 1].giid)
+    session = verisure.Session(args.username, args.password)
+    session.login()
+    session.set_giid(session.installations[args.installation - 1].giid)
     if args.command == COMMAND_INSTALLATIONS:
-        print_result(verisure.installations, 0)
+        print_result(session.installations, 0)
     if args.command == COMMAND_OVERVIEW:
-        print_result(verisure.get_overview(), 0, *args.filter)
+        print_result(session.get_overview(), 0, *args.filter)
     if args.command == COMMAND_SET:
         if args.device == 'smartplug':
-            print_result(verisure.set_smartplug_state(
-                args.serial_number,
-                args.new_value == 'on'), 0)
+            session.set_smartplug_state(
+                args.device_label,
+                args.new_value == 'on')
         if args.device == 'alarm':
-            print_result(verisure.set_arm_state(
+            print_result(session.set_arm_state(
                 args.code,
                 args.new_status), 0)
         if args.device == 'lock':
-            print_result(verisure.set_lock_state(
+            print_result(session.set_lock_state(
                 args.code,
                 args.serial_number,
                 args.new_status), 0)
     if args.command == COMMAND_HISTORY:
         if args.device == 'climate':
-            print_result(verisure.get_climate(args.device_label), 0)
+            print_result(session.get_climate(args.device_label), 0)
     if args.command == COMMAND_EVENTLOG:
         print_result(
-            verisure.get_history(args.pagesize, args.offset, *args.filter), 0)
+            session.get_history(args.pagesize, args.offset, *args.filter), 0)
     if args.command == COMMAND_CAPTURE:
-        verisure.capture_image(args.device_label)
+        session.capture_image(args.device_label)
     if args.command == COMMAND_IMAGESERIES:
-        print_result(verisure.get_camera_imageseries(), 0)
+        print_result(session.get_camera_imageseries(), 0)
     if args.command == COMMAND_GETIMAGE:
         print_result(
-            verisure.download_image(
+            session.download_image(
                 args.device_label,
                 args.image_id,
                 args.file_name), 0)
-    verisure.logout()
+    session.logout()
 
 
 # pylint: disable=C0103

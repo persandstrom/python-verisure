@@ -32,7 +32,7 @@ GET_IMAGESERIES_URL = \
     INSTALLATION_URL + 'device/customerimagecamera/imageseries/search'
 DOWNLOAD_IMAGE_URL = \
     INSTALLATION_URL + \
-    'device/{{device_label}}/customerimagecamera/image/{{image_id}}/'
+    'device/{device_label}/customerimagecamera/image/{image_id}/'
 
 
 def _validate_response(response):
@@ -157,7 +157,7 @@ class Session(object):
                     'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)},
                 data=json.dumps([{
-                    "device_label": device_label,
+                    "deviceLabel": device_label,
                     "state": state}]))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)

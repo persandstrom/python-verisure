@@ -4,18 +4,10 @@ A python module for reading and changing status of verisure devices through mypa
 ### Legal Disclaimer
 This software is not affiliated with Verisure Holding AB and the developers take no legal responsibility for the functionality or security of your Verisure Alarms and devices.
 
-### supported devices:
-    alarm (get, set)
-    climate (get, history)
-    ethernet (get)
-    eventlog (get)
-    lock (get, set)
-    nest (get)
-    mousedetection (get)
-    smartcam (get)
-    smartplug (get, set)
-    temperaturecontrol (get)
-    vacationmode (get)
+
+### Version History
+1.0.0 Move to app-api, major changes
+
 
 ## Installation
 ``` pip install vsure ```
@@ -26,18 +18,26 @@ or
 ## Command line usage
 
 ```
-usage: vsure [-h] username password {get,set} ...
+usage: verisure.py [-h] [-i INSTALLATION]
+                   username password
+                   {installations,overview,set,history,eventlog,capture,imageseries,getimage}
+                   ...
 
 Read or change status of verisure devices
 
 positional arguments:
-  username           MySite username
-  password           MySite password
-  {get,set,history}  commands
-    get              Read status of one or many device types
-    set              Set status of a device
-    history          Get history of a device
-    eventlog         Get event log
+  username              MyPages username
+  password              MyPages password
+  {installations,overview,set,history,eventlog,capture,imageseries,getimage}
+                        commands
+    installations       Get information about installations
+    overview            Read status of one or many device types
+    set                 Set status of a device
+    history             Get history of a device
+    eventlog            Get event log
+    capture             Capture image
+    imageseries         Get image series
+    getimage            Download image
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -47,25 +47,21 @@ optional arguments:
 
 ### Read alarm status
 
-``` vsure user@example.com mypassword get alarm ```
+``` vsure user@example.com mypassword overview armState ```
 
 output:
 
 ```
-alarm
-	status: unarmed
-	notAllowedReason: 
-	changeAllowed: True
-	label: Disarmed
-	date: Today 7:10 AM
-	type: ARM_STATE
-	id: 1
-	name: Alex Poe
+armState:
+  date: 2016-12-30T09:35:59+0000
+  changedVia: CODE
+  statusType: DISARMED
+  name: Alex Poe
 ```
 
 ### Read status from all devices
 
-``` vsure user@example.com mypassword get all ```
+``` vsure user@example.com mypassword overview ```
 
 ### Disarm
 
