@@ -3,7 +3,6 @@
 from __future__ import print_function
 import argparse
 import verisure
-#from verisure import session
 
 COMMAND_OVERVIEW = 'overview'
 COMMAND_SET = 'set'
