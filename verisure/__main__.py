@@ -222,7 +222,7 @@ def main():
     if args.command == COMMAND_EVENTLOG:
         print_result(
             session.get_history(
-                *args.filter,
+                args.filter,
                 pagesize=args.pagesize,
                 offset=args.offset))
     if args.command == COMMAND_CAPTURE:

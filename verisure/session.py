@@ -227,7 +227,7 @@ class Session(object):
         _validate_response(response)
         return json.loads(response.text)
 
-    def get_history(self, *filters, pagesize=15, offset=0):
+    def get_history(self, filters=(), pagesize=15, offset=0):
         """ Get recent events
 
         Args:
