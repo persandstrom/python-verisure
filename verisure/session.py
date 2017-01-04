@@ -100,7 +100,7 @@ class Session(object):
                 headers={
                     'Authorization': auth,
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    })
+                })
         except requests.exceptions.RequestException as ex:
             raise LoginError(ex)
         _validate_response(response)
@@ -117,7 +117,7 @@ class Session(object):
                 headers={
                     'Cookie': 'vid={}'.format(self._vid),
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    })
+                })
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)

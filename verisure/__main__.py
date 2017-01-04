@@ -72,7 +72,7 @@ def main():
         help='Read status for device type')
 
     # armstate command
-    armstate_parser = commandsparser.add_parser(
+    commandsparser.add_parser(
         COMMAND_ARMSTATE,
         help='Get arm state')
 
