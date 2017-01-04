@@ -5,7 +5,6 @@ Verisure session, using verisure app api
 import base64
 import json
 import requests
-from .xmldeserializer import deserialize
 
 BASE_URL = 'https://e-api02.verisure.com/xbn/2/'
 
@@ -98,13 +97,16 @@ class Session(object):
         try:
             response = requests.post(
                 LOGIN_URL,
-                headers={'Authorization': auth})
+                headers={
+                    'Authorization': auth,
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    })
         except requests.exceptions.RequestException as ex:
             raise LoginError(ex)
         _validate_response(response)
-        self._vid = deserialize(response.text)[0].cookie
+        self._vid = json.loads(response.text)['cookie']
         self._get_installations()
-        self._giid = self.installations[0].giid
+        self._giid = self.installations[0]['giid']
 
     def _get_installations(self):
         """ Get information about installations """
@@ -112,11 +114,14 @@ class Session(object):
         try:
             response = requests.get(
                 GET_INSTALLATIONS_URL.format(username=self._username),
-                headers={'Cookie': 'vid={}'.format(self._vid)})
+                headers={
+                    'Cookie': 'vid={}'.format(self._vid),
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    })
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        self.installations = deserialize(response.text)
+        self.installations = json.loads(response.text)
 
     def set_giid(self, giid):
         """ Set installation giid
@@ -134,19 +139,21 @@ class Session(object):
                 OVERVIEW_URL.format(
                     guid=self._giid),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    'Accept-Encoding': 'gzip, deflate',
                     'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def set_smartplug_state(self, device_label, state):
         """ Turn on or off smartplug
 
         Args:
             device_label (str): Smartplug device label
-            state (boolean): new status, 'true' or 'false'
+            state (boolean): new status, 'True' or 'False'
         """
         response = None
         try:
@@ -176,13 +183,14 @@ class Session(object):
                 SET_ARMSTATE_URL.format(
                     guid=self._giid),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)},
                 data=json.dumps({"code": str(code), "state": state}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def get_arm_state_transaction(self, transaction_id=''):
         """ Get arm state transaction status
@@ -197,11 +205,12 @@ class Session(object):
                     guid=self._giid,
                     transaction_id=transaction_id),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def get_arm_state(self):
         """ Get arm state """
@@ -211,20 +220,21 @@ class Session(object):
                 GET_ARMSTATE_URL.format(
                     guid=self._giid),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
-    def get_history(self, pagesize, offset, *filters):
+    def get_history(self, *filters, pagesize=15, offset=0):
         """ Get recent events
 
         Args:
-            pagesize (int): Number of events to display
-            offset (int): Skip pagesize * offset first events
             filters (string set): 'ARM', 'DISARM', 'FIRE', 'INTRUSION',
                                   'TECHNICAL', 'SOS', 'WARNING'
+            pagesize (int): Number of events to display
+            offset (int): Skip pagesize * offset first events
         """
         response = None
         try:
@@ -232,6 +242,7 @@ class Session(object):
                 HISTORY_URL.format(
                     guid=self._giid),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)},
                 params={
                     "offset": int(offset),
@@ -240,7 +251,7 @@ class Session(object):
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def get_climate(self, device_label):
         """ Get climate history
@@ -253,13 +264,14 @@ class Session(object):
                 CLIMATE_URL.format(
                     guid=self._giid),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)},
                 params={
                     "deviceLabel": device_label})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def get_lock_state(self):
         """ Get current lock status """
@@ -269,11 +281,12 @@ class Session(object):
                 GET_LOCKSTATE_URL.format(
                     guid=self._giid),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def set_lock_state(self, code, device_label, state):
         """ Lock or unlock
@@ -292,13 +305,14 @@ class Session(object):
                     state=state
                 ),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)},
                 data=json.dumps({"code": str(code)}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def get_lock_state_transaction(self, transaction_id=''):
         """ Get lockk state transaction status
@@ -313,11 +327,12 @@ class Session(object):
                     guid=self._giid,
                     transaction_id=transaction_id),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def get_lock_config(self, device_label):
         """ Get lock configuration
@@ -333,11 +348,12 @@ class Session(object):
                     device_label=device_label
                 ),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def set_lock_config(self, device_label, volume=None, voice_level=None,
                         auto_lock_enabled=None):
@@ -370,7 +386,6 @@ class Session(object):
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return response.status_code == 200
 
     def capture_image(self, device_label):
         """ Capture smartcam image
@@ -404,6 +419,7 @@ class Session(object):
                 GET_IMAGESERIES_URL.format(
                     guid=self._giid),
                 headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)},
                 params={
                     "numberOfImageSeries": int(number_of_imageseries),
@@ -415,7 +431,7 @@ class Session(object):
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
-        return deserialize(response.text)[0]
+        return json.loads(response.text)
 
     def download_image(self, device_label, image_id, file_name):
         """ Download image taken by a smartcam

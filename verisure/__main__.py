@@ -2,16 +2,18 @@
 
 from __future__ import print_function
 import argparse
+import pprint
 import verisure
 
 COMMAND_OVERVIEW = 'overview'
 COMMAND_SET = 'set'
-COMMAND_HISTORY = 'history'
+COMMAND_CLIMATE = 'climate'
 COMMAND_EVENTLOG = 'eventlog'
 COMMAND_INSTALLATIONS = 'installations'
 COMMAND_CAPTURE = 'capture'
 COMMAND_IMAGESERIES = 'imageseries'
 COMMAND_GETIMAGE = 'getimage'
+COMMAND_ARMSTATE = 'armstate'
 
 # Trick for python2 compability
 try:
@@ -22,32 +24,16 @@ except NameError:
     unicode = str
 
 
-def print_result(overview, depth, *names):
+def print_result(overview, *names):
     """ Print the result of a verisure request """
-    indent = '  ' * depth
-    if isinstance(overview, list):
-        for item in overview:
-            print('{}{}:'.format(indent, item.__name__))
-            print_result(item, depth + 1)
+    if names:
+        for name in names:
+            toprint = overview
+            for part in name.split('/'):
+                toprint = toprint[part]
+            pprint.pprint(toprint)
     else:
-        for key, value in overview.__dict__.items():
-            if (
-                    key.startswith('_') or
-                    (names and key not in names and depth == 0)):
-                continue
-            if not value:
-                print('{}{}: {}'.format(indent, key, value))
-            elif isinstance(value, str):
-                print('{}{}: {}'.format(indent, key, value))
-            elif isinstance(value, unicode):
-                print('{}{}: {}'.format(indent, key, value.encode('utf8')))
-            elif isinstance(value, list):
-                for item in value:
-                    print('{}{}:'.format(indent, key))
-                    print_result(item, depth + 1)
-            else:
-                print('{}{}:'.format(indent, key))
-                print_result(value, depth + 1)
+        pprint.pprint(overview)
 
 
 # pylint: disable=too-many-locals,too-many-statements
@@ -84,6 +70,11 @@ def main():
         'filter',
         nargs='*',
         help='Read status for device type')
+
+    # armstate command
+    armstate_parser = commandsparser.add_parser(
+        COMMAND_ARMSTATE,
+        help='Get arm state')
 
     # Set command
     set_parser = commandsparser.add_parser(
@@ -139,17 +130,9 @@ def main():
             'unlock'],
         help='new status')
 
-    # History command
-    history_parser = commandsparser.add_parser(
-        COMMAND_HISTORY,
-        help='Get history of a device')
-    history_device = history_parser.add_subparsers(
-        help='device',
-        dest='device')
-
     # Get climate history
-    history_climate = history_device.add_parser(
-        'climate',
+    history_climate = commandsparser.add_parser(
+        COMMAND_CLIMATE,
         help='get climate history')
     history_climate.add_argument(
         'device_label',
@@ -213,11 +196,13 @@ def main():
     args = parser.parse_args()
     session = verisure.Session(args.username, args.password)
     session.login()
-    session.set_giid(session.installations[args.installation - 1].giid)
+    session.set_giid(session.installations[args.installation - 1]['giid'])
     if args.command == COMMAND_INSTALLATIONS:
-        print_result(session.installations, 0)
+        print_result(session.installations)
     if args.command == COMMAND_OVERVIEW:
-        print_result(session.get_overview(), 0, *args.filter)
+        print_result(session.get_overview(), *args.filter)
+    if args.command == COMMAND_ARMSTATE:
+        print_result(session.get_arm_state())
     if args.command == COMMAND_SET:
         if args.device == 'smartplug':
             session.set_smartplug_state(
@@ -226,28 +211,29 @@ def main():
         if args.device == 'alarm':
             print_result(session.set_arm_state(
                 args.code,
-                args.new_status), 0)
+                args.new_status))
         if args.device == 'lock':
             print_result(session.set_lock_state(
                 args.code,
                 args.serial_number,
-                args.new_status), 0)
-    if args.command == COMMAND_HISTORY:
-        if args.device == 'climate':
-            print_result(session.get_climate(args.device_label), 0)
+                args.new_status))
+    if args.command == COMMAND_CLIMATE:
+        print_result(session.get_climate(args.device_label))
     if args.command == COMMAND_EVENTLOG:
         print_result(
-            session.get_history(args.pagesize, args.offset, *args.filter), 0)
+            session.get_history(
+                *args.filter,
+                pagesize=args.pagesize,
+                offset=args.offset))
     if args.command == COMMAND_CAPTURE:
         session.capture_image(args.device_label)
     if args.command == COMMAND_IMAGESERIES:
-        print_result(session.get_camera_imageseries(), 0)
+        print_result(session.get_camera_imageseries())
     if args.command == COMMAND_GETIMAGE:
-        print_result(
-            session.download_image(
-                args.device_label,
-                args.image_id,
-                args.file_name), 0)
+        session.download_image(
+            args.device_label,
+            args.image_id,
+            args.file_name)
     session.logout()
 
 
