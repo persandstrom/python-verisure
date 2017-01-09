@@ -1,26 +1,20 @@
 """
 A python module for reading and changing status of verisure devices through
-mypages.
+verisure app API.
 """
 
 __all__ = [
     'Error',
-    'LoggedOutError',
     'LoginError',
-    'MaintenanceError',
-    'MyPages',
     'ResponseError',
-    'TemporarilyUnavailableError',
+    'Session'
 ]
 
-from .mypages import MyPages
-from .session import (
+from .session import ( # NOQA
     Error,
-    LoggedOutError,
     LoginError,
-    MaintenanceError,
     ResponseError,
-    TemporarilyUnavailableError,
+    Session
 )
 
 
