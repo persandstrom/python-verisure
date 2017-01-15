@@ -14,6 +14,7 @@ COMMAND_CAPTURE = 'capture'
 COMMAND_IMAGESERIES = 'imageseries'
 COMMAND_GETIMAGE = 'getimage'
 COMMAND_ARMSTATE = 'armstate'
+COMMAND_VACATIONMODE = 'vacationmode'
 
 # Trick for python2 compability
 try:
@@ -193,6 +194,11 @@ def main():
         'file_name',
         help='Output file name')
 
+    # Vacation mode command
+    commandsparser.add_parser(
+        COMMAND_VACATIONMODE,
+        help='Get vacation mode info')
+
     args = parser.parse_args()
     session = verisure.Session(args.username, args.password)
     session.login()
@@ -234,6 +240,8 @@ def main():
             args.device_label,
             args.image_id,
             args.file_name)
+    if args.command == COMMAND_VACATIONMODE:
+        print_result(session.get_vacation_mode())
     session.logout()
 
 

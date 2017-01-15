@@ -6,6 +6,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 
 ### Version History
+1.1.0 Support vacation mode 
 1.0.0 Move to app-API, major changes
 
 
@@ -39,6 +40,7 @@ positional arguments:
     capture             Capture image
     imageseries         Get image series
     getimage            Download image
+    vacationmode        Get vacation mode info
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -129,7 +131,7 @@ import verisure
 
 session = verisure.Session('user@example.com', 'password')
 session.login()
-events = session.get_history()
+events = session.get_history(('ARM', 'DISARM'))
 session.logout()
 ```
 

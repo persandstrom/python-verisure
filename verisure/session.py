@@ -32,6 +32,7 @@ GET_IMAGESERIES_URL = \
 DOWNLOAD_IMAGE_URL = \
     INSTALLATION_URL + \
     'device/{device_label}/customerimagecamera/image/{image_id}/'
+GET_VACATIONMODE_URL = INSTALLATION_URL + 'vacationmode'
 
 
 def _validate_response(response):
@@ -458,6 +459,21 @@ class Session(object):
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
                     image_file.write(chunk)
+
+    def get_vacation_mode(self):
+        """ Get current vacation mode """
+        response = None
+        try:
+            response = requests.get(
+                GET_VACATIONMODE_URL.format(
+                    guid=self._giid),
+                headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    'Cookie': 'vid={}'.format(self._vid)})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        _validate_response(response)
+        return json.loads(response.text)
 
     def logout(self):
         """ Logout and remove vid """
