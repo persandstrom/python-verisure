@@ -68,6 +68,10 @@ output:
 
 ``` vsure user@example.com mypassword overview ```
 
+### Filter out door lock status from overview 
+
+``` vsure user@example.com password overview doorLockStatusList ```
+
 ### Disarm
 
 ``` vsure user@example.com mypassword set alarm 1234 DISARMED ```
