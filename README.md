@@ -76,6 +76,10 @@ output:
 
 ``` vsure user@example.com mypassword set alarm 1234 DISARMED ```
 
+### Unlock door
+
+``` vsure user@example.com mypassword set lock 123456 '6EA1 A422' unlock ```
+
 ### Turn on smartplug 
 
 ``` vsure user@example.com mypassword set smartplug '5AC2 4LXH' on ```
