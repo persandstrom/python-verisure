@@ -202,47 +202,51 @@ def main():
     args = parser.parse_args()
     session = verisure.Session(args.username, args.password)
     session.login()
-    session.set_giid(session.installations[args.installation - 1]['giid'])
-    if args.command == COMMAND_INSTALLATIONS:
-        print_result(session.installations)
-    if args.command == COMMAND_OVERVIEW:
-        print_result(session.get_overview(), *args.filter)
-    if args.command == COMMAND_ARMSTATE:
-        print_result(session.get_arm_state())
-    if args.command == COMMAND_SET:
-        if args.device == 'smartplug':
-            session.set_smartplug_state(
+    try:
+        session.set_giid(session.installations[args.installation - 1]['giid'])
+        if args.command == COMMAND_INSTALLATIONS:
+            print_result(session.installations)
+        if args.command == COMMAND_OVERVIEW:
+            print_result(session.get_overview(), *args.filter)
+        if args.command == COMMAND_ARMSTATE:
+            print_result(session.get_arm_state())
+        if args.command == COMMAND_SET:
+            if args.device == 'smartplug':
+                session.set_smartplug_state(
+                    args.device_label,
+                    args.new_value == 'on')
+            if args.device == 'alarm':
+                print_result(session.set_arm_state(
+                    args.code,
+                    args.new_status))
+            if args.device == 'lock':
+                print_result(session.set_lock_state(
+                    args.code,
+                    args.serial_number,
+                    args.new_status))
+        if args.command == COMMAND_CLIMATE:
+            print_result(session.get_climate(args.device_label))
+        if args.command == COMMAND_EVENTLOG:
+            print_result(
+                session.get_history(
+                    args.filter,
+                    pagesize=args.pagesize,
+                    offset=args.offset))
+        if args.command == COMMAND_CAPTURE:
+            session.capture_image(args.device_label)
+        if args.command == COMMAND_IMAGESERIES:
+            print_result(session.get_camera_imageseries())
+        if args.command == COMMAND_GETIMAGE:
+            session.download_image(
                 args.device_label,
-                args.new_value == 'on')
-        if args.device == 'alarm':
-            print_result(session.set_arm_state(
-                args.code,
-                args.new_status))
-        if args.device == 'lock':
-            print_result(session.set_lock_state(
-                args.code,
-                args.serial_number,
-                args.new_status))
-    if args.command == COMMAND_CLIMATE:
-        print_result(session.get_climate(args.device_label))
-    if args.command == COMMAND_EVENTLOG:
-        print_result(
-            session.get_history(
-                args.filter,
-                pagesize=args.pagesize,
-                offset=args.offset))
-    if args.command == COMMAND_CAPTURE:
-        session.capture_image(args.device_label)
-    if args.command == COMMAND_IMAGESERIES:
-        print_result(session.get_camera_imageseries())
-    if args.command == COMMAND_GETIMAGE:
-        session.download_image(
-            args.device_label,
-            args.image_id,
-            args.file_name)
-    if args.command == COMMAND_VACATIONMODE:
-        print_result(session.get_vacation_mode())
-    session.logout()
+                args.image_id,
+                args.file_name)
+        if args.command == COMMAND_VACATIONMODE:
+            print_result(session.get_vacation_mode())
+    except verisure.session.ResponseError as ex:
+        print_result(ex.text)
+    finally:
+        session.logout()
 
 
 # pylint: disable=C0103
