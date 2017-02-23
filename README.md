@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.1.2 Change base host
 1.1.1 Prettier printing of response error for command line usage
 1.1.0 Support vacation mode 
 1.0.0 Move to app-API, major changes
