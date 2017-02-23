@@ -6,7 +6,7 @@ import base64
 import json
 import requests
 
-BASE_URL = 'https://e-api02.verisure.com/xbn/2/'
+BASE_URL = 'https://e-api01.verisure.com/xbn/2/'
 
 INSTALLATION_URL = BASE_URL + 'installation/{guid}/'
 LOGIN_URL = BASE_URL + 'cookie'
