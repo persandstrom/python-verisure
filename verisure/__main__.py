@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 import argparse
-import pprint
+import json
 import verisure
 
 COMMAND_OVERVIEW = 'overview'
@@ -32,9 +32,9 @@ def print_result(overview, *names):
             toprint = overview
             for part in name.split('/'):
                 toprint = toprint[part]
-            pprint.pprint(toprint)
+            print(json.dumps(toprint, indent=4, separators=(',', ': ')))
     else:
-        pprint.pprint(overview)
+        print(json.dumps(overview, indent=4, separators=(',', ': ')))
 
 
 # pylint: disable=too-many-locals,too-many-statements
@@ -244,7 +244,7 @@ def main():
         if args.command == COMMAND_VACATIONMODE:
             print_result(session.get_vacation_mode())
     except verisure.session.ResponseError as ex:
-        print_result(ex.text)
+        print(ex.text)
     finally:
         session.logout()
 
