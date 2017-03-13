@@ -14,6 +14,7 @@ COMMAND_CAPTURE = 'capture'
 COMMAND_IMAGESERIES = 'imageseries'
 COMMAND_GETIMAGE = 'getimage'
 COMMAND_ARMSTATE = 'armstate'
+COMMAND_DOOR_WINDOW = 'door_window'
 COMMAND_VACATIONMODE = 'vacationmode'
 
 # Trick for python2 compability
@@ -199,6 +200,11 @@ def main():
         COMMAND_VACATIONMODE,
         help='Get vacation mode info')
 
+    # Door window status command
+    commandsparser.add_parser(
+        COMMAND_DOOR_WINDOW,
+        help='Get door/window status')
+
     args = parser.parse_args()
     session = verisure.Session(args.username, args.password)
     session.login()
@@ -243,6 +249,8 @@ def main():
                 args.file_name)
         if args.command == COMMAND_VACATIONMODE:
             print_result(session.get_vacation_mode())
+        if args.command == COMMAND_DOOR_WINDOW:
+            print_result(session.get_door_window())
     except verisure.session.ResponseError as ex:
         print(ex.text)
     finally:
