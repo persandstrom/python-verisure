@@ -18,6 +18,7 @@ SET_ARMSTATE_URL = INSTALLATION_URL + 'armstate/code'
 GET_ARMSTATE_TRANSACTION_URL = \
     INSTALLATION_URL + 'code/result/{transaction_id}'
 GET_ARMSTATE_URL = INSTALLATION_URL + 'armstate'
+DOOR_WINDOW_URL = INSTALLATION_URL + 'device/view/DOORWINDOW'
 HISTORY_URL = INSTALLATION_URL + 'eventlog'
 CLIMATE_URL = INSTALLATION_URL + 'climate/simple/search'
 GET_LOCKSTATE_URL = INSTALLATION_URL + 'doorlockstate/search'
@@ -477,6 +478,22 @@ class Session(object):
             raise RequestError(ex)
         _validate_response(response)
         return json.loads(response.text)
+
+    def get_door_window(self):
+        """ Get door_window states"""
+        response = None
+        try:
+            response = requests.get(
+                DOOR_WINDOW_URL.format(
+                    guid=self._giid),
+                headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    'Cookie': 'vid={}'.format(self._vid)})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        _validate_response(response)
+        return json.loads(response.text)
+
 
     def logout(self):
         """ Logout and remove vid """
