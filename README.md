@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.3.0 Added command for door/window status
 1.2.0 CLI output as json
 1.1.2 Change base host
 1.1.1 Prettier printing of response error for command line usage
