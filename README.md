@@ -46,6 +46,7 @@ positional arguments:
     imageseries         Get image series
     getimage            Download image
     vacationmode        Get vacation mode info
+    door_window         Get door/window status
 
 optional arguments:
   -h, --help            show this help message and exit
