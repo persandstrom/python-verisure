@@ -494,7 +494,6 @@ class Session(object):
         _validate_response(response)
         return json.loads(response.text)
 
-
     def logout(self):
         """ Logout and remove vid """
         response = None
