@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.3.2 Update base url 
 1.3.1 Add LOCK and UNLOCK as filter options for event log
 1.3.0 Added command for door/window status
 1.2.0 CLI output as json
