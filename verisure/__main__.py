@@ -165,7 +165,9 @@ def main():
             'INTRUSION',
             'TECHNICAL',
             'SOS',
-            'WARNING'],
+            'WARNING',
+            'LOCK',
+            'UNLOCK'],
         help='Filter event log')
 
     # Capture command
