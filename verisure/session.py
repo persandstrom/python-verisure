@@ -237,7 +237,8 @@ class Session(object):
 
         Args:
             filters (string set): 'ARM', 'DISARM', 'FIRE', 'INTRUSION',
-                                  'TECHNICAL', 'SOS', 'WARNING'
+                                  'TECHNICAL', 'SOS', 'WARNING', 'LOCK',
+                                  'UNLOCK'
             pagesize (int): Number of events to display
             offset (int): Skip pagesize * offset first events
         """
