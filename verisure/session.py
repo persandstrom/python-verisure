@@ -35,6 +35,8 @@ DOWNLOAD_IMAGE_URL = \
     'device/{device_label}/customerimagecamera/image/{image_id}/'
 GET_VACATIONMODE_URL = INSTALLATION_URL + 'vacationmode'
 
+SET_SMARTCAM_MOTION_DETECTOR_STATE_URL = INSTALLATION_URL + 'device/{device_label}/customerimagecamera/config'
+
 
 def _validate_response(response):
     """ Verify that response is OK """
@@ -171,6 +173,26 @@ class Session(object):
                 data=json.dumps([{
                     "deviceLabel": device_label,
                     "state": state}]))
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        _validate_response(response.text)
+
+    def set_smartcam_motion_detector_state(self, device_label, state):
+        response = None
+        try:
+            response = requests.put(
+                SET_SMARTCAM_MOTION_DETECTOR_STATE_URL.format(
+                    guid=self._giid,
+                    device_label=device_label),
+                headers={
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    'Cookie': 'vid={}'.format(self._vid)},
+                data=json.dumps({
+                    "userMonitoredCameraConfiguration": {
+						"motionDetectorActive": state
+					},
+                    "capability": "USER_MONITORED_CUSTOMER_IMAGE_CAMERA"}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)

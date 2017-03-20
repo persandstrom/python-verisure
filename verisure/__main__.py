@@ -99,6 +99,20 @@ def main():
             'on',
             'off'],
         help='new value')
+	
+	# Set smartcam_motion_detector
+    set_smartcam_motion_detector = set_device.add_parser(
+        'smartcam_motion_detector',
+        help='set smartcam_motion_detector value')
+    set_smartcam_motion_detector.add_argument(
+        'device_label',
+        help='device label')
+    set_smartcam_motion_detector.add_argument(
+        'new_value',
+        choices=[
+            'on',
+            'off'],
+        help='new value')
 
     # Set alarm
     set_alarm = set_device.add_parser(
@@ -221,6 +235,10 @@ def main():
         if args.command == COMMAND_SET:
             if args.device == 'smartplug':
                 session.set_smartplug_state(
+                    args.device_label,
+                    args.new_value == 'on')
+            if args.device == 'smartcam_motion_detector':
+                session.set_smartcam_motion_detector_state(
                     args.device_label,
                     args.new_value == 'on')
             if args.device == 'alarm':
