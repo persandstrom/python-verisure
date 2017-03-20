@@ -99,8 +99,7 @@ def main():
             'on',
             'off'],
         help='new value')
-	
-	# Set smartcam_motion_detector
+    # Set smartcam_motion_detector
     set_smartcam_motion_detector = set_device.add_parser(
         'smartcam_motion_detector',
         help='set smartcam_motion_detector value')
