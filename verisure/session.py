@@ -193,7 +193,7 @@ class Session(object):
                 data=json.dumps({
                     "userMonitoredCameraConfiguration": {
                         "motionDetectorActive": state
-					},
+                    },
                     "capability": "USER_MONITORED_CUSTOMER_IMAGE_CAMERA"}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
