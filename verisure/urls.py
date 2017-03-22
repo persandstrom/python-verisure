@@ -5,27 +5,27 @@ Verisure urls.
 # pylint: disable=missing-docstring
 
 BASE_URLS = [
-        'https://e-api01.verisure.com/xbn/2',
-        'https://e-api02.verisure.com/xbn/2',
-        ]
+    'https://e-api01.verisure.com/xbn/2',
+    'https://e-api02.verisure.com/xbn/2',
+    ]
 BASE_URL = None
 
 
 def installation(guid):
     return '{base_url}/installation/{guid}/'.format(
-            base_url=BASE_URL,
-            guid=guid)
+        base_url=BASE_URL,
+        guid=guid)
 
 
 def login():
     return '{base_url}/cookie'.format(
-            base_url=BASE_URL)
+        base_url=BASE_URL)
 
 
 def get_installations(username):
     return '{base_url}/installation/search?email={username}'.format(
-            base_url=BASE_URL,
-            username=username)
+        base_url=BASE_URL,
+        username=username)
 
 
 def overview(guid):
@@ -68,7 +68,7 @@ def get_lockstate(guid):
 
 def set_lockstate(guid, device_label, state):
     return installation(guid) + 'device/{device_label}/{state}'.format(
-           device_label=device_label, state=state)
+        device_label=device_label, state=state)
 
 
 def get_lockstate_transaction(guid, transaction_id):
