@@ -5,35 +5,7 @@ Verisure session, using verisure app api
 import base64
 import json
 import requests
-
-BASE_URL = 'https://e-api.verisure.com/xbn/2/'
-
-INSTALLATION_URL = BASE_URL + 'installation/{guid}/'
-LOGIN_URL = BASE_URL + 'cookie'
-
-GET_INSTALLATIONS_URL = BASE_URL + 'installation/search?email={username}'
-OVERVIEW_URL = INSTALLATION_URL + 'overview'
-SMARTPLUG_URL = INSTALLATION_URL + 'smartplug/state'
-SET_ARMSTATE_URL = INSTALLATION_URL + 'armstate/code'
-GET_ARMSTATE_TRANSACTION_URL = \
-    INSTALLATION_URL + 'code/result/{transaction_id}'
-GET_ARMSTATE_URL = INSTALLATION_URL + 'armstate'
-DOOR_WINDOW_URL = INSTALLATION_URL + 'device/view/DOORWINDOW'
-HISTORY_URL = INSTALLATION_URL + 'eventlog'
-CLIMATE_URL = INSTALLATION_URL + 'climate/simple/search'
-GET_LOCKSTATE_URL = INSTALLATION_URL + 'doorlockstate/search'
-SET_LOCKSTATE_URL = INSTALLATION_URL + 'device/{device_label}/{state}'
-GET_LOCKSTATE_TRANSACTION_URL = \
-    INSTALLATION_URL + 'doorlockstate/change/result/{transaction_id}'
-LOCKCONFIG_URL = INSTALLATION_URL + 'device/{device_label}/doorlockconfig'
-IMAGECAPTURE_URL = \
-    INSTALLATION_URL + 'device/{device_label}/customerimagecamera/imagecapture'
-GET_IMAGESERIES_URL = \
-    INSTALLATION_URL + 'device/customerimagecamera/imageseries/search'
-DOWNLOAD_IMAGE_URL = \
-    INSTALLATION_URL + \
-    'device/{device_label}/customerimagecamera/image/{image_id}/'
-GET_VACATIONMODE_URL = INSTALLATION_URL + 'vacationmode'
+from . import urls
 
 
 def _validate_response(response):
@@ -99,16 +71,22 @@ class Session(object):
                     password=self._password).encode('ascii')
             ).decode('utf-8'))
         response = None
-        try:
-            response = requests.post(
-                LOGIN_URL,
-                headers={
-                    'Authorization': auth,
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                })
-        except requests.exceptions.RequestException as ex:
-            raise LoginError(ex)
-        _validate_response(response)
+        for base_url in urls.BASE_URLS:
+            urls.BASE_URL = base_url
+            try:
+                response = requests.post(
+                    urls.login(),
+                    headers={
+                        'Authorization': auth,
+                        'Accept': 'application/json,'
+                                  'text/javascript, */*; q=0.01',
+                    })
+                _validate_response(response)
+                break
+            except ResponseError as ex:
+                pass
+            except requests.exceptions.RequestException as ex:
+                raise LoginError(ex)
         self._vid = json.loads(response.text)['cookie']
         self._get_installations()
         self._giid = self.installations[0]['giid']
@@ -118,7 +96,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                GET_INSTALLATIONS_URL.format(username=self._username),
+                urls.get_installations(self._username),
                 headers={
                     'Cookie': 'vid={}'.format(self._vid),
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -141,8 +119,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                OVERVIEW_URL.format(
-                    guid=self._giid),
+                urls.overview(self._giid),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Accept-Encoding': 'gzip, deflate',
@@ -163,8 +140,7 @@ class Session(object):
         response = None
         try:
             response = requests.post(
-                SMARTPLUG_URL.format(
-                    guid=self._giid),
+                urls.smartplug(self._giid),
                 headers={
                     'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)},
@@ -185,8 +161,7 @@ class Session(object):
         response = None
         try:
             response = requests.put(
-                SET_ARMSTATE_URL.format(
-                    guid=self._giid),
+                urls.set_armstate(self._giid),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Content-Type': 'application/json',
@@ -197,7 +172,7 @@ class Session(object):
         _validate_response(response)
         return json.loads(response.text)
 
-    def get_arm_state_transaction(self, transaction_id=''):
+    def get_arm_state_transaction(self, transaction_id):
         """ Get arm state transaction status
 
         Args:
@@ -206,9 +181,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                GET_ARMSTATE_TRANSACTION_URL.format(
-                    guid=self._giid,
-                    transaction_id=transaction_id),
+                urls.get_armstate_transaction(self._giid, transaction_id),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
@@ -222,8 +195,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                GET_ARMSTATE_URL.format(
-                    guid=self._giid),
+                urls.get_armstate(self._giid),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
@@ -245,8 +217,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                HISTORY_URL.format(
-                    guid=self._giid),
+                urls.history(self._giid),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)},
@@ -267,8 +238,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                CLIMATE_URL.format(
-                    guid=self._giid),
+                urls.climate(self._giid),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)},
@@ -284,8 +254,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                GET_LOCKSTATE_URL.format(
-                    guid=self._giid),
+                urls.get_lockstate(self._giid),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
@@ -305,11 +274,7 @@ class Session(object):
         response = None
         try:
             response = requests.put(
-                SET_LOCKSTATE_URL.format(
-                    guid=self._giid,
-                    device_label=device_label,
-                    state=state
-                ),
+                urls.set_lockstate(self._giid, device_label, state),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Content-Type': 'application/json',
@@ -320,8 +285,8 @@ class Session(object):
         _validate_response(response)
         return json.loads(response.text)
 
-    def get_lock_state_transaction(self, transaction_id=''):
-        """ Get lockk state transaction status
+    def get_lock_state_transaction(self, transaction_id):
+        """ Get lock state transaction status
 
         Args:
             transaction_id: Transaction ID received from set_lock_state
@@ -329,9 +294,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                GET_LOCKSTATE_TRANSACTION_URL.format(
-                    guid=self._giid,
-                    transaction_id=transaction_id),
+                urls.get_lockstate_transaction(self._giid, transaction_id),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
@@ -349,10 +312,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                LOCKCONFIG_URL.format(
-                    guid=self._giid,
-                    device_label=device_label
-                ),
+                urls.lockconfig(self._giid, device_label),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
@@ -381,10 +341,7 @@ class Session(object):
             data['autoLockEnabled'] = auto_lock_enabled
         try:
             response = requests.put(
-                LOCKCONFIG_URL.format(
-                    guid=self._giid,
-                    device_label=device_label
-                ),
+                urls.lockconfig(self._giid, device_label),
                 headers={
                     'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)},
@@ -402,9 +359,7 @@ class Session(object):
         response = None
         try:
             response = requests.post(
-                IMAGECAPTURE_URL.format(
-                    guid=self._giid,
-                    device_label=device_label),
+                urls.imagecapture(self._giid, device_label),
                 headers={
                     'Content-Type': 'application/json',
                     'Cookie': 'vid={}'.format(self._vid)})
@@ -422,8 +377,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                GET_IMAGESERIES_URL.format(
-                    guid=self._giid),
+                urls.get_imageseries(self._giid),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)},
@@ -450,10 +404,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                DOWNLOAD_IMAGE_URL.format(
-                    guid=self._giid,
-                    device_label=device_label,
-                    image_id=image_id),
+                urls.download_image(self._giid, device_label, image_id),
                 headers={
                     'Cookie': 'vid={}'.format(self._vid)},
                 stream=True)
@@ -470,8 +421,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                GET_VACATIONMODE_URL.format(
-                    guid=self._giid),
+                urls.get_vacationmode(self._giid),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
@@ -485,8 +435,7 @@ class Session(object):
         response = None
         try:
             response = requests.get(
-                DOOR_WINDOW_URL.format(
-                    guid=self._giid),
+                urls.door_window(self._giid),
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
                     'Cookie': 'vid={}'.format(self._vid)})
@@ -500,7 +449,7 @@ class Session(object):
         response = None
         try:
             response = requests.delete(
-                LOGIN_URL,
+                urls.login(),
                 headers={
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
