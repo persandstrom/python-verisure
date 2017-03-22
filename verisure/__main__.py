@@ -17,14 +17,6 @@ COMMAND_ARMSTATE = 'armstate'
 COMMAND_DOOR_WINDOW = 'door_window'
 COMMAND_VACATIONMODE = 'vacationmode'
 
-# Trick for python2 compability
-try:
-    # pylint: disable=undefined-variable,invalid-name
-    unicode = unicode # NOQA
-except NameError:
-    # pylint: disable=invalid-name
-    unicode = str
-
 
 def print_result(overview, *names):
     """ Print the result of a verisure request """
