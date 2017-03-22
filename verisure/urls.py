@@ -7,7 +7,7 @@ Verisure urls.
 BASE_URLS = [
     'https://e-api01.verisure.com/xbn/2',
     'https://e-api02.verisure.com/xbn/2',
-    ]
+]
 BASE_URL = None
 
 
