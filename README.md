@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.3.4 Fix issue with encoding in ResponseError
 1.3.3 Switch between known sub domains
 1.3.2 Update base url 
 1.3.1 Add LOCK and UNLOCK as filter options for event log
