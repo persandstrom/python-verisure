@@ -37,9 +37,9 @@ class ResponseError(Error):
             'Invalid response'
             ', status code: {0} - Data: {1}'.format(
                 status_code,
-                text.encode('utf-8')))
+                text))
         self.status_code = status_code
-        self.text = json.loads(text.encode('utf-8'))
+        self.text = json.loads(text)
 
 
 class Session(object):
