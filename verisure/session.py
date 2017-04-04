@@ -68,7 +68,7 @@ class Session(object):
             base64.b64encode(
                 'CPE/{username}:{password}'.format(
                     username=self._username,
-                    password=self._password).encode('ascii')
+                    password=self._password).encode('utf-8')
             ).decode('utf-8'))
         response = None
         for base_url in urls.BASE_URLS:
