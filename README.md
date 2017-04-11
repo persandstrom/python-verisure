@@ -111,7 +111,6 @@ import verisure
 session = verisure.Session('user@example.com', 'password')
 session.login()
 armstate = session.get_arm_state()
-session.logout()
 print(armstate["statusType"])
 ```
 
@@ -122,7 +121,6 @@ import verisure
 session = verisure.Session('user@example.com', 'password')
 session.login()
 session.set_arm_state('1234', 'ARMED_HOME')
-session.logout()
 ```
 
 ### Turn on smartplug
@@ -132,7 +130,6 @@ import verisure
 session = verisure.Session('user@example.com', 'password')
 session.login()
 session.set_smartplug_state('1A2B 3C4D', True)
-session.logout()
 ```
 
 ### Read status of all devices
@@ -142,7 +139,6 @@ import verisure
 session = verisure.Session('user@example.com', 'password')
 session.login()
 overview = session.get_overview()
-session.logout()
 ```
 
 ### Get event log
@@ -152,6 +148,5 @@ import verisure
 session = verisure.Session('user@example.com', 'password')
 session.login()
 events = session.get_history(('ARM', 'DISARM'))
-session.logout()
 ```
 

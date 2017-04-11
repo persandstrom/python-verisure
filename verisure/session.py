@@ -455,3 +455,6 @@ class Session(object):
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
+
+    def __del__(self):
+        self.logout()
