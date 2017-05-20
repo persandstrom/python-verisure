@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.3.6 Download image fixed
 1.3.5 Fix issue with encoding of credentials
 1.3.4 Fix issue with encoding in ResponseError
 1.3.3 Switch between known sub domains

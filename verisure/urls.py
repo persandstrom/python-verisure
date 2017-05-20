@@ -94,7 +94,10 @@ def get_imageseries(guid):
 
 def download_image(guid, device_label, image_id):
     return (installation(guid) +
-            'device/{device_label}/customerimagecamera/image/{image_id}/')
+            'device/{device_label}/customerimagecamera/image/{image_id}/'
+            ).format(
+                device_label=device_label,
+                image_id=image_id)
 
 
 def get_vacationmode():
