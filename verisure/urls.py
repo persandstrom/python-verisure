@@ -3,6 +3,12 @@ Verisure urls.
 """
 
 # pylint: disable=missing-docstring
+try:
+    # Python 3
+    from urllib.parse import quote_plus
+except ImportError as e:
+    # Python 2
+    from urllib import quote_plus
 
 BASE_URLS = [
     'https://e-api01.verisure.com/xbn/2',
@@ -25,7 +31,7 @@ def login():
 def get_installations(username):
     return '{base_url}/installation/search?email={username}'.format(
         base_url=BASE_URL,
-        username=username)
+        username=quote_plus(username))
 
 
 def overview(guid):
