@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.3.8 Fix vacation mode URL
 1.3.7 Urlencode username
 1.3.6 Download image fixed
 1.3.5 Fix issue with encoding of credentials

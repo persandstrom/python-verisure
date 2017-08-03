@@ -106,5 +106,5 @@ def download_image(guid, device_label, image_id):
                 image_id=image_id)
 
 
-def get_vacationmode():
-    return installation() + 'vacationmode'
+def get_vacationmode(guid):
+    return installation(guid) + 'vacationmode'
