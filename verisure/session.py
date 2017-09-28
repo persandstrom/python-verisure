@@ -444,6 +444,19 @@ class Session(object):
         _validate_response(response)
         return json.loads(response.text)
 
+    def test_ethernet(self):
+        """ Test ethernet status """
+        response = None
+        try:
+            response = requests.post(
+                urls.test_ethernet(self._giid),
+                headers={
+                    'Content-Type': 'application/json',
+                    'Cookie': 'vid={}'.format(self._vid)})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        _validate_response(response)
+
     def logout(self):
         """ Logout and remove vid """
         response = None

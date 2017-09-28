@@ -16,6 +16,7 @@ COMMAND_GETIMAGE = 'getimage'
 COMMAND_ARMSTATE = 'armstate'
 COMMAND_DOOR_WINDOW = 'door_window'
 COMMAND_VACATIONMODE = 'vacationmode'
+COMMAND_TEST_ETHERNET = 'test_ethernet'
 
 
 def print_result(overview, *names):
@@ -199,6 +200,11 @@ def main():
         COMMAND_DOOR_WINDOW,
         help='Get door/window status')
 
+    # Test ethernet command
+    commandsparser.add_parser(
+        COMMAND_TEST_ETHERNET,
+        help='Update ethernet status')
+
     args = parser.parse_args()
     session = verisure.Session(args.username, args.password)
     session.login()
@@ -245,6 +251,8 @@ def main():
             print_result(session.get_vacation_mode())
         if args.command == COMMAND_DOOR_WINDOW:
             print_result(session.get_door_window())
+        if args.command == COMMAND_TEST_ETHERNET:
+            session.test_ethernet()
     except verisure.session.ResponseError as ex:
         print(ex.text)
     finally:
