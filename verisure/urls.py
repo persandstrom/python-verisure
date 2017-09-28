@@ -108,3 +108,6 @@ def download_image(guid, device_label, image_id):
 
 def get_vacationmode(guid):
     return installation(guid) + 'vacationmode'
+
+def test_ethernet(guid):
+    return installation(guid) + 'trigger/testethernet'

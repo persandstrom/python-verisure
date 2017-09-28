@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.4.0 Add test ethernet command
 1.3.8 Fix vacation mode URL
 1.3.7 Urlencode username
 1.3.6 Download image fixed
@@ -55,6 +56,7 @@ positional arguments:
     getimage            Download image
     vacationmode        Get vacation mode info
     door_window         Get door/window status
+    test_ethernet       Update ethernet status
 
 optional arguments:
   -h, --help            show this help message and exit
