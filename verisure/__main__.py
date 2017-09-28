@@ -199,7 +199,7 @@ def main():
     commandsparser.add_parser(
         COMMAND_DOOR_WINDOW,
         help='Get door/window status')
-    
+
     # Test ethernet command
     commandsparser.add_parser(
         COMMAND_TEST_ETHERNET,
