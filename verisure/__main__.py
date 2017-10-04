@@ -47,6 +47,10 @@ def main():
         help='Installation number',
         type=int,
         default=1)
+    parser.add_argument(
+        '-c', '--cookie',
+        help='File to store cookie in',
+        default='~/.verisure-cookie')
 
     commandsparser = parser.add_subparsers(
         help='commands',
@@ -206,7 +210,7 @@ def main():
         help='Update ethernet status')
 
     args = parser.parse_args()
-    session = verisure.Session(args.username, args.password)
+    session = verisure.Session(args.username, args.password, args.cookie)
     session.login()
     try:
         session.set_giid(session.installations[args.installation - 1]['giid'])
@@ -255,8 +259,6 @@ def main():
             session.test_ethernet()
     except verisure.session.ResponseError as ex:
         print(ex.text)
-    finally:
-        session.logout()
 
 
 # pylint: disable=C0103

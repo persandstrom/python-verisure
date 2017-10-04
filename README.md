@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.4.1 Add cookie cache for increased speed and to avoid having the password stored on disk
 1.4.0 Add test ethernet command
 1.3.8 Fix vacation mode URL
 1.3.7 Urlencode username
@@ -33,7 +34,7 @@ or
 ## Command line usage
 
 ```
-usage: verisure.py [-h] [-i INSTALLATION]
+usage: verisure.py [-h] [-i INSTALLATION] [-c COOKIE]
                    username password
                    {installations,overview,set,history,eventlog,capture,imageseries,getimage}
                    ...
@@ -62,6 +63,9 @@ optional arguments:
   -h, --help            show this help message and exit
   -i INSTALLATION, --installation INSTALLATION
                         Installation number
+  -c COOKIE, --cookie COOKIE
+                           File to store cookie in
+
 ```
 
 ### Read alarm status
