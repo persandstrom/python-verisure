@@ -53,7 +53,7 @@ class Session(object):
     """
 
     def __init__(self, username, password,
-                 cookieFileName = '~/.verisure-cookie'):
+                 cookieFileName='~/.verisure-cookie'):
         self._username = username
         self._password = password
         self._cookieFileName = os.path.expanduser(cookieFileName)
@@ -73,7 +73,7 @@ class Session(object):
 
             try:
                 self._get_installations()
-            except ResponseError as ex:
+            except ResponseError:
                 self._vid = None
                 os.remove(self._cookieFileName)
 
