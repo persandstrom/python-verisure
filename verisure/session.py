@@ -6,6 +6,7 @@ import base64
 import json
 import requests
 from . import urls
+import os
 
 
 def _validate_response(response):
@@ -51,9 +52,11 @@ class Session(object):
 
     """
 
-    def __init__(self, username, password):
+    def __init__(self, username, password,
+                 cookieFileName='~/.verisure-cookie'):
         self._username = username
         self._password = password
+        self._cookieFileName = os.path.expanduser(cookieFileName)
         self._vid = None
         self._giid = None
         self.installations = None
@@ -64,6 +67,25 @@ class Session(object):
         Login before calling any read or write commands
 
         """
+        if os.path.exists(self._cookieFileName):
+            with open(self._cookieFileName, 'r') as cookieFile:
+                self._vid = cookieFile.read().strip()
+
+            try:
+                self._get_installations()
+            except ResponseError:
+                self._vid = None
+                os.remove(self._cookieFileName)
+
+        if self._vid is None:
+            self._create_cookie()
+            with open(self._cookieFileName, 'w') as cookieFile:
+                cookieFile.write(self._vid)
+            self._get_installations()
+
+        self._giid = self.installations[0]['giid']
+
+    def _create_cookie(self):
         auth = 'Basic {}'.format(
             base64.b64encode(
                 'CPE/{username}:{password}'.format(
@@ -81,28 +103,40 @@ class Session(object):
                         'Accept': 'application/json,'
                                   'text/javascript, */*; q=0.01',
                     })
-                _validate_response(response)
-                break
-            except ResponseError as ex:
-                pass
+                if 2 == response.status_code // 100:
+                    break
+                elif 503 == response.status_code:
+                    continue
+                else:
+                    raise ResponseError(response.status_code, response.text)
             except requests.exceptions.RequestException as ex:
                 raise LoginError(ex)
+
+        _validate_response(response)
         self._vid = json.loads(response.text)['cookie']
-        self._get_installations()
-        self._giid = self.installations[0]['giid']
 
     def _get_installations(self):
         """ Get information about installations """
         response = None
-        try:
-            response = requests.get(
-                urls.get_installations(self._username),
-                headers={
-                    'Cookie': 'vid={}'.format(self._vid),
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                })
-        except requests.exceptions.RequestException as ex:
-            raise RequestError(ex)
+        for base_url in urls.BASE_URLS:
+            urls.BASE_URL = base_url
+            try:
+                response = requests.get(
+                    urls.get_installations(self._username),
+                    headers={
+                        'Cookie': 'vid={}'.format(self._vid),
+                        'Accept': 'application/json,'
+                                  'text/javascript, */*; q=0.01',
+                    })
+                if 2 == response.status_code // 100:
+                    break
+                elif 503 == response.status_code:
+                    continue
+                else:
+                    raise ResponseError(response.status_code, response.text)
+            except requests.exceptions.RequestException as ex:
+                raise RequestError(ex)
+
         _validate_response(response)
         self.installations = json.loads(response.text)
 
