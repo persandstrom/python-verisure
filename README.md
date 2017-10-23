@@ -87,7 +87,7 @@ output:
 
 ### Filter out door lock status from overview 
 
-``` vsure user@example.com password overview doorLockStatusList ```
+``` vsure user@example.com mypassword overview doorLockStatusList ```
 
 ### Disarm
 
@@ -113,7 +113,7 @@ output:
 ```
 import verisure
 
-session = verisure.Session('user@example.com', 'password')
+session = verisure.Session('user@example.com', 'mypassword')
 session.login()
 armstate = session.get_arm_state()
 session.logout()
@@ -124,7 +124,7 @@ print(armstate["statusType"])
 ```
 import verisure
 
-session = verisure.Session('user@example.com', 'password')
+session = verisure.Session('user@example.com', 'mypassword')
 session.login()
 session.set_arm_state('1234', 'ARMED_HOME')
 session.logout()
@@ -134,7 +134,7 @@ session.logout()
 ```
 import verisure
 
-session = verisure.Session('user@example.com', 'password')
+session = verisure.Session('user@example.com', 'mypassword')
 session.login()
 session.set_smartplug_state('1A2B 3C4D', True)
 session.logout()
@@ -144,7 +144,7 @@ session.logout()
 ```
 import verisure
 
-session = verisure.Session('user@example.com', 'password')
+session = verisure.Session('user@example.com', 'mypassword')
 session.login()
 overview = session.get_overview()
 session.logout()
@@ -154,7 +154,7 @@ session.logout()
 ```
 import verisure
 
-session = verisure.Session('user@example.com', 'password')
+session = verisure.Session('user@example.com', 'mypassword')
 session.login()
 events = session.get_history(('ARM', 'DISARM'))
 session.logout()
