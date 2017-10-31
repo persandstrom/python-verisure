@@ -210,9 +210,10 @@ def main():
         help='Update ethernet status')
 
     args = parser.parse_args()
-    session = verisure.Session(args.username, args.password, args.cookie)
-    session.login()
-    try:
+
+    with verisure.Session(args.username, args.password, args.cookie) as session:
+        if session.installations is None:
+            return
         session.set_giid(session.installations[args.installation - 1]['giid'])
         if args.command == COMMAND_INSTALLATIONS:
             print_result(session.installations)
@@ -257,8 +258,6 @@ def main():
             print_result(session.get_door_window())
         if args.command == COMMAND_TEST_ETHERNET:
             session.test_ethernet()
-    except verisure.session.ResponseError as ex:
-        print(ex.text)
 
 
 # pylint: disable=C0103
