@@ -60,22 +60,15 @@ class Session(object):
         self._vid = None
         self._giid = None
         self.installations = None
-        self.autoLogout = False
 
     def __enter__(self):
-        try:
-            self.login()
-        except ResponseError as ex:
-            print('Error logging in to Verisure')
-            print('response: ' + str(ex.text))
+        self.login()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type == ResponseError:
-            print(exc_val)
-            print(exc_tb)
-        if self.autoLogout:
-            self.logout()
+        self.logout()
+        """ If of interest, add exception handler
+        """
 
     def login(self):
         """ Login to verisure app api
