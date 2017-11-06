@@ -61,6 +61,15 @@ class Session(object):
         self._giid = None
         self.installations = None
 
+    def __enter__(self):
+        self.login()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.logout()
+        """ If of interest, add exception handler
+        """
+
     def login(self):
         """ Login to verisure app api
 
