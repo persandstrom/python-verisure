@@ -11,25 +11,25 @@ except ImportError as e:
     from urllib import quote_plus
 
 BASE_URLS = [
-    'https://e-api01.verisure.com/xbn/2',
-    'https://e-api02.verisure.com/xbn/2',
+    'https://e-api01.verisure.com',
+    'https://e-api02.verisure.com',
 ]
 BASE_URL = None
 
 
 def installation(guid):
-    return '{base_url}/installation/{guid}/'.format(
+    return '{base_url}/xbn/2/installation/{guid}/'.format(
         base_url=BASE_URL,
         guid=guid)
 
 
 def login():
-    return '{base_url}/cookie'.format(
+    return '{base_url}/xbn/2/cookie'.format(
         base_url=BASE_URL)
 
 
 def get_installations(username):
-    return '{base_url}/installation/search?email={username}'.format(
+    return '{base_url}/xbn/2/installation/search?email={username}'.format(
         base_url=BASE_URL,
         username=quote_plus(username))
 
@@ -61,7 +61,10 @@ def door_window(guid):
 
 
 def history(guid):
-    return installation(guid) + 'eventlog'
+    return ('{base_url}/celapi/customereventlog/installation/{guid}' +
+            '/eventlog').format(
+                base_url=BASE_URL,
+                guid=guid)
 
 
 def climate(guid):
