@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.5.0 Added support for Panasonic HeatPumps
 1.4.3 Update eventlog URL
 1.4.2 Session context manager
 1.4.1 Add cookie cache for increased speed and to avoid having the password stored on disk
