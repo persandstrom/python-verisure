@@ -8,7 +8,6 @@ import requests
 from . import urls
 import os
 
-
 def _validate_response(response):
     """ Verify that response is OK """
     if response.status_code == 200:
@@ -511,3 +510,239 @@ class Session(object):
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
+
+    def get_heat_pump_state(self, device_label):
+
+        """ Get heatpump states"""
+
+        response = None
+
+        try:
+
+            response = requests.get(
+
+                urls.get_heatpump_state(self._giid, device_label),
+
+                headers={
+
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+
+                    'Cookie': 'vid={}'.format(self._vid)})
+
+        except requests.exceptions.RequestException as ex:
+
+            raise RequestError(ex)
+
+        _validate_response(response)
+
+        return json.loads(response.text)
+
+
+    def set_heat_pump_mode(self, device_label, mode):
+
+        """ Set heatpump mode
+
+        Args:
+
+            mode (str): 'HEAT', 'COOL', 'FAN' or 'AUTO'
+
+        """
+
+        response = None
+
+        try:
+
+            response = requests.put(
+
+               urls.set_heatpump_state(self._giid, device_label),
+
+               headers={
+
+                    'Accept': 'application/json',
+
+                    'Content-Type': 'application/json',
+
+                    'Cookie': 'vid={}'.format(self._vid)},
+
+                data=json.dumps({'mode':mode}))
+
+        except requests.exceptions.RequestException as ex:
+
+            raise RequestError(ex)
+
+        _validate_response(response)
+        return json.loads(response.text)
+
+
+    def set_heat_pump_power(self, device_label, power):
+
+        """ Set heatpump mode
+
+        Args:
+
+            power (str): 'ON', 'OFF'
+
+        """
+
+        response = None
+
+        try:
+
+            response = requests.put(
+
+               urls.set_heatpump_state(self._giid, device_label),
+
+               headers={
+
+                    'Accept': 'application/json', 
+
+                    'Content-Type': 'application/json',
+
+                    'Cookie': 'vid={}'.format(self._vid)},
+
+                data=json.dumps({'power':power}))
+
+        except requests.exceptions.RequestException as ex:
+
+            raise RequestError(ex)
+
+        _validate_response(response)
+        return json.loads(response.text)
+
+    def set_heat_pump_fan_speed(self, device_label, fan_speed):
+
+        """ Set heatpump mode
+
+        Args:
+
+            fan_speed (str): 'LOW', 'MEDIUM_LOW', 'MEDIUM, 'MEDIUM_HIGH' or 'HIGH'
+
+        """
+
+        response = None
+
+        try:
+
+            response = requests.put(
+
+               urls.set_heatpump_state(self._giid, device_label),
+
+               headers={
+
+                    'Accept': 'application/json', 
+
+                    'Content-Type': 'application/json',
+
+                    'Cookie': 'vid={}'.format(self._vid)},
+
+                data=json.dumps({'fanSpeed':fan_speed}))
+
+        except requests.exceptions.RequestException as ex:
+
+            raise RequestError(ex)
+
+        _validate_response(response)
+        return json.loads(response.text)
+
+    def set_heat_pump_target_temperature(self, device_label, target_temperature):
+
+        """ Set heatpump mode
+
+        Args:
+
+            target_temperature (int): required temperature of the heatpump
+
+        """
+
+        response = None
+
+        try:
+
+            response = requests.put(
+
+               urls.set_heatpump_state(self._giid, device_label),
+
+               headers={
+
+                    'Accept': 'application/json', 
+
+                    'Content-Type': 'application/json',
+
+                    'Cookie': 'vid={}'.format(self._vid)},
+
+                data=json.dumps({'targetTemperature':target_temperature}))
+
+        except requests.exceptions.RequestException as ex:
+
+            raise RequestError(ex)
+
+        _validate_response(response)
+        return json.loads(response.text)
+
+    def set_heat_pump_feature(self, device_label, feature):
+
+        """ Set heatpump mode
+
+        Args:
+
+            feature: 'QUIET', 'ECONAVI', or 'POWERFUL'
+
+        """
+
+        response = None
+
+        try:
+
+            response = requests.put(
+
+                    urls.set_heatpump_feature(self._giid, device_label, feature),
+
+                    headers={
+
+                        'Accept': 'application/json',
+
+                        'Content-Type': 'application/json',
+
+                        'Cookie': 'vid={}'.format(self._vid)})
+
+        except requests.exceptions.RequestException as ex:
+
+            raise RequestError(ex)
+
+        _validate_response(response)
+        return json.loads(response.text)
+
+    def set_heat_pump_airswingdirection(self, device_label,airswingdirection):
+
+        """ Set heatpump mode
+
+        Args:
+
+            airSwingDirection (str): 'AUTO' '0_DEGREES' '30_DEGREES' '60_DEGREES' '90_DEGREES'
+
+        """
+
+        response = None
+
+        try:
+
+            response = requests.put(
+
+                    urls.set_heatpump_state(self._giid, device_label),
+
+                    headers={
+
+                        'Accept': 'application/json',
+
+                        'Content-Type': 'application/json',
+
+                        'Cookie': 'vid={}'.format(self._vid)},
+
+                    data=json.dumps({'airSwingDirection':{"vertical":airswingdirection}}))
+
+        except requests.exceptions.RequestException as ex:
+
+            raise RequestError(ex)
+
+        _validate_response(response)
+        return json.loads(response.text)          
