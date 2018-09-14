@@ -554,9 +554,9 @@ class Session(object):
 
             response = requests.put(
 
-               urls.set_heatpump_state(self._giid, device_label),
+                urls.set_heatpump_state(self._giid, device_label),
 
-               headers={
+                headers={
 
                     'Accept': 'application/json',
 
@@ -564,7 +564,7 @@ class Session(object):
 
                     'Cookie': 'vid={}'.format(self._vid)},
 
-               data=json.dumps({'mode': mode}))
+                data=json.dumps({'mode': mode}))
 
         except requests.exceptions.RequestException as ex:
 
@@ -589,9 +589,9 @@ class Session(object):
 
             response = requests.put(
 
-               urls.set_heatpump_state(self._giid, device_label),
+                urls.set_heatpump_state(self._giid, device_label),
 
-               headers={
+                headers={
 
                     'Accept': 'application/json',
 
@@ -599,7 +599,7 @@ class Session(object):
 
                     'Cookie': 'vid={}'.format(self._vid)},
 
-               data=json.dumps({'power': power}))
+                data=json.dumps({'power': power}))
 
         except requests.exceptions.RequestException as ex:
 
@@ -624,9 +624,9 @@ class Session(object):
 
             response = requests.put(
 
-               urls.set_heatpump_state(self._giid, device_label),
+                urls.set_heatpump_state(self._giid, device_label),
 
-               headers={
+                headers={
 
                     'Accept': 'application/json',
 
@@ -634,7 +634,7 @@ class Session(object):
 
                     'Cookie': 'vid={}'.format(self._vid)},
 
-               data=json.dumps({'fanSpeed': fan_speed}))
+                data=json.dumps({'fanSpeed': fan_speed}))
 
         except requests.exceptions.RequestException as ex:
 
@@ -659,9 +659,9 @@ class Session(object):
 
             response = requests.put(
 
-               urls.set_heatpump_state(self._giid, device_label),
+                urls.set_heatpump_state(self._giid, device_label),
 
-               headers={
+                headers={
 
                     'Accept': 'application/json',
 
@@ -669,7 +669,7 @@ class Session(object):
 
                     'Cookie': 'vid={}'.format(self._vid)},
 
-               data=json.dumps({'targetTemperature': target_temp}))
+                data=json.dumps({'targetTemperature': target_temp}))
 
         except requests.exceptions.RequestException as ex:
 
@@ -698,11 +698,11 @@ class Session(object):
 
                 headers={
 
-                        'Accept': 'application/json',
+                    'Accept': 'application/json',
 
-                        'Content-Type': 'application/json',
+                    'Content-Type': 'application/json',
 
-                        'Cookie': 'vid={}'.format(self._vid)})
+                    'Cookie': 'vid={}'.format(self._vid)})
 
         except requests.exceptions.RequestException as ex:
 

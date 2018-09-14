@@ -124,7 +124,7 @@ def get_heatpump_state(guid, device_label):
             'device/{device_label}/heatpump'
 
             ).format(
-                 device_label=device_label)
+                device_label=device_label)
 
 
 def set_heatpump_state(guid, device_label):
@@ -134,7 +134,7 @@ def set_heatpump_state(guid, device_label):
             'device/{device_label}/heatpump/config'
 
             ).format(
-               device_label=device_label)
+        device_label=device_label)
 
 
 def set_heatpump_feature(guid, device_label, featurestate):
@@ -144,4 +144,4 @@ def set_heatpump_feature(guid, device_label, featurestate):
             'device/{device_label}/heatpump/config/feature/{feature}'
 
             ).format(
-                 device_label=device_label, feature=featurestate)
+                device_label=device_label, feature=featurestate)
