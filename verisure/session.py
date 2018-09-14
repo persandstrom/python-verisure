@@ -8,6 +8,7 @@ import requests
 from . import urls
 import os
 
+
 def _validate_response(response):
     """ Verify that response is OK """
     if response.status_code == 200:
@@ -537,7 +538,6 @@ class Session(object):
 
         return json.loads(response.text)
 
-
     def set_heat_pump_mode(self, device_label, mode):
 
         """ Set heatpump mode
@@ -564,7 +564,7 @@ class Session(object):
 
                     'Cookie': 'vid={}'.format(self._vid)},
 
-                data=json.dumps({'mode':mode}))
+               data=json.dumps({'mode': mode}))
 
         except requests.exceptions.RequestException as ex:
 
@@ -572,7 +572,6 @@ class Session(object):
 
         _validate_response(response)
         return json.loads(response.text)
-
 
     def set_heat_pump_power(self, device_label, power):
 
@@ -594,13 +593,13 @@ class Session(object):
 
                headers={
 
-                    'Accept': 'application/json', 
+                    'Accept': 'application/json',
 
                     'Content-Type': 'application/json',
 
                     'Cookie': 'vid={}'.format(self._vid)},
 
-                data=json.dumps({'power':power}))
+               data=json.dumps({'power': power}))
 
         except requests.exceptions.RequestException as ex:
 
@@ -615,7 +614,7 @@ class Session(object):
 
         Args:
 
-            fan_speed (str): 'LOW', 'MEDIUM_LOW', 'MEDIUM, 'MEDIUM_HIGH' or 'HIGH'
+        fan_speed (str): 'LOW', 'MEDIUM_LOW', 'MEDIUM, 'MEDIUM_HIGH' or 'HIGH'
 
         """
 
@@ -629,13 +628,13 @@ class Session(object):
 
                headers={
 
-                    'Accept': 'application/json', 
+                    'Accept': 'application/json',
 
                     'Content-Type': 'application/json',
 
                     'Cookie': 'vid={}'.format(self._vid)},
 
-                data=json.dumps({'fanSpeed':fan_speed}))
+               data=json.dumps({'fanSpeed': fan_speed}))
 
         except requests.exceptions.RequestException as ex:
 
@@ -644,7 +643,7 @@ class Session(object):
         _validate_response(response)
         return json.loads(response.text)
 
-    def set_heat_pump_target_temperature(self, device_label, target_temperature):
+    def set_heat_pump_target_temperature(self, device_label, target_temp):
 
         """ Set heatpump mode
 
@@ -664,13 +663,13 @@ class Session(object):
 
                headers={
 
-                    'Accept': 'application/json', 
+                    'Accept': 'application/json',
 
                     'Content-Type': 'application/json',
 
                     'Cookie': 'vid={}'.format(self._vid)},
 
-                data=json.dumps({'targetTemperature':target_temperature}))
+               data=json.dumps({'targetTemperature': target_temp}))
 
         except requests.exceptions.RequestException as ex:
 
@@ -695,9 +694,9 @@ class Session(object):
 
             response = requests.put(
 
-                    urls.set_heatpump_feature(self._giid, device_label, feature),
+                urls.set_heatpump_feature(self._giid, device_label, feature),
 
-                    headers={
+                headers={
 
                         'Accept': 'application/json',
 
@@ -712,13 +711,14 @@ class Session(object):
         _validate_response(response)
         return json.loads(response.text)
 
-    def set_heat_pump_airswingdirection(self, device_label,airswingdirection):
+    def set_heat_pump_airswingdirection(self, device_label, airswingdirection):
 
         """ Set heatpump mode
 
         Args:
 
-            airSwingDirection (str): 'AUTO' '0_DEGREES' '30_DEGREES' '60_DEGREES' '90_DEGREES'
+        airSwingDirection (str): 'AUTO' '0_DEGREES' '30_DEGREES'
+        '60_DEGREES' '90_DEGREES'
 
         """
 
@@ -728,21 +728,22 @@ class Session(object):
 
             response = requests.put(
 
-                    urls.set_heatpump_state(self._giid, device_label),
+                urls.set_heatpump_state(self._giid, device_label),
 
-                    headers={
+                headers={
 
-                        'Accept': 'application/json',
+                    'Accept': 'application/json',
 
-                        'Content-Type': 'application/json',
+                    'Content-Type': 'application/json',
 
-                        'Cookie': 'vid={}'.format(self._vid)},
+                    'Cookie': 'vid={}'.format(self._vid)},
 
-                    data=json.dumps({'airSwingDirection':{"vertical":airswingdirection}}))
+                data=json.dumps({'airSwingDirection':
+                                {"vertical": airswingdirection}}))
 
         except requests.exceptions.RequestException as ex:
 
             raise RequestError(ex)
 
         _validate_response(response)
-        return json.loads(response.text)          
+        return json.loads(response.text)

@@ -116,13 +116,15 @@ def get_vacationmode(guid):
 def test_ethernet(guid):
     return installation(guid) + 'trigger/testethernet'
 
+
 def get_heatpump_state(guid, device_label):
 
     return (installation(guid) +
 
             'device/{device_label}/heatpump'
 
-           ).format(device_label=device_label)
+            ).format(
+                 device_label=device_label)
 
 
 def set_heatpump_state(guid, device_label):
@@ -131,7 +133,8 @@ def set_heatpump_state(guid, device_label):
 
             'device/{device_label}/heatpump/config'
 
-           ).format(device_label=device_label)
+            ).format(
+               device_label=device_label)
 
 
 def set_heatpump_feature(guid, device_label, featurestate):
@@ -140,5 +143,5 @@ def set_heatpump_feature(guid, device_label, featurestate):
 
             'device/{device_label}/heatpump/config/feature/{feature}'
 
-           ).format(device_label=device_label, feature=featurestate)
-
+            ).format(
+                 device_label=device_label, feature=featurestate)
