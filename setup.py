@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='vsure',
-    version='1.5.0',
+    version='1.5.1',
     description='Read and change status of verisure devices through mypages.',
     long_description='A module for reading and changing status of ' +
     'verisure devices through mypages. Compatible ' +
@@ -26,7 +26,7 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     keywords='home automation verisure',
-    install_requires=['requests>=2.9.1'],
+    install_requires=['requests>=2.20.0'],
     packages=['verisure'],
     zip_safe=True,
     entry_points={
