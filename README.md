@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.5.2 String formatting in urls.imagecapture fixed
 1.5.1 Update requests dependency to 2.20.0
 1.5.0 Added support for Panasonic HeatPumps
 1.4.3 Update eventlog URL
