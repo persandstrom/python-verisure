@@ -93,7 +93,8 @@ def lockconfig(guid, device_label):
 
 def imagecapture(guid, device_label):
     return (installation(guid)
-            + 'device/{device_label}/customerimagecamera/imagecapture')
+            + 'device/{device_label}/customerimagecamera/imagecapture'.format(
+                device_label=device_label))
 
 
 def get_imageseries(guid):
