@@ -6,7 +6,7 @@ Verisure urls.
 try:
     # Python 3
     from urllib.parse import quote_plus
-except ImportError as e:
+except ImportError:
     # Python 2
     from urllib import quote_plus
 
@@ -61,8 +61,8 @@ def door_window(guid):
 
 
 def history(guid):
-    return ('{base_url}/celapi/customereventlog/installation/{guid}' +
-            '/eventlog').format(
+    return ('{base_url}/celapi/customereventlog/installation/{guid}'
+            + '/eventlog').format(
                 base_url=BASE_URL,
                 guid=guid)
 
@@ -81,8 +81,8 @@ def set_lockstate(guid, device_label, state):
 
 
 def get_lockstate_transaction(guid, transaction_id):
-    return (installation(guid) +
-            'doorlockstate/change/result/{transaction_id}'.format(
+    return (installation(guid)
+            + 'doorlockstate/change/result/{transaction_id}'.format(
                 transaction_id=transaction_id))
 
 
@@ -92,18 +92,18 @@ def lockconfig(guid, device_label):
 
 
 def imagecapture(guid, device_label):
-    return (installation(guid) +
-            'device/{device_label}/customerimagecamera/imagecapture')
+    return (installation(guid)
+            + 'device/{device_label}/customerimagecamera/imagecapture')
 
 
 def get_imageseries(guid):
-    return (installation(guid) +
-            'device/customerimagecamera/imageseries/search')
+    return (installation(guid)
+            + 'device/customerimagecamera/imageseries/search')
 
 
 def download_image(guid, device_label, image_id):
-    return (installation(guid) +
-            'device/{device_label}/customerimagecamera/image/{image_id}/'
+    return (installation(guid)
+            + 'device/{device_label}/customerimagecamera/image/{image_id}/'
             ).format(
                 device_label=device_label,
                 image_id=image_id)
@@ -118,21 +118,21 @@ def test_ethernet(guid):
 
 
 def get_heatpump_state(guid, device_label):
-    return (installation(guid) +
-            'device/{device_label}/heatpump'
+    return (installation(guid)
+            + 'device/{device_label}/heatpump'
             ).format(
                 device_label=device_label)
 
 
 def set_heatpump_state(guid, device_label):
-    return (installation(guid) +
-            'device/{device_label}/heatpump/config'
+    return (installation(guid)
+            + 'device/{device_label}/heatpump/config'
             ).format(
         device_label=device_label)
 
 
 def set_heatpump_feature(guid, device_label, featurestate):
-    return (installation(guid) +
-            'device/{device_label}/heatpump/config/feature/{feature}'
+    return (installation(guid)
+            + 'device/{device_label}/heatpump/config/feature/{feature}'
             ).format(
                 device_label=device_label, feature=featurestate)
