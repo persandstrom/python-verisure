@@ -253,7 +253,7 @@ class Session(object):
         Args:
             filters (string set): 'ARM', 'DISARM', 'FIRE', 'INTRUSION',
                                   'TECHNICAL', 'SOS', 'WARNING', 'LOCK',
-                                  'UNLOCK'
+                                  'UNLOCK', 'PICTURE', 'CLIMATE'
             pagesize (int): Number of events to display
             offset (int): Skip pagesize * offset first events
         """
@@ -267,7 +267,7 @@ class Session(object):
                 params={
                     "offset": int(offset),
                     "pagesize": int(pagesize),
-                    "notificationCategories": filters})
+                    "eventCategories": filters})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
