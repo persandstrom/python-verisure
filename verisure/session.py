@@ -40,7 +40,7 @@ class ResponseError(Error):
                 status_code,
                 text))
         self.status_code = status_code
-        self.text = json.loads(text)
+        self.text = text
 
 
 class Session(object):

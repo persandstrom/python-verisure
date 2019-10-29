@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.5.3 ResponseError should not load response text as JSON
 1.5.3 History filter fixed
 1.5.2 String formatting in urls.imagecapture fixed
 1.5.1 Update requests dependency to 2.20.0
