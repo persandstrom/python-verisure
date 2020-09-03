@@ -66,6 +66,7 @@ positional arguments:
     vacationmode        Get vacation mode info
     door_window         Get door/window status
     test_ethernet       Update ethernet status
+    firmware_status     Get firmware status
 
 optional arguments:
   -h, --help            show this help message and exit
