@@ -137,3 +137,8 @@ def set_heatpump_feature(guid, device_label, featurestate):
             + 'device/{device_label}/heatpump/config/feature/{feature}'
             ).format(
                 device_label=device_label, feature=featurestate)
+
+def get_firmware_status(guid):
+    return '{base_url}/xbn/2/installation/{guid}/firmware/status'.format(
+            base_url=BASE_URL,
+            guid=guid)

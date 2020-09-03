@@ -640,3 +640,19 @@ class Session(object):
             raise RequestError(ex)
         _validate_response(response)
         return json.loads(response.text)
+
+    def get_firmware_status(self):
+        """ Get fimware status for installation """
+        response = None
+        try:
+            response = requests.get(
+                urls.get_firmware_status(self._giid),
+                headers={
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    'Accept-Encoding': 'gzip, deflate',
+                    'Content-Type': 'application/json',
+                    'Cookie': 'vid={}'.format(self._vid)})
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        _validate_response(response)
+        return json.loads(response.text)
