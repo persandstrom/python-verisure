@@ -7,7 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
-1.6.1 Add LICENCE in MANIFESt.in
+1.6.1 Add LICENSE in MANIFESt.in
 1.6.0 Add get firmware status
 1.5.4 ResponseError should not load response text as JSON
 1.5.3 History filter fixed
