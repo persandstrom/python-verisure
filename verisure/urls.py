@@ -2,6 +2,11 @@
 Verisure urls.
 """
 
+import base64
+import requests
+import json
+
+
 # pylint: disable=missing-docstring
 try:
     # Python 3
@@ -10,29 +15,54 @@ except ImportError:
     # Python 2
     from urllib import quote_plus
 
-BASE_URLS = [
-    'https://e-api01.verisure.com',
-    'https://e-api02.verisure.com',
-]
+BASE_URLS = ['https://m-api01.verisure.com', 'https://m-api02.verisure.com']
 BASE_URL = None
+BASIC_AUTH_HEADERS = {'Accept': 'application/json;charset=UTF-8', 'Content-Type': 'application/xml;charset=UTF-8'}
 
 
-def installation(guid):
-    return '{base_url}/xbn/2/installation/{guid}/'.format(
-        base_url=BASE_URL,
-        guid=guid)
+def login(username, password):
+    return requests.post(
+        '{base_url}/auth/login'.format(base_url=BASE_URL),
+        headers=BASIC_AUTH_HEADERS,
+        auth=(username, password)
+        )
 
 
-def login():
-    return '{base_url}/xbn/2/cookie'.format(
-        base_url=BASE_URL)
+def fetch_all_installations(username):
+    return {
+        "operationName": "fetchAllInstallations",
+        "variables": {"email": username},
+        "query": '''query fetchAllInstallations($email: String!) {
+            account(email: $email) {
+                installations {
+                    giid
+                    alias
+                    pinCodeLength
+                }
+            }
+        }'''
+    }
+        
 
-
-def get_installations(username):
-    return '{base_url}/xbn/2/installation/search?email={username}'.format(
-        base_url=BASE_URL,
-        username=quote_plus(username))
-
+def user_trackings(giid):
+    return {
+        "operationName": "userTrackings",
+        "variables": {"giid": giid},
+        "query": '''query userTrackings($giid: String!) {
+            installation(giid: $giid) {
+                userTrackings {
+                    webAccount
+                    status
+                    currentLocationName
+                    name
+                    currentLocationTimestamp
+                    deviceName
+                }
+            }
+        }'''
+    }
+        
+    
 
 def overview(guid):
     return installation(guid) + 'overview'.format(

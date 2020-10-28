@@ -5,7 +5,10 @@ import argparse
 import json
 import verisure
 
+COMMAND_USER_TRACKINGS = 'user_trackings' 
+
 COMMAND_OVERVIEW = 'overview'
+
 COMMAND_SET = 'set'
 COMMAND_CLIMATE = 'climate'
 COMMAND_EVENTLOG = 'eventlog'
@@ -62,6 +65,11 @@ def main():
         COMMAND_INSTALLATIONS,
         help='Get information about installations')
 
+    # overview command
+    overview_parser = commandsparser.add_parser(
+        COMMAND_USER_TRACKINGS,
+        help='Get user tracking')
+    
     # overview command
     overview_parser = commandsparser.add_parser(
         COMMAND_OVERVIEW,
@@ -217,11 +225,14 @@ def main():
 
     args = parser.parse_args()
     session = verisure.Session(args.username, args.password, args.cookie)
-    session.login()
+    installations = session.login()
     try:
-        session.set_giid(session.installations[args.installation - 1]['giid'])
         if args.command == COMMAND_INSTALLATIONS:
-            print_result(session.installations)
+            print_result(installations)
+        else:
+            session.set_giid(installations['data']['account']['installations'][0]['giid'])
+        if args.command == COMMAND_USER_TRACKINGS:
+            print_result(session.get_user_trackings())  
         if args.command == COMMAND_OVERVIEW:
             print_result(session.get_overview(), *args.filter)
         if args.command == COMMAND_ARMSTATE:

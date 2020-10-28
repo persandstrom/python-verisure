@@ -8,14 +8,6 @@ import requests
 from . import urls
 import os
 
-
-def _validate_response(response):
-    """ Verify that response is OK """
-    if response.status_code == 200:
-        return
-    raise ResponseError(response.status_code, response.text)
-
-
 class Error(Exception):
     ''' Verisure session error '''
     pass
@@ -59,7 +51,6 @@ class Session(object):
         self._cookieFileName = os.path.expanduser(cookieFileName)
         self._vid = None
         self._giid = None
-        self.installations = None
 
     def __enter__(self):
         self.login()
@@ -76,42 +67,10 @@ class Session(object):
         Login before calling any read or write commands
 
         """
-        if os.path.exists(self._cookieFileName):
-            with open(self._cookieFileName, 'r') as cookieFile:
-                self._vid = cookieFile.read().strip()
-
-            try:
-                self._get_installations()
-            except ResponseError:
-                self._vid = None
-                os.remove(self._cookieFileName)
-
-        if self._vid is None:
-            self._create_cookie()
-            with open(self._cookieFileName, 'w') as cookieFile:
-                cookieFile.write(self._vid)
-            self._get_installations()
-
-        self._giid = self.installations[0]['giid']
-
-    def _create_cookie(self):
-        auth = 'Basic {}'.format(
-            base64.b64encode(
-                'CPE/{username}:{password}'.format(
-                    username=self._username,
-                    password=self._password).encode('utf-8')
-            ).decode('utf-8'))
-        response = None
         for base_url in urls.BASE_URLS:
             urls.BASE_URL = base_url
             try:
-                response = requests.post(
-                    urls.login(),
-                    headers={
-                        'Authorization': auth,
-                        'Accept': 'application/json,'
-                                  'text/javascript, */*; q=0.01',
-                    })
+                response = urls.login(self._username, self._password)
                 if 2 == response.status_code // 100:
                     break
                 elif 503 == response.status_code:
@@ -121,33 +80,45 @@ class Session(object):
             except requests.exceptions.RequestException as ex:
                 raise LoginError(ex)
 
-        _validate_response(response)
-        self._vid = json.loads(response.text)['cookie']
+        self._cookies = response.cookies
+        return self.get_installations()
 
-    def _get_installations(self):
+        
+        #self._vid = json.loads(response.text)['cookie']
+        #exit()
+       #     with open(self._cookieFileName, 'r') as cookieFile:
+       #         self._vid = cookieFile.read().strip()
+        #
+        #    try:
+        #        self._get_installations()
+        #    except ResponseError:
+        #        self._vid = None
+        #        os.remove(self._cookieFileName)
+
+        #if self._vid is None:
+        #    self._create_cookie()
+        #    with open(self._cookieFileName, 'w') as cookieFile:
+        #        cookieFile.write(self._vid)
+        #    self._get_installations()
+
+     #   self._giid = self.installations[0]['giid']
+
+    #def _create_cookie(self):
+
+    def requst(self, *operations):
+        response = requests.post(
+            '{base_url}/graphql'.format(base_url=urls.BASE_URL),
+            headers={'accept': '*.*', 'APPLICATION_ID': 'MyMobile_via_GraphQL' },
+            cookies=self._cookies,
+            data=json.dumps(list(operations))
+        )
+        if response.status_code != 200:
+            raise ResponseError(response.status_code, response.text)
+        return json.loads(response.text)
+
+    def get_installations(self):
         """ Get information about installations """
-        response = None
-        for base_url in urls.BASE_URLS:
-            urls.BASE_URL = base_url
-            try:
-                response = requests.get(
-                    urls.get_installations(self._username),
-                    headers={
-                        'Cookie': 'vid={}'.format(self._vid),
-                        'Accept': 'application/json,'
-                                  'text/javascript, */*; q=0.01',
-                    })
-                if 2 == response.status_code // 100:
-                    break
-                elif 503 == response.status_code:
-                    continue
-                else:
-                    raise ResponseError(response.status_code, response.text)
-            except requests.exceptions.RequestException as ex:
-                raise RequestError(ex)
-
-        _validate_response(response)
-        self.installations = json.loads(response.text)
+        return self.requst(urls.fetch_all_installations(self._username))
 
     def set_giid(self, giid):
         """ Set installation giid
@@ -157,21 +128,10 @@ class Session(object):
         """
         self._giid = giid
 
-    def get_overview(self):
-        """ Get overview for installation """
-        response = None
-        try:
-            response = requests.get(
-                urls.overview(self._giid),
-                headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)})
-        except requests.exceptions.RequestException as ex:
-            raise RequestError(ex)
-        _validate_response(response)
+    def get_user_trackings(self):
+        response = self._graphql_request(urls.user_trackings(self._giid))
         return json.loads(response.text)
+
 
     def set_smartplug_state(self, device_label, state):
         """ Turn on or off smartplug
@@ -192,7 +152,6 @@ class Session(object):
                     "state": state}]))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
 
     def set_arm_state(self, code, state):
         """ Set alarm state
@@ -212,7 +171,6 @@ class Session(object):
                 data=json.dumps({"code": str(code), "state": state}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def get_arm_state_transaction(self, transaction_id):
@@ -230,7 +188,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def get_arm_state(self):
@@ -244,7 +201,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def get_history(self, filters=(), pagesize=15, offset=0):
@@ -270,7 +226,6 @@ class Session(object):
                     "eventCategories": filters})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def get_climate(self, device_label):
@@ -289,7 +244,6 @@ class Session(object):
                     "deviceLabel": device_label})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def get_lock_state(self):
@@ -303,7 +257,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def set_lock_state(self, code, device_label, state):
@@ -325,7 +278,6 @@ class Session(object):
                 data=json.dumps({"code": str(code)}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def get_lock_state_transaction(self, transaction_id):
@@ -343,7 +295,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def get_lock_config(self, device_label):
@@ -361,7 +312,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def set_lock_config(self, device_label, volume=None, voice_level=None,
@@ -391,7 +341,6 @@ class Session(object):
                 data=json.dumps(data))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
 
     def capture_image(self, device_label):
         """ Capture smartcam image
@@ -408,7 +357,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
 
     def get_camera_imageseries(self, number_of_imageseries=10, offset=0):
         """ Get smartcam image series
@@ -433,7 +381,6 @@ class Session(object):
                     "_": self._giid})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def download_image(self, device_label, image_id, file_name):
@@ -453,7 +400,6 @@ class Session(object):
                 stream=True)
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         with open(file_name, 'wb') as image_file:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
@@ -470,7 +416,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def get_door_window(self):
@@ -484,7 +429,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def test_ethernet(self):
@@ -498,7 +442,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
 
     def logout(self):
         """ Logout and remove vid """
@@ -510,7 +453,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
 
     def get_heat_pump_state(self, device_label):
         """ Get heatpump states"""
@@ -523,7 +465,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def set_heat_pump_mode(self, device_label, mode):
@@ -542,7 +483,6 @@ class Session(object):
                 data=json.dumps({'mode': mode}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def set_heat_pump_power(self, device_label, power):
@@ -561,7 +501,6 @@ class Session(object):
                 data=json.dumps({'power': power}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def set_heat_pump_fan_speed(self, device_label, fan_speed):
@@ -580,7 +519,6 @@ class Session(object):
                 data=json.dumps({'fanSpeed': fan_speed}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def set_heat_pump_target_temperature(self, device_label, target_temp):
@@ -599,7 +537,6 @@ class Session(object):
                 data=json.dumps({'targetTemperature': target_temp}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def set_heat_pump_feature(self, device_label, feature):
@@ -617,7 +554,6 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def set_heat_pump_airswingdirection(self, device_label, airswingdirection):
@@ -638,7 +574,6 @@ class Session(object):
                                 {"vertical": airswingdirection}}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
 
     def get_firmware_status(self):
@@ -654,5 +589,4 @@ class Session(object):
                     'Cookie': 'vid={}'.format(self._vid)})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
-        _validate_response(response)
         return json.loads(response.text)
