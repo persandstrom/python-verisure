@@ -7,7 +7,12 @@ import verisure
 
 COMMAND_USER_TRACKINGS = 'user_trackings' 
 
+
+
 COMMAND_OVERVIEW = 'overview'
+COMMAND_CLIMATE = 'climate'
+COMMAND_ARMSTATE = 'arm_state'
+COMMAND_BROADBAND = 'broadband'
 
 COMMAND_SET = 'set'
 COMMAND_CLIMATE = 'climate'
@@ -16,10 +21,8 @@ COMMAND_INSTALLATIONS = 'installations'
 COMMAND_CAPTURE = 'capture'
 COMMAND_IMAGESERIES = 'imageseries'
 COMMAND_GETIMAGE = 'getimage'
-COMMAND_ARMSTATE = 'armstate'
 COMMAND_DOOR_WINDOW = 'door_window'
 COMMAND_VACATIONMODE = 'vacationmode'
-COMMAND_TEST_ETHERNET = 'test_ethernet'
 COMMAND_FIRMWARE_STATUS = 'firmware_status'
 
 
@@ -138,14 +141,11 @@ def main():
             'unlock'],
         help='new status')
 
-    # Get climate history
-    history_climate = commandsparser.add_parser(
+    # Get climate
+    climate = commandsparser.add_parser(
         COMMAND_CLIMATE,
-        help='get climate history')
-    history_climate.add_argument(
-        'device_label',
-        help='device label')
-
+        help='get climate')
+    
     # Event log command
     eventlog_parser = commandsparser.add_parser(
         COMMAND_EVENTLOG,
@@ -213,10 +213,10 @@ def main():
         COMMAND_DOOR_WINDOW,
         help='Get door/window status')
 
-    # Test ethernet command
+    # Broadband command
     commandsparser.add_parser(
-        COMMAND_TEST_ETHERNET,
-        help='Update ethernet status')
+        COMMAND_BROADBAND,
+        help='Get broadband status')
 
     # Get firmware status command
     commandsparser.add_parser(
@@ -252,7 +252,7 @@ def main():
                     args.serial_number,
                     args.new_status))
         if args.command == COMMAND_CLIMATE:
-            print_result(session.get_climate(args.device_label))
+            print_result(session.get_climate())
         if args.command == COMMAND_EVENTLOG:
             print_result(
                 session.get_history(
@@ -272,8 +272,8 @@ def main():
             print_result(session.get_vacation_mode())
         if args.command == COMMAND_DOOR_WINDOW:
             print_result(session.get_door_window())
-        if args.command == COMMAND_TEST_ETHERNET:
-            session.test_ethernet()
+        if args.command == COMMAND_BROADBAND:
+            print_result(session.get_broadband())
         if args.command == COMMAND_FIRMWARE_STATUS:
             print_result(session.get_firmware_status())
     except verisure.session.ResponseError as ex:

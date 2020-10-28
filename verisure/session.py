@@ -105,7 +105,7 @@ class Session(object):
 
     #def _create_cookie(self):
 
-    def requst(self, *operations):
+    def request(self, *operations):
         response = requests.post(
             '{base_url}/graphql'.format(base_url=urls.BASE_URL),
             headers={'accept': '*.*', 'APPLICATION_ID': 'MyMobile_via_GraphQL' },
@@ -118,7 +118,7 @@ class Session(object):
 
     def get_installations(self):
         """ Get information about installations """
-        return self.requst(urls.fetch_all_installations(self._username))
+        return self.request(urls.fetch_all_installations(self._username))
 
     def set_giid(self, giid):
         """ Set installation giid
@@ -129,8 +129,10 @@ class Session(object):
         self._giid = giid
 
     def get_user_trackings(self):
-        response = self._graphql_request(urls.user_trackings(self._giid))
-        return json.loads(response.text)
+        return self.request(urls.user_trackings(self._giid))
+
+    def get_climate(self):
+        return self.request(urls.climate(self._giid))
 
 
     def set_smartplug_state(self, device_label, state):
@@ -192,16 +194,7 @@ class Session(object):
 
     def get_arm_state(self):
         """ Get arm state """
-        response = None
-        try:
-            response = requests.get(
-                urls.get_armstate(self._giid),
-                headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
-        except requests.exceptions.RequestException as ex:
-            raise RequestError(ex)
-        return json.loads(response.text)
+        return self.request(urls.arm_state(self._giid))
 
     def get_history(self, filters=(), pagesize=15, offset=0):
         """ Get recent events
@@ -224,24 +217,6 @@ class Session(object):
                     "offset": int(offset),
                     "pagesize": int(pagesize),
                     "eventCategories": filters})
-        except requests.exceptions.RequestException as ex:
-            raise RequestError(ex)
-        return json.loads(response.text)
-
-    def get_climate(self, device_label):
-        """ Get climate history
-        Args:
-            device_label: device label of climate device
-        """
-        response = None
-        try:
-            response = requests.get(
-                urls.climate(self._giid),
-                headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)},
-                params={
-                    "deviceLabel": device_label})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         return json.loads(response.text)
@@ -419,29 +394,12 @@ class Session(object):
         return json.loads(response.text)
 
     def get_door_window(self):
-        """ Get door_window states"""
-        response = None
-        try:
-            response = requests.get(
-                urls.door_window(self._giid),
-                headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
-        except requests.exceptions.RequestException as ex:
-            raise RequestError(ex)
-        return json.loads(response.text)
+        """ Get door window status """
+        return self.request(urls.door_window(self._giid))
 
-    def test_ethernet(self):
-        """ Test ethernet status """
-        response = None
-        try:
-            response = requests.post(
-                urls.test_ethernet(self._giid),
-                headers={
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)})
-        except requests.exceptions.RequestException as ex:
-            raise RequestError(ex)
+    def get_broadband(self):
+        """ Get broadand status """
+        return self.request(urls.broadband(self._giid))
 
     def logout(self):
         """ Logout and remove vid """

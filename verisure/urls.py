@@ -51,18 +51,118 @@ def user_trackings(giid):
         "query": '''query userTrackings($giid: String!) {
             installation(giid: $giid) {
                 userTrackings {
+                    isCallingUser
                     webAccount
                     status
+                    xbnContactId
                     currentLocationName
+                    deviceId
                     name
+                    initials
                     currentLocationTimestamp
                     deviceName
+                    currentLocationId
+                    __typename
                 }
+                __typename
             }
         }'''
     }
-        
-    
+
+def climate(giid):
+    return {
+        "operationName": "Climate",
+        "variables": {"giid": giid},
+            "query": '''query Climate($giid: String!) {
+                installation(giid: $giid) {
+                    climates {
+                        device {
+                            deviceLabel
+                            area
+                            gui {
+                                label
+                                __typename
+                            }
+                            __typename
+                        }
+                        humidityEnabled
+                        humidityTimestamp
+                        humidityValue
+                        temperatureTimestamp
+                        temperatureValue
+                        thresholds {
+                            aboveMaxAlert
+                            belowMinAlert
+                            sensorType
+                            __typename
+                        }
+                        __typename
+                    }
+                    __typename
+                }
+            }'''
+    }
+
+
+def door_window(giid):
+    return {
+        "operationName": "DoorWindow",
+        "variables": {"giid": giid},
+            "query": '''query DoorWindow($giid: String!) {
+                installation(giid: $giid) {
+                    doorWindows {
+                        device {
+                            deviceLabel
+                            __typename
+                        }
+                        type
+                        area
+                        state
+                        wired
+                        reportTime
+                        __typename
+                    }
+                    __typename
+                }
+            }'''
+    }
+
+
+def arm_state(giid):
+    return {
+        "operationName": "ArmState",
+        "variables": {"giid": giid},
+            "query": '''query ArmState($giid: String!) {
+                installation(giid: $giid) {
+                    armState {
+                        type
+                        statusType
+                        date
+                        name
+                        changedVia
+                        __typename
+                    }
+                    __typename
+                }
+            }'''
+    }
+
+
+def broadband(giid):
+    return {
+        "operationName": "Broadband",
+        "variables": {"giid": giid},
+            "query": '''query Broadband($giid: String!) {
+                installation(giid: $giid) {
+                    broadband {
+                        testDate
+                        isBroadbandConnected
+                        __typename
+                    }
+                    __typename
+                }
+            }'''
+    }
 
 def overview(guid):
     return installation(guid) + 'overview'.format(
@@ -86,19 +186,11 @@ def get_armstate(guid):
     return installation(guid) + 'armstate'
 
 
-def door_window(guid):
-    return installation(guid) + 'device/view/DOORWINDOW'
-
-
 def history(guid):
     return ('{base_url}/celapi/customereventlog/installation/{guid}'
             + '/eventlog').format(
                 base_url=BASE_URL,
                 guid=guid)
-
-
-def climate(guid):
-    return installation(guid) + 'climate/simple/search'
 
 
 def get_lockstate(guid):
@@ -142,10 +234,6 @@ def download_image(guid, device_label, image_id):
 
 def get_vacationmode(guid):
     return installation(guid) + 'vacationmode'
-
-
-def test_ethernet(guid):
-    return installation(guid) + 'trigger/testethernet'
 
 
 def get_heatpump_state(guid, device_label):
