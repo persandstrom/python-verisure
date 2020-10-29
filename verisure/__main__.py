@@ -13,6 +13,8 @@ COMMAND_OVERVIEW = 'overview'
 COMMAND_CLIMATE = 'climate'
 COMMAND_ARMSTATE = 'arm_state'
 COMMAND_BROADBAND = 'broadband'
+COMMAND_SMARTPLUG = 'smartplug'
+
 
 COMMAND_SET = 'set'
 COMMAND_CLIMATE = 'climate'
@@ -68,11 +70,16 @@ def main():
         COMMAND_INSTALLATIONS,
         help='Get information about installations')
 
-    # overview command
+    # user tracking command
     overview_parser = commandsparser.add_parser(
         COMMAND_USER_TRACKINGS,
         help='Get user tracking')
     
+    # startplug command
+    overview_parser = commandsparser.add_parser(
+        COMMAND_SMARTPLUG,
+        help='Get smartplug')
+
     # overview command
     overview_parser = commandsparser.add_parser(
         COMMAND_OVERVIEW,
@@ -232,9 +239,9 @@ def main():
         else:
             session.set_giid(installations['data']['account']['installations'][0]['giid'])
         if args.command == COMMAND_USER_TRACKINGS:
-            print_result(session.get_user_trackings())  
-        if args.command == COMMAND_OVERVIEW:
-            print_result(session.get_overview(), *args.filter)
+            print_result(session.get_user_trackings())
+        if args.command == COMMAND_SMARTPLUG:
+            print_result(session.get_smartplug())
         if args.command == COMMAND_ARMSTATE:
             print_result(session.get_arm_state())
         if args.command == COMMAND_SET:

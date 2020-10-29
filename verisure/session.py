@@ -118,7 +118,9 @@ class Session(object):
 
     def get_installations(self):
         """ Get information about installations """
-        return self.request(urls.fetch_all_installations(self._username))
+        query = urls.query("fetchAllInstallations", urls.fetchAllInstallations, email=self._username)
+        print(query)
+        return self.request(query)
 
     def set_giid(self, giid):
         """ Set installation giid
@@ -134,6 +136,8 @@ class Session(object):
     def get_climate(self):
         return self.request(urls.climate(self._giid))
 
+    def get_smartplug(self):
+        return self.request(urls.smartplug(self._giid))
 
     def set_smartplug_state(self, device_label, state):
         """ Turn on or off smartplug
