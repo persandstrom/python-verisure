@@ -5,8 +5,9 @@ Verisure session, using verisure app api
 import base64
 import json
 import requests
-from . import urls
 import os
+
+from .operations import OPERATIONS
 
 class Error(Exception):
     ''' Verisure session error '''
@@ -34,13 +35,13 @@ class ResponseError(Error):
         self.status_code = status_code
         self.text = text
 
-
 class Session(object):
     """ Verisure app session
 
     Args:
         username (str): Username used to login to verisure app
         password (str): Password used to login to verisure app
+        cookieFileName (str): path to cookie file
 
     """
 
@@ -51,6 +52,7 @@ class Session(object):
         self._cookieFileName = os.path.expanduser(cookieFileName)
         self._vid = None
         self._giid = None
+        self._base_url = None
 
     def __enter__(self):
         self.login()
@@ -67,10 +69,13 @@ class Session(object):
         Login before calling any read or write commands
 
         """
-        for base_url in urls.BASE_URLS:
-            urls.BASE_URL = base_url
+        for url in ['https://m-api01.verisure.com', 'https://m-api02.verisure.com']:
+            self._base_url = url
             try:
-                response = urls.login(self._username, self._password)
+                response = requests.post(
+                    '{base_url}/auth/login'.format(base_url=self._base_url),
+                    headers={'Accept': 'application/json;charset=UTF-8', 'Content-Type': 'application/xml;charset=UTF-8'},
+                    auth=(self._username, self._password))
                 if 2 == response.status_code // 100:
                     break
                 elif 503 == response.status_code:
@@ -105,9 +110,28 @@ class Session(object):
 
     #def _create_cookie(self):
 
+    def query(self, operation, **variables):
+        for key, value in operation["variables"].items():
+            if key == "email":
+                variables[key] = self._username
+            elif key == "giid":
+                variables[key] = self._giid
+            elif value:
+                variables[key] = value
+        #if sorted(variables.keys()) != sorted(operation["variables"]):
+        #    raise Error("Missing variables for operation {} {} != {}".format(
+        #        operation["name"],
+        #        sorted(variables.keys()),
+        #        sorted(operation["variables"])))
+        return {
+            "operationName": operation["name"],
+            "variables": variables,
+            "query": operation["query"]
+        }
+
     def request(self, *operations):
         response = requests.post(
-            '{base_url}/graphql'.format(base_url=urls.BASE_URL),
+            '{base_url}/graphql'.format(base_url=self._base_url),
             headers={'accept': '*.*', 'APPLICATION_ID': 'MyMobile_via_GraphQL' },
             cookies=self._cookies,
             data=json.dumps(list(operations))
@@ -118,9 +142,9 @@ class Session(object):
 
     def get_installations(self):
         """ Get information about installations """
-        query = urls.query("fetchAllInstallations", urls.fetchAllInstallations, email=self._username)
-        print(query)
-        return self.request(query)
+        return self.request(
+            self.query(
+                OPERATIONS["fetch_all_installations"], email=self._username))
 
     def set_giid(self, giid):
         """ Set installation giid

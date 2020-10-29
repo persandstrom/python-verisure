@@ -4,28 +4,9 @@ from __future__ import print_function
 import argparse
 import json
 import verisure
+from .operations import OPERATIONS
 
 COMMAND_USER_TRACKINGS = 'user_trackings' 
-
-
-
-COMMAND_OVERVIEW = 'overview'
-COMMAND_CLIMATE = 'climate'
-COMMAND_ARMSTATE = 'arm_state'
-COMMAND_BROADBAND = 'broadband'
-COMMAND_SMARTPLUG = 'smartplug'
-
-
-COMMAND_SET = 'set'
-COMMAND_CLIMATE = 'climate'
-COMMAND_EVENTLOG = 'eventlog'
-COMMAND_INSTALLATIONS = 'installations'
-COMMAND_CAPTURE = 'capture'
-COMMAND_IMAGESERIES = 'imageseries'
-COMMAND_GETIMAGE = 'getimage'
-COMMAND_DOOR_WINDOW = 'door_window'
-COMMAND_VACATIONMODE = 'vacationmode'
-COMMAND_FIRMWARE_STATUS = 'firmware_status'
 
 
 def print_result(overview, *names):
@@ -65,224 +46,25 @@ def main():
         help='commands',
         dest='command')
 
-    # installations command
-    commandsparser.add_parser(
-        COMMAND_INSTALLATIONS,
-        help='Get information about installations')
-
-    # user tracking command
-    overview_parser = commandsparser.add_parser(
-        COMMAND_USER_TRACKINGS,
-        help='Get user tracking')
-    
-    # startplug command
-    overview_parser = commandsparser.add_parser(
-        COMMAND_SMARTPLUG,
-        help='Get smartplug')
-
-    # overview command
-    overview_parser = commandsparser.add_parser(
-        COMMAND_OVERVIEW,
-        help='Read status of one or many device types')
-    overview_parser.add_argument(
-        'filter',
-        nargs='*',
-        help='Read status for device type')
-
-    # armstate command
-    commandsparser.add_parser(
-        COMMAND_ARMSTATE,
-        help='Get arm state')
-
-    # Set command
-    set_parser = commandsparser.add_parser(
-        COMMAND_SET,
-        help='Set status of a device')
-    set_device = set_parser.add_subparsers(
-        help='device',
-        dest='device')
-
-    # Set smartplug
-    set_smartplug = set_device.add_parser(
-        'smartplug',
-        help='set smartplug value')
-    set_smartplug.add_argument(
-        'device_label',
-        help='device label')
-    set_smartplug.add_argument(
-        'new_value',
-        choices=[
-            'on',
-            'off'],
-        help='new value')
-
-    # Set alarm
-    set_alarm = set_device.add_parser(
-        'alarm',
-        help='set alarm status')
-    set_alarm.add_argument(
-        'code',
-        help='alarm code')
-    set_alarm.add_argument(
-        'new_status',
-        choices=[
-            'ARMED_HOME',
-            'ARMED_AWAY',
-            'DISARMED'],
-        help='new status')
-
-    # Set lock
-    set_lock = set_device.add_parser(
-        'lock',
-        help='set lock status')
-    set_lock.add_argument(
-        'code',
-        help='alarm code')
-    set_lock.add_argument(
-        'serial_number',
-        help='serial number')
-    set_lock.add_argument(
-        'new_status',
-        choices=[
-            'lock',
-            'unlock'],
-        help='new status')
-
-    # Get climate
-    climate = commandsparser.add_parser(
-        COMMAND_CLIMATE,
-        help='get climate')
-    
-    # Event log command
-    eventlog_parser = commandsparser.add_parser(
-        COMMAND_EVENTLOG,
-        help='Get event log')
-    eventlog_parser.add_argument(
-        '-p', '--pagesize',
-        type=int,
-        default=15,
-        help='Number of elements on one page')
-    eventlog_parser.add_argument(
-        '-o', '--offset',
-        type=int,
-        default=0,
-        help='Page offset')
-    eventlog_parser.add_argument(
-        '-f', '--filter',
-        nargs='*',
-        default=[],
-        choices=[
-            'ARM',
-            'DISARM',
-            'FIRE',
-            'INTRUSION',
-            'TECHNICAL',
-            'SOS',
-            'WARNING',
-            'LOCK',
-            'UNLOCK'],
-        help='Filter event log')
-
-    # Capture command
-    capture_parser = commandsparser.add_parser(
-        COMMAND_CAPTURE,
-        help='Capture image')
-    capture_parser.add_argument(
-        'device_label',
-        help='Device label')
-
-    # Image series command
-    commandsparser.add_parser(
-        COMMAND_IMAGESERIES,
-        help='Get image series')
-
-    # Get image command
-    getimage_parser = commandsparser.add_parser(
-        COMMAND_GETIMAGE,
-        help='Download image')
-    getimage_parser.add_argument(
-        'device_label',
-        help='Device label')
-    getimage_parser.add_argument(
-        'image_id',
-        help='image ID')
-    getimage_parser.add_argument(
-        'file_name',
-        help='Output file name')
-
-    # Vacation mode command
-    commandsparser.add_parser(
-        COMMAND_VACATIONMODE,
-        help='Get vacation mode info')
-
-    # Door window status command
-    commandsparser.add_parser(
-        COMMAND_DOOR_WINDOW,
-        help='Get door/window status')
-
-    # Broadband command
-    commandsparser.add_parser(
-        COMMAND_BROADBAND,
-        help='Get broadband status')
-
-    # Get firmware status command
-    commandsparser.add_parser(
-        COMMAND_FIRMWARE_STATUS,
-        help='Get firmware status')
+    for name, operation in OPERATIONS.items():
+        operationparser= commandsparser.add_parser(
+            name,
+            help=operation["help"])
+        for key in [key for key, value in operation["variables"].items() if value == None]:
+            operationparser.add_argument(key)
 
     args = parser.parse_args()
     session = verisure.Session(args.username, args.password, args.cookie)
     installations = session.login()
     try:
-        if args.command == COMMAND_INSTALLATIONS:
-            print_result(installations)
-        else:
-            session.set_giid(installations['data']['account']['installations'][0]['giid'])
-        if args.command == COMMAND_USER_TRACKINGS:
-            print_result(session.get_user_trackings())
-        if args.command == COMMAND_SMARTPLUG:
-            print_result(session.get_smartplug())
-        if args.command == COMMAND_ARMSTATE:
-            print_result(session.get_arm_state())
-        if args.command == COMMAND_SET:
-            if args.device == 'smartplug':
-                session.set_smartplug_state(
-                    args.device_label,
-                    args.new_value == 'on')
-            if args.device == 'alarm':
-                print_result(session.set_arm_state(
-                    args.code,
-                    args.new_status))
-            if args.device == 'lock':
-                print_result(session.set_lock_state(
-                    args.code,
-                    args.serial_number,
-                    args.new_status))
-        if args.command == COMMAND_CLIMATE:
-            print_result(session.get_climate())
-        if args.command == COMMAND_EVENTLOG:
-            print_result(
-                session.get_history(
-                    args.filter,
-                    pagesize=args.pagesize,
-                    offset=args.offset))
-        if args.command == COMMAND_CAPTURE:
-            session.capture_image(args.device_label)
-        if args.command == COMMAND_IMAGESERIES:
-            print_result(session.get_camera_imageseries())
-        if args.command == COMMAND_GETIMAGE:
-            session.download_image(
-                args.device_label,
-                args.image_id,
-                args.file_name)
-        if args.command == COMMAND_VACATIONMODE:
-            print_result(session.get_vacation_mode())
-        if args.command == COMMAND_DOOR_WINDOW:
-            print_result(session.get_door_window())
-        if args.command == COMMAND_BROADBAND:
-            print_result(session.get_broadband())
-        if args.command == COMMAND_FIRMWARE_STATUS:
-            print_result(session.get_firmware_status())
+        #if args.command == COMMAND_INSTALLATIONS:
+        #    print_result(installations)
+        #else:
+        session.set_giid(installations['data']['account']['installations'][0]['giid'])
+        if args.command in OPERATIONS:
+            print_result(session.request(session.query(
+                OPERATIONS[args.command],
+                )))
     except verisure.session.ResponseError as ex:
         print(ex.text)
 
