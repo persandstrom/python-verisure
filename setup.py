@@ -26,7 +26,9 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     keywords='home automation verisure',
-    install_requires=['requests>=2.20.0'],
+    install_requires=[
+        'requests>=2.20.0',
+        'click>=7.1.2'],
     packages=['verisure'],
     zip_safe=True,
     entry_points={

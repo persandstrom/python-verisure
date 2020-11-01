@@ -1,7 +1,7 @@
 """ Command line interface for Verisure MyPages """
 
 from __future__ import print_function
-import argparse
+import click
 import json
 import verisure
 from .operations import OPERATIONS
@@ -22,45 +22,40 @@ def print_result(overview, *names):
 
 
 # pylint: disable=too-many-locals,too-many-statements
+@click.command()
 def main():
-    """ Start verisure command line """
-    parser = argparse.ArgumentParser(
-        description='Read or change status of verisure devices')
-    parser.add_argument(
-        'username',
-        help='MyPages username')
-    parser.add_argument(
-        'password',
-        help='MyPages password')
-    parser.add_argument(
-        '-i', '--installation',
-        help='Installation number',
-        type=int,
-        default=1)
-    parser.add_argument(
-        '-c', '--cookie',
-        help='File to store cookie in',
-        default='~/.verisure-cookie')
+    """Verisure ..."""
+    click.echo("")
+    args = None
+#    """ Start verisure command line """
+#    parser = argparse.ArgumentParser(
+#        description='Read or change status of verisure devices')
+#    parser.add_argument(
+#        'username',
+#        help='MyPages username')
+#    parser.add_argument(
+#        'password',
+#        help='MyPages password')
+#    parser.add_argument(
+#        '-i', '--installation',
+#        help='Installation number',
+#        type=int,
+#        default=1)
+#    parser.add_argument(
+#        '-c', '--cookie',
+#        help='File to store cookie in',
+#        default='~/.verisure-cookie')
 
     
-    #subparsers = parser.add_subparsers(help='commands')
-
     for name, operation in OPERATIONS.items():
         group = parser.add_argument_group(name)
         arguments = [key for key, value in operation["variables"].items() if value == None]
         if arguments:
             group.add_argument("--"+name)
-#            subparser = subparsers.add_parser(name, help=operation["help"])
-#            subparser.add_argument(name, action='store_true')
-        #    subparser.add_argument(name)
             for argument in arguments:
                 group.add_argument(argument)
-                #subparser.add_argument(argument, type=str)
         else:
             group.add_argument("--"+name, action='store_true')
-            #parser.add_argument('-'+name, action='store_true')
-            #subparser = .add_parser(name, help=operation["help"])
-            #subparser.add_argument(name, action='store_true')
             
 
     args = parser.parse_args()
