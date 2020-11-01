@@ -42,26 +42,36 @@ def main():
         help='File to store cookie in',
         default='~/.verisure-cookie')
 
-    commandsparser = parser.add_subparsers(
-        help='commands',
-        dest='command')
+    
+    #subparsers = parser.add_subparsers(help='commands')
 
     for name, operation in OPERATIONS.items():
-        operationparser= commandsparser.add_parser(
-            name,
-            help=operation["help"])
-        for key in [key for key, value in operation["variables"].items() if value == None]:
-            operationparser.add_argument(key)
+        group = parser.add_argument_group(name)
+        arguments = [key for key, value in operation["variables"].items() if value == None]
+        if arguments:
+            group.add_argument("--"+name)
+#            subparser = subparsers.add_parser(name, help=operation["help"])
+#            subparser.add_argument(name, action='store_true')
+        #    subparser.add_argument(name)
+            for argument in arguments:
+                group.add_argument(argument)
+                #subparser.add_argument(argument, type=str)
+        else:
+            group.add_argument("--"+name, action='store_true')
+            #parser.add_argument('-'+name, action='store_true')
+            #subparser = .add_parser(name, help=operation["help"])
+            #subparser.add_argument(name, action='store_true')
+            
 
     args = parser.parse_args()
     session = verisure.Session(args.username, args.password, args.cookie)
-    installations = session.login()
+    print(args)
+#    installations = session.login()
     try:
-        #if args.command == COMMAND_INSTALLATIONS:
-        #    print_result(installations)
-        #else:
-        session.set_giid(installations['data']['account']['installations'][0]['giid'])
+ #       session.set_giid(installations['data']['account']['installations'][0]['giid'])
+
         if args.command in OPERATIONS:
+
             print_result(session.request(session.query(
                 OPERATIONS[args.command],
                 )))
