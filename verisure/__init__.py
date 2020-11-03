@@ -7,14 +7,18 @@ __all__ = [
     'Error',
     'LoginError',
     'ResponseError',
-    'Session'
+    'Session',
 ]
 
 from .session import ( # NOQA
     Error,
     LoginError,
     ResponseError,
-    Session
+    Session,
+)
+
+from .operations import (
+    OPERATIONS,
 )
 
 

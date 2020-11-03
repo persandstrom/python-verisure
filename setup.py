@@ -31,8 +31,8 @@ setup(
         'click>=7.1.2'],
     packages=['verisure'],
     zip_safe=True,
-    entry_points={
-        'console_scripts': [
-            'vsure=verisure.__main__:main',
-        ]
-    })
+    entry_points='''
+        [console_scripts]
+        vsure=vsure:cli
+    '''
+    )
