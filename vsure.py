@@ -2,28 +2,35 @@
 
 import click
 import json
-from verisure import OPERATIONS, Session
-
+from verisure import OPERATIONS, VariableTypes, Session
 
 class DeviceLabel(click.ParamType):
     name = "DeviceLabel"
-DEVICE_LABEL = DeviceLabel()
+
+VariableTypeMap = {
+    VariableTypes.DeviceLabel: DeviceLabel(),
+    VariableTypes.SmartPlugState: click.BOOL,
+}
 
 def options_from_operator_list():
     def decorator(f):
         for name, operation in OPERATIONS.items():
-            variables = [(key, value) for key, value in operation['variables'].items() if not value]
-            if(len(variables)):
-                click.option(
-                    '--'+name, 
-                    nargs=len(variables),
-                    type=DEVICE_LABEL,
-                    help=operation['help'])(f)
-            else:
+            variables = [(key, value) for key, value in operation['variables'].items()]
+            if len(variables) == 0:
                 click.option(
                     '--'+name, 
                     is_flag=True,
                     help=operation['help'])(f)
+            elif len(variables) == 1:
+                click.option(
+                    '--'+name, 
+                    type=VariableTypeMap[variables[0][1]],
+                    help=operation['help'])(f)
+            else:
+                types = [VariableTypeMap[variable[1]] for variable in variables]
+                click.option(
+                    '--'+name, 
+                    type=click.Tuple(types))(f)
         return f
     return decorator
 
@@ -37,6 +44,7 @@ def options_from_operator_list():
 def cli(username, password, installation, cookie, *args, **kwargs):
     """Read and change status of verisure devices through verisure app API"""
     try:
+
         session = Session(username, password, cookie)
         installations = session.login()
         session.set_giid(installations['data']['account']['installations'][0]['giid'])
@@ -44,9 +52,8 @@ def cli(username, password, installation, cookie, *args, **kwargs):
             session.query(
                 operation,
                 **dict(zip(
-                    [key for key, value in operation['variables'].items() if not value],
-                    [kwargs.get(name)]))
-            
+                    [key for key, value in operation['variables'].items()],
+                    [*kwargs.get(name)]))
             ) 
             for name, operation 
             in OPERATIONS.items() 

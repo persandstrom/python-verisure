@@ -19,6 +19,7 @@ from .session import ( # NOQA
 
 from .operations import (
     OPERATIONS,
+    VariableTypes
 )
 
 

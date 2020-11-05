@@ -110,7 +110,7 @@ class Session(object):
     #def _create_cookie(self):
 
     def query(self, operation, **variables):
-        for key, value in operation["variables"].items():
+        for key, value in operation["session_variables"].items():
             if key == "email":
                 variables[key] = self._username
             elif key == "giid":
@@ -124,6 +124,7 @@ class Session(object):
         }
 
     def request(self, *operations):
+        print(json.dumps(list(operations)))
         response = requests.post(
             '{base_url}/graphql'.format(base_url=self._base_url),
             headers={'accept': '*.*', 'APPLICATION_ID': 'MyMobile_via_GraphQL' },
