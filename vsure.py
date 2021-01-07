@@ -2,7 +2,7 @@
 
 import click
 import json
-from verisure import OPERATIONS, VariableTypes, Session
+from verisure import OPERATIONS, VariableTypes, Session, ResponseError
 
 class DeviceLabel(click.ParamType):
     name = "DeviceLabel"
@@ -61,5 +61,8 @@ def cli(username, password, installation, cookie, *args, **kwargs):
         result = session.request(*queries)
         click.echo(json.dumps(result, indent=4, separators=(',', ': ')))
         
-    except session.ResponseError as ex:
+    except ResponseError as ex:
         print(ex.text)
+
+if __name__ == "__main__":
+    cli()

@@ -1,5 +1,5 @@
 # python-verisure
-A python module for reading and changing status of verisure devices through verisure app API. Compatible with both Python2 (2.6+) and Python3.
+A python3 module for reading and changing status of verisure devices through verisure app API.
 
 ### Legal Disclaimer
 This software is not affiliated with Verisure Holding AB and the developers take no legal responsibility for the functionality or security of your Verisure Alarms and devices.
@@ -7,30 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
-1.6.1 Add LICENSE in MANIFESt.in
-1.6.0 Add get firmware status
-1.5.4 ResponseError should not load response text as JSON
-1.5.3 History filter fixed
-1.5.2 String formatting in urls.imagecapture fixed
-1.5.1 Update requests dependency to 2.20.0
-1.5.0 Added support for Panasonic HeatPumps
-1.4.3 Update eventlog URL
-1.4.2 Session context manager
-1.4.1 Add cookie cache for increased speed and to avoid having the password stored on disk
-1.4.0 Add test ethernet command
-1.3.8 Fix vacation mode URL
-1.3.7 Urlencode username
-1.3.6 Download image fixed
-1.3.5 Fix issue with encoding of credentials
-1.3.4 Fix issue with encoding in ResponseError
-1.3.3 Switch between known sub domains
-1.3.2 Update base url 
-1.3.1 Add LOCK and UNLOCK as filter options for event log
-1.3.0 Added command for door/window status
-1.2.0 CLI output as json
-1.1.2 Change base host
-1.1.1 Prettier printing of response error for command line usage
-1.1.0 Support vacation mode 
+2.0.0 Move to GraphQL API, major changes
 1.0.0 Move to app-API, major changes
 ```
 
@@ -43,38 +20,32 @@ or
 ## Command line usage
 
 ```
-usage: verisure.py [-h] [-i INSTALLATION] [-c COOKIE]
-                   username password
-                   {installations,overview,set,history,eventlog,capture,imageseries,getimage}
-                   ...
+Usage: vsure [OPTIONS] USERNAME PASSWORD
 
-Read or change status of verisure devices
+  Read and change status of verisure devices through verisure app API
 
-positional arguments:
-  username              MyPages username
-  password              MyPages password
-  {installations,overview,set,history,eventlog,capture,imageseries,getimage}
-                        commands
-    installations       Get information about installations
-    overview            Read status of one or many device types
-    armstate            Get arm state
-    set                 Set status of a device
-    climate             Get climate history
-    eventlog            Get event log
-    capture             Capture image
-    imageseries         Get image series
-    getimage            Download image
-    vacationmode        Get vacation mode info
-    door_window         Get door/window status
-    test_ethernet       Update ethernet status
-    firmware_status     Get firmware status
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -i INSTALLATION, --installation INSTALLATION
-                        Installation number
-  -c COOKIE, --cookie COOKIE
-                           File to store cookie in
+Options:
+  -i, --installation INTEGER      Installation number
+  -c, --cookie TEXT               File to store cookie in
+  --update_state <DEVICELABEL BOOLEAN>...
+  --permissions                   No help written yet
+  --user_tracking_installation_config
+                                  No help written yet
+  --user_trackings                No help written yet
+  --capability                    No help written yet
+  --broadband                     No help written yet
+  --smart_button                  No help written yet
+  --arm_state                     No help written yet
+  --climate                       No help written yet
+  --charge_sms                    No help written yet
+  --remaining_sms                 Get remaing number of SMS
+  --door_window                   Read status of door and window sensors
+  --smart_plug DEVICELABEL        Read status of a single smart plug
+  --smart_plugs                   Read status of all smart plugs
+  --is_guardian_activated         No help written yet
+  --guardian_sos                  No help written yet
+  --fetch_all_installations       Fetch installations
+  --help                          Show this message and exit.
 
 ```
 
@@ -173,4 +144,3 @@ session.login()
 events = session.get_history(('ARM', 'DISARM'))
 session.logout()
 ```
-

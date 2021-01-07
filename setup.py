@@ -4,11 +4,10 @@ from setuptools import setup
 
 setup(
     name='vsure',
-    version='1.6.1',
+    version='2.0.0',
     description='Read and change status of verisure devices through mypages.',
-    long_description='A module for reading and changing status of '
-    + 'verisure devices through mypages. Compatible '
-    + 'with both Python2.7 and Python3.',
+    long_description='A python3 module for reading and changing status of '
+    + 'verisure devices through mypages. '
     url='http://github.com/persandstrom/python-verisure',
     author='Per Sandstrom',
     author_email='per.j.sandstrom@gmail.com',
@@ -27,8 +26,8 @@ setup(
     ],
     keywords='home automation verisure',
     install_requires=[
-        'requests>=2.20.0',
-        'click>=7.1.2'],
+        'requests>=2.25.1',
+        'click>=8.0.0a1'],
     packages=['verisure'],
     zip_safe=True,
     entry_points='''
