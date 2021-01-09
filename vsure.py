@@ -4,12 +4,24 @@ import click
 import json
 from verisure import OPERATIONS, VariableTypes, Session, ResponseError
 
+
 class DeviceLabel(click.ParamType):
     name = "DeviceLabel"
 
+
+class FutureState(click.ParamType):
+    name = "FutureState"
+
+
+class TransactionId(click.ParamType):
+    name = "TransactionId"
+
+
 VariableTypeMap = {
     VariableTypes.DeviceLabel: DeviceLabel(),
+    VariableTypes.FutureState: FutureState(),
     VariableTypes.SmartPlugState: click.BOOL,
+    VariableTypes.TransactionId: TransactionId(),
 }
 
 def options_from_operator_list():
