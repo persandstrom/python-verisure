@@ -76,7 +76,7 @@ class Session(object):
                     headers={'Accept': 'application/json;charset=UTF-8', 'Content-Type': 'application/xml;charset=UTF-8'},
                     auth=(self._username, self._password))
                 if 2 == response.status_code // 100:
-                    break
+                    pass
                 elif 503 == response.status_code:
                     continue
                 else:
@@ -84,8 +84,10 @@ class Session(object):
             except requests.exceptions.RequestException as ex:
                 raise LoginError(ex)
 
-        self._cookies = response.cookies
-        return self.get_installations()
+            self._cookies = response.cookies
+            installations = self.get_installations()
+            if 'errors' not in installations:
+                return installations
 
         
         #self._vid = json.loads(response.text)['cookie']
