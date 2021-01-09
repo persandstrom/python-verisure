@@ -58,7 +58,7 @@ def cli(username, password, installation, cookie, *args, **kwargs):
     try:
         session = Session(username, password, cookie)
         installations = session.login()
-        session.set_giid(installations['data']['account']['installations'][0]['giid'])
+        session.set_giid(installations['data']['account']['installations'][installation]['giid'])
         
         queries = [
             session.query(
@@ -68,7 +68,7 @@ def cli(username, password, installation, cookie, *args, **kwargs):
                     kwargs.get(name) if hasattr(kwargs.get(name), '__iter__') else [kwargs.get(name)]))
             ) 
             for name, operation 
-            in OPERATIONS.items() if kwargs.get(name)]
+            in OPERATIONS.items() if kwargs.get(name.replace('-', '_'))]
         result = session.request(*queries)
         click.echo(json.dumps(result, indent=4, separators=(',', ': ')))
         
