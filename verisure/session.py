@@ -11,6 +11,7 @@ from .operations import OPERATIONS
 
 URLS = ['https://m-api01.verisure.com', 'https://m-api02.verisure.com']
 
+
 class Error(Exception):
     ''' Verisure session error '''
     pass
@@ -36,6 +37,7 @@ class ResponseError(Error):
                 text))
         self.status_code = status_code
         self.text = text
+
 
 class Session(object):
     """ Verisure app session
@@ -75,14 +77,16 @@ class Session(object):
                 installations = self.get_installations()
                 if 'errors' not in installations:
                     return installations
-        except:
+        except Exception:
             pass
         for url in URLS:
             self._base_url = url
             try:
                 response = requests.post(
                     '{base_url}/auth/login'.format(base_url=self._base_url),
-                    headers={'Accept': 'application/json;charset=UTF-8', 'Content-Type': 'application/xml;charset=UTF-8'},
+                    headers={
+                        'Accept': 'application/json;charset=UTF-8',
+                        'Content-Type': 'application/xml;charset=UTF-8'},
                     auth=(self._username, self._password))
                 if 2 == response.status_code // 100:
                     pass
@@ -117,7 +121,7 @@ class Session(object):
     def request(self, *operations):
         response = requests.post(
             '{base_url}/graphql'.format(base_url=self._base_url),
-            headers={'accept': '*.*', 'APPLICATION_ID': 'MyMobile_via_GraphQL' },
+            headers={'accept': '*.*', 'APPLICATION_ID': 'MyMobile_via_GraphQL'},
             cookies=self._cookies,
             data=json.dumps(list(operations))
         )
