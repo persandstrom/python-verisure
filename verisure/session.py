@@ -3,10 +3,13 @@ Verisure session, using verisure app api
 '''
 
 import json
-import requests
 import os
+import pickle
+import requests
 
 from .operations import OPERATIONS
+
+URLS = ['https://m-api01.verisure.com', 'https://m-api02.verisure.com']
 
 class Error(Exception):
     ''' Verisure session error '''
@@ -49,7 +52,6 @@ class Session(object):
         self._username = username
         self._password = password
         self._cookieFileName = os.path.expanduser(cookieFileName)
-        self._vid = None
         self._giid = None
         self._base_url = None
 
@@ -68,7 +70,19 @@ class Session(object):
         Login before calling any read or write commands
 
         """
-        for url in ['https://m-api01.verisure.com', 'https://m-api02.verisure.com']:
+
+        # First try with the cookie, then the full sequence
+        try:
+            with open(self._cookieFileName, 'rb') as f:
+                self._cookies = pickle.load(f)
+            for url in URLS:
+                self._base_url = url
+                installations = self.get_installations()
+                if 'errors' not in installations:
+                    return installations
+        except:
+            pass
+        for url in URLS:
             self._base_url = url
             try:
                 response = requests.post(
@@ -87,29 +101,9 @@ class Session(object):
             self._cookies = response.cookies
             installations = self.get_installations()
             if 'errors' not in installations:
+                with open(self._cookieFileName, 'wb') as f:
+                    pickle.dump(self._cookies, f)
                 return installations
-
-        
-        #self._vid = json.loads(response.text)['cookie']
-        #exit()
-       #     with open(self._cookieFileName, 'r') as cookieFile:
-       #         self._vid = cookieFile.read().strip()
-        #
-        #    try:
-        #        self._get_installations()
-        #    except ResponseError:
-        #        self._vid = None
-        #        os.remove(self._cookieFileName)
-
-        #if self._vid is None:
-        #    self._create_cookie()
-        #    with open(self._cookieFileName, 'w') as cookieFile:
-        #        cookieFile.write(self._vid)
-        #    self._get_installations()
-
-     #   self._giid = self.installations[0]['giid']
-
-    #def _create_cookie(self):
 
     def query(self, operation, **variables):
         for key, value in operation["session_variables"].items():
@@ -126,7 +120,6 @@ class Session(object):
         }
 
     def request(self, *operations):
-        print(json.dumps(list(operations)))
         response = requests.post(
             '{base_url}/graphql'.format(base_url=self._base_url),
             headers={'accept': '*.*', 'APPLICATION_ID': 'MyMobile_via_GraphQL' },
