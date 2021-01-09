@@ -44,20 +44,19 @@ def options_from_operator_list():
 def cli(username, password, installation, cookie, *args, **kwargs):
     """Read and change status of verisure devices through verisure app API"""
     try:
-
         session = Session(username, password, cookie)
         installations = session.login()
         session.set_giid(installations['data']['account']['installations'][0]['giid'])
+        
         queries = [
             session.query(
                 operation,
                 **dict(zip(
                     [key for key, value in operation['variables'].items()],
-                    [*kwargs.get(name)]))
+                    kwargs.get(name) if hasattr(kwargs.get(name), '__iter__') else [kwargs.get(name)]))
             ) 
             for name, operation 
-            in OPERATIONS.items() 
-            if kwargs.get(name)]
+            in OPERATIONS.items() if kwargs.get(name)]
         result = session.request(*queries)
         click.echo(json.dumps(result, indent=4, separators=(',', ': ')))
         
