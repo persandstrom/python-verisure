@@ -29,20 +29,21 @@ def options_from_operator_list():
     def decorator(f):
         for name, operation in reversed(OPERATIONS.items()):
             variables = [(key, value) for key, value in operation['variables'].items()]
+            dashed_name = name.replace('_', '-')
             if len(variables) == 0:
                 click.option(
-                    '--'+name,
+                    '--'+dashed_name,
                     is_flag=True,
                     help=operation['help'])(f)
             elif len(variables) == 1:
                 click.option(
-                    '--'+name,
+                    '--'+dashed_name,
                     type=VariableTypeMap[variables[0][1]],
                     help=operation['help'])(f)
             else:
                 types = [VariableTypeMap[variable[1]] for variable in variables]
                 click.option(
-                    '--'+name,
+                    '--'+dashed_name,
                     type=click.Tuple(types))(f)
         return f
     return decorator
@@ -66,10 +67,10 @@ def cli(username, password, installation, cookie, *args, **kwargs):
                 operation,
                 **dict(zip(
                     [key for key, value in operation['variables'].items()],
-                    kwargs.get(name) if hasattr(kwargs.get(name), '__iter__') else [kwargs.get(name)]))
+                    [kwargs.get(name)] if len(operation['variables'].items()) < 2 else kwargs.get(name)))
             )
             for name, operation
-            in OPERATIONS.items() if kwargs.get(name.replace('-', '_'))]
+            in OPERATIONS.items() if kwargs.get(name)]
         result = session.request(*queries)
         click.echo(json.dumps(result, indent=4, separators=(',', ': ')))
 

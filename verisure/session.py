@@ -133,7 +133,7 @@ class Session(object):
         """ Get information about installations """
         return self.request(
             self.query(
-                OPERATIONS["fetch-all-installations"], email=self._username))
+                OPERATIONS["fetch_all_installations"], email=self._username))
 
     def set_giid(self, giid):
         """ Set installation giid
