@@ -2,11 +2,17 @@
 
 import click
 import json
+import re
 from verisure import OPERATIONS, VariableTypes, Session, ResponseError
 
 
 class DeviceLabel(click.ParamType):
     name = "DeviceLabel"
+
+    def convert(self, value, param, ctx):
+        if re.match(r"^([A-Z]|[0-9]){4} ([A-Z]|[0-9]){4}$", value):
+            return value
+        self.fail(f"{value!r} is not a a device label", param, ctx)
 
 
 class FutureState(click.ParamType):
