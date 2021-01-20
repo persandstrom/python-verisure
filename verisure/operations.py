@@ -5,11 +5,28 @@ class VariableTypes:
     DeviceLabel = 0
     SmartPlugState = 1
     TransactionId = 2
-    FutureState = 3
+    ArmFutureState = 3
+    LockFutureState = 4
+    Code = 5
 
+# ARMED_AWAY, DISARMED, ARMED_HOME
 
 # pylint: disable=line-too-long
 OPERATIONS = {
+    "arm_away": {
+        "name": "armAway",
+        "query": "mutation armAway($giid: String!, $code: String!) {\n  armStateArmAway(giid: $giid, code: $code)\n}\n",
+        "variables": {"code": VariableTypes.Code},
+        "session_variables": {"giid": None},
+        "help": NO_HELP_YET,
+    },
+    "arm_home": {
+        "name": "armHome",
+        "query": "mutation armHome($giid: String!, $code: String!) {\n  armStateArmHome(giid: $giid, code: $code)\n}\n",
+        "variables": {"code": VariableTypes.Code},
+        "session_variables": {"giid": None},
+        "help": NO_HELP_YET,
+    },
     "arm_state": {
         "name": "ArmState",
         "query": "query ArmState($giid: String!) {\n  installation(giid: $giid) {\n    armState {\n      type\n      statusType\n      date\n      name\n      changedVia\n      __typename\n    }\n    __typename\n  }\n}\n",
@@ -42,6 +59,13 @@ OPERATIONS = {
         "name": "Climate",
         "query": "query Climate($giid: String!) {\n  installation(giid: $giid) {\n    climates {\n      device {\n        deviceLabel\n        area\n        gui {\n          label\n          __typename\n        }\n        __typename\n      }\n      humidityEnabled\n      humidityTimestamp\n      humidityValue\n      temperatureTimestamp\n      temperatureValue\n      thresholds {\n        aboveMaxAlert\n        belowMinAlert\n        sensorType\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",
         "variables": {},
+        "session_variables": {"giid": None},
+        "help": NO_HELP_YET,
+    },
+    "disarm": {
+        "name": "disarm",
+        "query": "mutation disarm($giid: String!, $code: String!) {\n  armStateDisarm(giid: $giid, code: $code)\n}\n",
+        "variables": {"code": VariableTypes.Code},
         "session_variables": {"giid": None},
         "help": NO_HELP_YET,
     },
@@ -96,10 +120,17 @@ OPERATIONS = {
         "session_variables": {"giid": None, "email": None},
         "help": NO_HELP_YET,
     },
+    "poll_arm_state": {
+        "name": "pollArmState",
+        "query": "query pollArmState($giid: String!, $transactionId: String, $futureState: ArmStateStatusTypes!) {\n  installation(giid: $giid) {\n    armStateChangePollResult(transactionId: $transactionId, futureState: $futureState) {\n      result\n      createTime\n      __typename\n    }\n    __typename\n  }\n}\n",
+        "variables": {"transactionId": VariableTypes.TransactionId, "futureState": VariableTypes.ArmFutureState},
+        "session_variables": {"giid": None},
+        "help": NO_HELP_YET,
+    },
     "poll_lock_state": {
         "name": "pollLockState",
         "query": "query pollLockState($giid: String!, $transactionId: String, $deviceLabel: String!, $futureState: DoorLockState!) {\n  installation(giid: $giid) {\n    doorLockStateChangePollResult(transactionId: $transactionId, deviceLabel: $deviceLabel, futureState: $futureState) {\n      result\n      createTime\n      __typename\n    }\n    __typename\n  }\n}\n",
-        "variables": {"transactionId": VariableTypes.TransactionId, "deviceLabel": VariableTypes.DeviceLabel, "futureState": VariableTypes.FutureState },
+        "variables": {"transactionId": VariableTypes.TransactionId, "deviceLabel": VariableTypes.DeviceLabel, "futureState": VariableTypes.LockFutureState },
         "session_variables": {"giid": None},
         "help": NO_HELP_YET,
     },

@@ -15,19 +15,26 @@ class DeviceLabel(click.ParamType):
         self.fail(f"{value!r} is not a a device label", param, ctx)
 
 
-class FutureState(click.ParamType):
+class ArmFutureState(click.ParamType):
     name = "FutureState"
 
+class LockFutureState(click.ParamType):
+    name = "FutureState"
 
 class TransactionId(click.ParamType):
     name = "TransactionId"
 
+class Code(click.ParamType):
+    name = "Code"
+
 
 VariableTypeMap = {
     VariableTypes.DeviceLabel: DeviceLabel(),
-    VariableTypes.FutureState: FutureState(),
+    VariableTypes.ArmFutureState: ArmFutureState(),
+    VariableTypes.LockFutureState: LockFutureState(),
     VariableTypes.SmartPlugState: click.BOOL,
     VariableTypes.TransactionId: TransactionId(),
+    VariableTypes.Code: Code(),
 }
 
 
