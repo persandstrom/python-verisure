@@ -17,10 +17,7 @@ from .session import ( # NOQA
     Session,
 )
 
-from .operations import (
-    OPERATIONS,
-    VariableTypes
-)
+from .operations import *
 
 
 ALARM_ARMED_HOME = 'ARMED_HOME'

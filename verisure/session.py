@@ -7,7 +7,7 @@ import os
 import pickle
 import requests
 
-from .operations import OPERATIONS
+import verisure.operations
 
 URLS = ['https://m-api01.verisure.com', 'https://m-api02.verisure.com']
 
@@ -132,8 +132,8 @@ class Session(object):
     def get_installations(self):
         """ Get information about installations """
         return self.request(
-            self.query(
-                OPERATIONS["fetch_all_installations"], email=self._username))
+            verisure.operations.fetch_all_installations(email=self._username)
+        )
 
     def set_giid(self, giid):
         """ Set installation giid

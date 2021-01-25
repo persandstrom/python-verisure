@@ -9,10 +9,41 @@ class VariableTypes:
     LockFutureState = 4
     Code = 5
 
+
+class DeviceLabel(str):
+    pass
+
+
 # ARMED_AWAY, DISARMED, ARMED_HOME
 
+def fetch_all_installations(email):
+    """Fetch installations"""
+    return {
+        "operationName": "fetchAllInstallations",
+        "variables": locals(),
+        "query": "query fetchAllInstallations($email: String!) {\n  account(email: $email) {\n    installations {\n      giid\n      alias\n      customerType\n      dealerId\n      subsidiary\n      pinCodeLength\n      locale\n      address {\n        street\n        city\n        postalNumber\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",
+        }
+
+
+def smart_plug(deviceLabel: DeviceLabel, giid):
+    """Read status of a single smart plug"""
+    return {
+        "operationName": "SmartPlug",
+        "variables": locals(),
+        "query": "query SmartPlug($giid: String!, $deviceLabel: String!) {\n  installation(giid: $giid) {\n    smartplugs(filter: {deviceLabels: [$deviceLabel]}) {\n      device {\n        deviceLabel\n        area\n        __typename\n      }\n      currentState\n      icon\n      isHazardous\n      __typename\n    }\n    __typename\n  }\n}\n",
+        }
+
+
+def smart_plugs(giid):
+    """Read status of all smart plugs"""
+    return {
+        "operationName": "SmartPlug",
+        "variables": locals(),
+        "query": "query SmartPlug($giid: String!) {\n  installation(giid: $giid) {\n    smartplugs {\n      device {\n        deviceLabel\n        area\n        __typename\n      }\n      currentState\n      icon\n      isHazardous\n      __typename\n    }\n    __typename\n  }\n}\n",
+        }
+
 # pylint: disable=line-too-long
-OPERATIONS = {
+aOPERATIONS = {
     "arm_away": {
         "name": "armAway",
         "query": "mutation armAway($giid: String!, $code: String!) {\n  armStateArmAway(giid: $giid, code: $code)\n}\n",

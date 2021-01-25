@@ -1,9 +1,10 @@
 """ Command line interface for Verisure MyPages """
 
 import click
+import inspect
 import json
 import re
-from verisure import OPERATIONS, VariableTypes, Session, ResponseError
+from verisure import operations, VariableTypes, Session, ResponseError
 
 
 class DeviceLabel(click.ParamType):
@@ -29,7 +30,7 @@ class Code(click.ParamType):
 
 
 VariableTypeMap = {
-    VariableTypes.DeviceLabel: DeviceLabel(),
+    operations.DeviceLabel: DeviceLabel(),
     VariableTypes.ArmFutureState: ArmFutureState(),
     VariableTypes.LockFutureState: LockFutureState(),
     VariableTypes.SmartPlugState: click.BOOL,
@@ -40,21 +41,22 @@ VariableTypeMap = {
 
 def options_from_operator_list():
     def decorator(f):
-        for name, operation in reversed(OPERATIONS.items()):
-            variables = [(key, value) for key, value in operation['variables'].items()]
+        ops = inspect.getmembers(operations, predicate=inspect.isfunction)
+        for name, operation in reversed(ops):
+            variables = list(operation.__annotations__.values())
             dashed_name = name.replace('_', '-')
             if len(variables) == 0:
                 click.option(
                     '--'+dashed_name,
                     is_flag=True,
-                    help=operation['help'])(f)
+                    help=operation.__doc__)(f)
             elif len(variables) == 1:
                 click.option(
                     '--'+dashed_name,
-                    type=VariableTypeMap[variables[0][1]],
-                    help=operation['help'])(f)
+                    type=VariableTypeMap[variables[0]],
+                    help=operation.__doc__)(f)
             else:
-                types = [VariableTypeMap[variable[1]] for variable in variables]
+                types = [VariableTypeMap[variable] for variable in variables]
                 click.option(
                     '--'+dashed_name,
                     type=click.Tuple(types))(f)
@@ -74,16 +76,17 @@ def cli(username, password, installation, cookie, *args, **kwargs):
         session = Session(username, password, cookie)
         installations = session.login()
         session.set_giid(installations['data']['account']['installations'][installation]['giid'])
-
-        queries = [
-            session.query(
-                operation,
-                **dict(zip(
-                    [key for key, value in operation['variables'].items()],
-                    [kwargs.get(name)] if len(operation['variables'].items()) < 2 else kwargs.get(name)))
-            )
-            for name, operation
-            in OPERATIONS.items() if kwargs.get(name)]
+        print(kwargs)
+        exit(0)
+        #queries = [
+        #    session.query(
+        #        operation,
+        #        **dict(zip(
+        #            [key for key, value in operation['variables'].items()],
+        #            [kwargs.get(name)] if len(operation['variables'].items()) < 2 else kwargs.get(name)))
+        #    )
+        #    for name, operation
+        #    in OPERATIONS.items() if kwargs.get(name)]
         result = session.request(*queries)
         click.echo(json.dumps(result, indent=4, separators=(',', ': ')))
 
