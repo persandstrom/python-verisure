@@ -2,9 +2,9 @@
 Verisure session, using verisure app api
 '''
 
-import base64
 import json
 import requests
+import pickle
 from . import urls
 import os
 
@@ -76,53 +76,34 @@ class Session(object):
         Login before calling any read or write commands
 
         """
-        if os.path.exists(self._cookieFileName):
-            with open(self._cookieFileName, 'r') as cookieFile:
-                self._vid = cookieFile.read().strip()
 
-            try:
+        # First try with the stored cookies, then the full sequence
+        try:
+            with open(self._cookieFileName, 'rb') as f:
+                self._cookies = pickle.load(f)
                 self._get_installations()
-            except ResponseError:
-                self._vid = None
-                os.remove(self._cookieFileName)
+                return
+        except Exception:
+            self._cookies = None
 
-        if self._vid is None:
-            self._create_cookie()
-            with open(self._cookieFileName, 'w') as cookieFile:
-                cookieFile.write(self._vid)
-            self._get_installations()
-
-        self._giid = self.installations[0]['giid']
-
-    def _create_cookie(self):
-        auth = 'Basic {}'.format(
-            base64.b64encode(
-                'CPE/{username}:{password}'.format(
-                    username=self._username,
-                    password=self._password).encode('utf-8')
-            ).decode('utf-8'))
-        response = None
-        for base_url in urls.BASE_URLS:
-            urls.BASE_URL = base_url
+        # The login with stored cookies failed, try to get a new one
+        for login_url in ['https://automation01.verisure.com/auth/login',
+                          'https://automation02.verisure.com/auth/login']:
             try:
                 response = requests.post(
-                    urls.login(),
-                    headers={
-                        'Authorization': auth,
-                        'Accept': 'application/json,'
-                                  'text/javascript, */*; q=0.01',
-                    })
-                if 2 == response.status_code // 100:
-                    break
-                elif 503 == response.status_code:
-                    continue
-                else:
-                    raise ResponseError(response.status_code, response.text)
+                    login_url,
+                    headers={'APPLICATION_ID': 'PS_PYTHON'},
+                    auth=(self._username, self._password))
+                _validate_response(response)
+                self._cookies = response.cookies
+                with open(self._cookieFileName, 'wb') as f:
+                    pickle.dump(self._cookies, f)
+                self._get_installations()
             except requests.exceptions.RequestException as ex:
                 raise LoginError(ex)
-
-        _validate_response(response)
-        self._vid = json.loads(response.text)['cookie']
+            except Exception as ex:
+                print(ex)
+                pass
 
     def _get_installations(self):
         """ Get information about installations """
@@ -133,10 +114,9 @@ class Session(object):
                 response = requests.get(
                     urls.get_installations(self._username),
                     headers={
-                        'Cookie': 'vid={}'.format(self._vid),
-                        'Accept': 'application/json,'
-                                  'text/javascript, */*; q=0.01',
-                    })
+                        'APPLICATION_ID': 'PS_PYTHON',
+                        'Accept': 'application/json'},
+                    cookies={'vid': self._cookies['vid']})
                 if 2 == response.status_code // 100:
                     break
                 elif 503 == response.status_code:
@@ -148,6 +128,7 @@ class Session(object):
 
         _validate_response(response)
         self.installations = json.loads(response.text)
+        self._giid = self.installations[0]['giid']
 
     def set_giid(self, giid):
         """ Set installation giid
@@ -164,10 +145,9 @@ class Session(object):
             response = requests.get(
                 urls.overview(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -185,8 +165,9 @@ class Session(object):
             response = requests.post(
                 urls.smartplug(self._giid),
                 headers={
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 data=json.dumps([{
                     "deviceLabel": device_label,
                     "state": state}]))
@@ -206,9 +187,9 @@ class Session(object):
             response = requests.put(
                 urls.set_armstate(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 data=json.dumps({"code": str(code), "state": state}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -226,8 +207,9 @@ class Session(object):
             response = requests.get(
                 urls.get_armstate_transaction(self._giid, transaction_id),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -240,8 +222,9 @@ class Session(object):
             response = requests.get(
                 urls.get_armstate(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -262,8 +245,9 @@ class Session(object):
             response = requests.get(
                 urls.history(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 params={
                     "offset": int(offset),
                     "pagesize": int(pagesize),
@@ -283,8 +267,9 @@ class Session(object):
             response = requests.get(
                 urls.climate(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 params={
                     "deviceLabel": device_label})
         except requests.exceptions.RequestException as ex:
@@ -299,8 +284,9 @@ class Session(object):
             response = requests.get(
                 urls.get_lockstate(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -319,9 +305,9 @@ class Session(object):
             response = requests.put(
                 urls.set_lockstate(self._giid, device_label, state),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 data=json.dumps({"code": str(code)}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -339,8 +325,9 @@ class Session(object):
             response = requests.get(
                 urls.get_lockstate_transaction(self._giid, transaction_id),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -357,8 +344,9 @@ class Session(object):
             response = requests.get(
                 urls.lockconfig(self._giid, device_label),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -386,8 +374,9 @@ class Session(object):
             response = requests.put(
                 urls.lockconfig(self._giid, device_label),
                 headers={
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 data=json.dumps(data))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -404,8 +393,9 @@ class Session(object):
             response = requests.post(
                 urls.imagecapture(self._giid, device_label),
                 headers={
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -422,8 +412,9 @@ class Session(object):
             response = requests.get(
                 urls.get_imageseries(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 params={
                     "numberOfImageSeries": int(number_of_imageseries),
                     "offset": int(offset),
@@ -449,7 +440,9 @@ class Session(object):
             response = requests.get(
                 urls.download_image(self._giid, device_label, image_id),
                 headers={
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 stream=True)
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -466,8 +459,9 @@ class Session(object):
             response = requests.get(
                 urls.get_vacationmode(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -480,8 +474,9 @@ class Session(object):
             response = requests.get(
                 urls.door_window(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -494,8 +489,9 @@ class Session(object):
             response = requests.post(
                 urls.test_ethernet(self._giid),
                 headers={
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -507,7 +503,9 @@ class Session(object):
             response = requests.delete(
                 urls.login(),
                 headers={
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -519,8 +517,9 @@ class Session(object):
             response = requests.get(
                 urls.get_heatpump_state(self._giid, device_label),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -536,9 +535,9 @@ class Session(object):
             response = requests.put(
                 urls.set_heatpump_state(self._giid, device_label),
                 headers={
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 data=json.dumps({'mode': mode}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -555,9 +554,9 @@ class Session(object):
             response = requests.put(
                 urls.set_heatpump_state(self._giid, device_label),
                 headers={
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 data=json.dumps({'power': power}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -574,9 +573,9 @@ class Session(object):
             response = requests.put(
                 urls.set_heatpump_state(self._giid, device_label),
                 headers={
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 data=json.dumps({'fanSpeed': fan_speed}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -593,9 +592,9 @@ class Session(object):
             response = requests.put(
                 urls.set_heatpump_state(self._giid, device_label),
                 headers={
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 data=json.dumps({'targetTemperature': target_temp}))
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
@@ -612,9 +611,9 @@ class Session(object):
             response = requests.put(
                 urls.set_heatpump_feature(self._giid, device_label, feature),
                 headers={
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
@@ -631,9 +630,9 @@ class Session(object):
             response = requests.put(
                 urls.set_heatpump_state(self._giid, device_label),
                 headers={
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)},
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']},
                 data=json.dumps({'airSwingDirection':
                                 {"vertical": airswingdirection}}))
         except requests.exceptions.RequestException as ex:
@@ -648,10 +647,9 @@ class Session(object):
             response = requests.get(
                 urls.get_firmware_status(self._giid),
                 headers={
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Content-Type': 'application/json',
-                    'Cookie': 'vid={}'.format(self._vid)})
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies={'vid': self._cookies['vid']})
         except requests.exceptions.RequestException as ex:
             raise RequestError(ex)
         _validate_response(response)
