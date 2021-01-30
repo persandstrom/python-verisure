@@ -4,7 +4,7 @@ import click
 import inspect
 import json
 import re
-from verisure import operations, VariableTypes, Session, ResponseError
+from verisure import VariableTypes, Session, ResponseError
 
 
 class DeviceLabel(click.ParamType):
@@ -19,21 +19,24 @@ class DeviceLabel(click.ParamType):
 class ArmFutureState(click.ParamType):
     name = "FutureState"
 
+
 class LockFutureState(click.ParamType):
     name = "FutureState"
 
+
 class TransactionId(click.ParamType):
     name = "TransactionId"
+
 
 class Code(click.ParamType):
     name = "Code"
 
 
 VariableTypeMap = {
-    operations.DeviceLabel: DeviceLabel(),
+    VariableTypes.DeviceLabel: DeviceLabel(),
     VariableTypes.ArmFutureState: ArmFutureState(),
     VariableTypes.LockFutureState: LockFutureState(),
-    VariableTypes.SmartPlugState: click.BOOL,
+    bool: click.BOOL,
     VariableTypes.TransactionId: TransactionId(),
     VariableTypes.Code: Code(),
 }
@@ -41,8 +44,10 @@ VariableTypeMap = {
 
 def options_from_operator_list():
     def decorator(f):
-        ops = inspect.getmembers(operations, predicate=inspect.isfunction)
+        ops = inspect.getmembers(Session, predicate=inspect.isfunction)
         for name, operation in reversed(ops):
+            if not hasattr(operation, 'is_query'):
+                continue
             variables = list(operation.__annotations__.values())
             dashed_name = name.replace('_', '-')
             if len(variables) == 0:
@@ -59,34 +64,38 @@ def options_from_operator_list():
                 types = [VariableTypeMap[variable] for variable in variables]
                 click.option(
                     '--'+dashed_name,
-                    type=click.Tuple(types))(f)
+                    type=click.Tuple(types),
+                    help=operation.__doc__)(f)
         return f
     return decorator
+
+
+def make_query(session, name, arguments):
+    if(arguments is True):
+        return getattr(session, name)()
+    if(type(arguments) is str):
+        return getattr(session, name)(arguments)
+    return getattr(session, name)(*arguments)
 
 
 @click.command()
 @click.argument('username')
 @click.argument('password')
-@click.option('-i', '--installation', 'installation', help='Installation number', type=int, default=1)
-@click.option('-c', '--cookie', 'cookie', help='File to store cookie in', default='~/.verisure-cookie')
+@click.option('-i', '--installation', 'installation', help='Installation number', type=int, default=1)  # noqa: E501
+@click.option('-c', '--cookie', 'cookie', help='File to store cookie in', default='~/.verisure-cookie')  # noqa: E501
 @options_from_operator_list()
 def cli(username, password, installation, cookie, *args, **kwargs):
     """Read and change status of verisure devices through verisure app API"""
     try:
         session = Session(username, password, cookie)
         installations = session.login()
-        session.set_giid(installations['data']['account']['installations'][installation]['giid'])
-        print(kwargs)
-        exit(0)
-        #queries = [
-        #    session.query(
-        #        operation,
-        #        **dict(zip(
-        #            [key for key, value in operation['variables'].items()],
-        #            [kwargs.get(name)] if len(operation['variables'].items()) < 2 else kwargs.get(name)))
-        #    )
-        #    for name, operation
-        #    in OPERATIONS.items() if kwargs.get(name)]
+        session.set_giid(
+            installations['data']['account']
+            ['installations'][installation]['giid'])
+        queries = [
+            make_query(session, name, arguments)
+            for name, arguments in kwargs.items()
+            if arguments]
         result = session.request(*queries)
         click.echo(json.dumps(result, indent=4, separators=(',', ': ')))
 

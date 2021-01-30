@@ -7,10 +7,6 @@ import os
 import pickle
 import requests
 
-import verisure.operations
-
-URLS = ['https://m-api01.verisure.com', 'https://m-api02.verisure.com']
-
 
 class Error(Exception):
     ''' Verisure session error '''
@@ -37,6 +33,29 @@ class ResponseError(Error):
                 text))
         self.status_code = status_code
         self.text = text
+
+
+def query_func(f):
+    f.is_query = True
+    return f
+
+
+class VariableTypes:
+    class DeviceLabel(str):
+        pass
+
+    class TransactionId(str):
+        pass
+
+    class ArmFutureState(str):
+        # ARMED_AWAY, DISARMED, ARMED_HOME
+        pass
+
+    class LockFutureState(str):
+        pass
+
+    class Code(str):
+        pass
 
 
 class Session(object):
@@ -68,60 +87,56 @@ class Session(object):
 
         """
 
-        # First try with the cookie, then the full sequence
+        # Read the cookie
         try:
             with open(self._cookieFileName, 'rb') as f:
                 self._cookies = pickle.load(f)
-            for url in URLS:
-                self._base_url = url
-                installations = self.get_installations()
-                if 'errors' not in installations:
-                    return installations
         except Exception:
+            # Maybe an stderr print would be good?
             pass
-        for url in URLS:
-            self._base_url = url
+
+        # First try with the cookie, then the full sequence
+        if self._cookies:
+            for url in ['https://m-api01.verisure.com',
+                        'https://m-api02.verisure.com']:
+                try:
+                    self._base_url = url
+                    installations = self.get_installations()
+                    if 'errors' not in installations:
+                        return installations
+                except Exception:
+                    # This is "normal"
+                    # But maybe an stderr print would be good?
+                    pass
+
+        # The login with stored cookies failed, try to get a new one
+        for login_url in ['https://automation01.verisure.com/auth/login',
+                          'https://automation02.verisure.com/auth/login']:
             try:
                 response = requests.post(
-                    '{base_url}/auth/login'.format(base_url=self._base_url),
-                    headers={
-                        'Accept': 'application/json;charset=UTF-8',
-                        'Content-Type': 'application/xml;charset=UTF-8'},
+                    login_url,
+                    headers={'APPLICATION_ID': 'PS_PYTHON'},
                     auth=(self._username, self._password))
-                if 2 == response.status_code // 100:
-                    pass
-                elif 503 == response.status_code:
-                    continue
-                else:
-                    raise ResponseError(response.status_code, response.text)
-            except requests.exceptions.RequestException as ex:
-                raise LoginError(ex)
-
-            self._cookies = response.cookies
-            installations = self.get_installations()
-            if 'errors' not in installations:
                 with open(self._cookieFileName, 'wb') as f:
-                    pickle.dump(self._cookies, f)
-                return installations
+                    pickle.dump(response.cookies, f)
+                self._cookies = response.cookies
+                for url in ['https://m-api01.verisure.com',
+                            'https://m-api02.verisure.com']:
+                    self._base_url = url
+                    installations = self.get_installations()
+                    if 'errors' not in installations:
+                        return installations
+            except Exception:
+                pass
 
-    def query(self, operation, **variables):
-        for key, value in operation["session_variables"].items():
-            if key == "email":
-                variables[key] = self._username
-            elif key == "giid":
-                variables[key] = self._giid
-            elif value:
-                variables[key] = value
-        return {
-            "operationName": operation["name"],
-            "variables": variables,
-            "query": operation["query"]
-        }
+        raise LoginError("Failed to log in")
 
     def request(self, *operations):
         response = requests.post(
             '{base_url}/graphql'.format(base_url=self._base_url),
-            headers={'accept': '*.*', 'APPLICATION_ID': 'MyMobile_via_GraphQL'},
+            headers={
+                'APPLICATION_ID': 'PS_PYTHON',
+                'Accept': 'application/json'},
             cookies=self._cookies,
             data=json.dumps(list(operations))
         )
@@ -131,9 +146,7 @@ class Session(object):
 
     def get_installations(self):
         """ Get information about installations """
-        return self.request(
-            verisure.operations.fetch_all_installations(email=self._username)
-        )
+        return self.request(self.fetch_all_installations())
 
     def set_giid(self, giid):
         """ Set installation giid
@@ -142,3 +155,272 @@ class Session(object):
             giid (str): Installation identifier
         """
         self._giid = giid
+
+    @query_func
+    def arm_away(self,
+                 code: VariableTypes.Code):
+        """Set arm status away"""
+        return {
+            "operationName": "armAway",
+            "variables": {
+                "giid": self._giid,
+                "code": code},
+            "query": "mutation armAway($giid: String!, $code: String!) {\n  armStateArmAway(giid: $giid, code: $code)\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def arm_home(self,
+                 code: VariableTypes.Code):
+        """Set arm state home"""
+        return {
+            "operationName": "armHome",
+            "variables": {
+                "giid": self._giid,
+                "code": code},
+            "query": "mutation armHome($giid: String!, $code: String!) {\n  armStateArmHome(giid: $giid, code: $code)\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def arm_state(self):
+        """Read arm state"""
+        return {
+            "operationName": "ArmState",
+            "variables": {
+                "giid": self._giid},
+            "query": "query ArmState($giid: String!) {\n  installation(giid: $giid) {\n    armState {\n      type\n      statusType\n      date\n      name\n      changedVia\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def broadband(self):
+        """Get broadband status"""
+        return {
+            "operationName": "Broadband",
+            "variables": {
+                "giid": self._giid},
+            "query": "query Broadband($giid: String!) {\n  installation(giid: $giid) {\n    broadband {\n      testDate\n      isBroadbandConnected\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def capability(self):
+        """Get capability"""
+        return {
+            "operationName": "Capability",
+            "variables": {
+                "giid": self._giid},
+            "query": "query Capability($giid: String!) {\n  installation(giid: $giid) {\n    capability {\n      current\n      gained {\n        capability\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def charge_sms(self):
+        """Charge SMS"""
+        return {
+            "operationName": "ChargeSms",
+            "variables": {
+                "giid": self._giid},
+            "query": "query ChargeSms($giid: String!) {\n  installation(giid: $giid) {\n    chargeSms {\n      chargeSmartPlugOnOff\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def climate(self):
+        """Get climate"""
+        return {
+            "operationName": "Climate",
+            "variables": {
+                "giid": self._giid},
+            "query": "query Climate($giid: String!) {\n  installation(giid: $giid) {\n    climates {\n      device {\n        deviceLabel\n        area\n        gui {\n          label\n          __typename\n        }\n        __typename\n      }\n      humidityEnabled\n      humidityTimestamp\n      humidityValue\n      temperatureTimestamp\n      temperatureValue\n      thresholds {\n        aboveMaxAlert\n        belowMinAlert\n        sensorType\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def disarm(self,
+               code: VariableTypes.Code):
+        """Disarm alarm"""
+        return {
+            "operationName": "disarm",
+            "variables": {
+                "giid": self._giid,
+                "code": code},
+            "query": "mutation disarm($giid: String!, $code: String!) {\n  armStateDisarm(giid: $giid, code: $code)\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def door_lock(self,
+                  deviceLabel: VariableTypes.DeviceLabel):
+        """Get door lock status"""
+        return {
+            "operationName": "DoorLock",
+            "variables": {
+                "giid": self._giid,
+                "deviceLabel": deviceLabel},
+            "query": "mutation DoorLock($giid: String!, $deviceLabel: String!, $input: LockDoorInput!) {\n  DoorLock(giid: $giid, deviceLabel: $deviceLabel, input: $input)\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def door_unlock(self,
+                    deviceLabel: VariableTypes.DeviceLabel,
+                    code: VariableTypes.Code):
+        """Unlock door"""
+        return {
+            "operationName": "DoorUnlock",
+            "variables": {
+                "giid": self._giid,
+                "deviceLabel": deviceLabel},
+            "input": code,
+            "query": "mutation DoorUnlock($giid: String!, $deviceLabel: String!, $input: LockDoorInput!) {\n  DoorUnlock(giid: $giid, deviceLabel: $deviceLabel, input: $input)\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def door_window(self):
+        """Read status of door and window sensors"""
+        return {
+            "operationName": "DoorWindow",
+            "variables": {
+                "giid": self._giid},
+            "query": "query DoorWindow($giid: String!) {\n  installation(giid: $giid) {\n    doorWindows {\n      device {\n        deviceLabel\n        __typename\n      }\n      type\n      area\n      state\n      wired\n      reportTime\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def fetch_all_installations(self):
+        """Fetch installations"""
+        return {
+            "operationName": "fetchAllInstallations",
+            "variables": {
+                "email": self._username},
+            "query": "query fetchAllInstallations($email: String!){\n  account(email: $email) {\n    installations {\n      giid\n      alias\n      customerType\n      dealerId\n      subsidiary\n      pinCodeLength\n      locale\n      address {\n        street\n        city\n        postalNumber\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+            }
+
+    @query_func
+    def guardian_sos(self):
+        """Guardian SOS"""
+        return {
+            "operationName": "GuardianSos",
+            "variables": {},
+            "query": "query GuardianSos {\n  guardianSos {\n    serverTime\n    sos {\n      fullName\n      phone\n      deviceId\n      deviceName\n      giid\n      type\n      username\n      expireDate\n      warnBeforeExpireDate\n      contactId\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def is_guardian_activated(self):
+        """Is guardian activated"""
+        return {
+            "operationName": "IsGuardianActivated",
+            "variables": {
+                "giid": self._giid,
+                "featureName": "GUARDIAN"},
+            "query": "query IsGuardianActivated($giid: String!, $featureName: String!) {\n  installation(giid: $giid) {\n    activatedFeature {\n      isFeatureActivated(featureName: $featureName)\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def permissions(self):
+        """Permissions"""
+        return {
+            "operationName": "Permissions",
+            "variables": {
+                "giid": self._giid,
+                "email": self._username},
+            "query": "query Permissions($giid: String!, $email: String!) {\n  permissions(giid: $giid, email: $email) {\n    accountPermissionsHash\n    name\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def poll_arm_state(self,
+                       transactionId: VariableTypes.TransactionId,
+                       futureState: VariableTypes.ArmFutureState):
+        """Poll arm state"""
+        return {
+            "operationName": "pollArmState",
+            "variables": {
+                "giid": self._giid,
+                "transactionId": transactionId,
+                "futureState": futureState},
+            "query": "query pollArmState($giid: String!, $transactionId: String, $futureState: ArmStateStatusTypes!) {\n  installation(giid: $giid) {\n    armStateChangePollResult(transactionId: $transactionId, futureState: $futureState) {\n      result\n      createTime\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def poll_lock_state(self,
+                        transactionId: VariableTypes.TransactionId,
+                        deviceLabel: VariableTypes.DeviceLabel,
+                        futureState: VariableTypes.LockFutureState):
+        """Poll lock state"""
+        return {
+            "operationName": "pollLockState",
+            "variables": {
+                "giid": self._giid,
+                "transactionId": transactionId,
+                "deviceLabel": deviceLabel,
+                "futureState": futureState},
+            "query": "query pollLockState($giid: String!, $transactionId: String, $deviceLabel: String!, $futureState: DoorLockState!) {\n  installation(giid: $giid) {\n    doorLockStateChangePollResult(transactionId: $transactionId, deviceLabel: $deviceLabel, futureState: $futureState) {\n      result\n      createTime\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def remaining_sms(self):
+        """Get remaing number of SMS"""
+        return {
+            "operationName": "RemainingSms",
+            "variables": {
+                "giid": self._giid},
+            "query": "query RemainingSms($giid: String!) {\n  installation(giid: $giid) {\n    remainingSms\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def smart_button(self):
+        """Get smart button state"""
+        return {
+            "operationName": "SmartButton",
+            "variables": {
+                "giid": self._giid},
+            "query": "query SmartButton($giid: String!) {\n  installation(giid: $giid) {\n    smartButton {\n      entries {\n        smartButtonId\n        icon\n        label\n        color\n        active\n        action {\n          actionType\n          expectedState\n          target {\n            ... on Installation {\n              alias\n              __typename\n            }\n            ... on Device {\n              deviceLabel\n              area\n              gui {\n                label\n                __typename\n              }\n              featureStatuses(type: \"SmartPlug\") {\n                device {\n                  deviceLabel\n                  __typename\n                }\n                ... on SmartPlug {\n                  icon\n                  isHazardous\n                  __typename\n                }\n                __typename\n              }\n              __typename\n            }\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def smart_lock(self):
+        """Get smart lock state"""
+        return {
+            "operationName": "SmartLock",
+            "variables": {
+                "giid": self._giid},
+            "query": "query SmartLock($giid: String!) {\n  installation(giid: $giid) {\n    smartLocks {\n      lockStatus\n      doorState\n      lockMethod\n      eventTime\n      doorLockType\n      secureMode\n      device {\n        deviceLabel\n        area\n        __typename\n      }\n      user {\n        name\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def set_smartplug(self,
+                      deviceLabel: VariableTypes.DeviceLabel,
+                      state: bool):
+        """Set state of smart plug"""
+        return {
+            "operationName": "UpdateState",
+            "variables": {
+                "giid": self._giid,
+                "deviceLabel": deviceLabel,
+                "state": state},
+            "query": "mutation UpdateState($giid: String!, $deviceLabel: String!, $state: Boolean!) {\n  SmartPlugSetState(giid: $giid, input: [{deviceLabel: $deviceLabel, state: $state}])}",  # noqa: E501
+        }
+
+    @query_func
+    def smartplug(self,
+                  deviceLabel: VariableTypes.DeviceLabel):
+        """Read status of a single smart plug"""
+        return {
+            "operationName": "SmartPlug",
+            "variables": {
+                "giid": self._giid,
+                "deviceLabel": deviceLabel},
+            "query": "query SmartPlug($giid: String!, $deviceLabel: String!) {\n  installation(giid: $giid) {\n    smartplugs(filter: {deviceLabels: [$deviceLabel]}) {\n      device {\n        deviceLabel\n        area\n        __typename\n      }\n      currentState\n      icon\n      isHazardous\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+            }
+
+    @query_func
+    def smartplugs(self):
+        """Read status of all smart plugs"""
+        return {
+            "operationName": "SmartPlug",
+            "variables": {
+                "giid": self._giid},
+            "query": "query SmartPlug($giid: String!) {\n  installation(giid: $giid) {\n    smartplugs {\n      device {\n        deviceLabel\n        area\n        __typename\n      }\n      currentState\n      icon\n      isHazardous\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+            }
+
+    @query_func
+    def user_trackings(self):
+        """Read user tracking status"""
+        return {
+            "operationName": "userTrackings",
+            "variables": {
+                "giid": self._giid},
+            "query": "query userTrackings($giid: String!) {\n  installation(giid: $giid) {\n    userTrackings {\n      isCallingUser\n      webAccount\n      status\n      xbnContactId\n      currentLocationName\n      deviceId\n      name\n      initials\n      currentLocationTimestamp\n      deviceName\n      currentLocationId\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+            }

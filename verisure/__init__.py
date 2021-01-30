@@ -13,12 +13,10 @@ __all__ = [
 from .session import ( # NOQA
     Error,
     LoginError,
+    VariableTypes,
     ResponseError,
     Session,
 )
-
-from .operations import *
-
 
 ALARM_ARMED_HOME = 'ARMED_HOME'
 ALARM_ARMED_AWAY = 'ARMED_AWAY'
