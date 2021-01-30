@@ -81,7 +81,7 @@ def make_query(session, name, arguments):
 @click.command()
 @click.argument('username')
 @click.argument('password')
-@click.option('-i', '--installation', 'installation', help='Installation number', type=int, default=1)  # noqa: E501
+@click.option('-i', '--installation', 'installation', help='Installation number', type=int, default=0)  # noqa: E501
 @click.option('-c', '--cookie', 'cookie', help='File to store cookie in', default='~/.verisure-cookie')  # noqa: E501
 @options_from_operator_list()
 def cli(username, password, installation, cookie, *args, **kwargs):
