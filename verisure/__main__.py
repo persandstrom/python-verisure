@@ -13,7 +13,7 @@ class DeviceLabel(click.ParamType):
     def convert(self, value, param, ctx):
         if re.match(r"^([A-Z]|[0-9]){4} ([A-Z]|[0-9]){4}$", value):
             return value
-        self.fail(f"{value!r} is not a a device label", param, ctx)
+        self.fail(f"{value!r} is not a device label", param, ctx)
 
 
 class ArmFutureState(click.ParamType):
@@ -30,6 +30,11 @@ class TransactionId(click.ParamType):
 
 class Code(click.ParamType):
     name = "Code"
+
+    def convert(self, value, param, ctx):
+        if re.match(r"^[0-9]{4,6}$", value):
+            return value
+        self.fail(f"{value!r} is not a code", param, ctx)
 
 
 VariableTypeMap = {
