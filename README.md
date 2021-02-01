@@ -20,55 +20,76 @@ or
 ## Command line usage
 
 ```
-Usage: vsure [OPTIONS] USERNAME PASSWORD
+Usage: python -m verisure [OPTIONS] USERNAME PASSWORD
 
   Read and change status of verisure devices through verisure app API
 
 Options:
   -i, --installation INTEGER      Installation number
   -c, --cookie TEXT               File to store cookie in
-  --update_state <DEVICELABEL BOOLEAN>...
-  --permissions                   No help written yet
-  --user_tracking_installation_config
-                                  No help written yet
-  --user_trackings                No help written yet
-  --capability                    No help written yet
-  --broadband                     No help written yet
-  --smart_button                  No help written yet
-  --arm_state                     No help written yet
-  --climate                       No help written yet
-  --charge_sms                    No help written yet
-  --remaining_sms                 Get remaing number of SMS
-  --door_window                   Read status of door and window sensors
-  --smart_plug DEVICELABEL        Read status of a single smart plug
-  --smart_plugs                   Read status of all smart plugs
-  --is_guardian_activated         No help written yet
-  --guardian_sos                  No help written yet
-  --fetch_all_installations       Fetch installations
+  --arm-away CODE                 Set arm status away
+  --arm-home CODE                 Set arm state home
+  --arm-state                     Read arm state
+  --broadband                     Get broadband status
+  --capability                    Get capability
+  --charge-sms                    Charge SMS
+  --climate                       Get climate
+  --disarm CODE                   Disarm alarm
+  --door-lock DEVICELABEL         Get door lock status
+  --door-unlock <DEVICELABEL CODE>...
+                                  Unlock door
+  --door-window                   Read status of door and window sensors
+  --fetch-all-installations       Fetch installations
+  --guardian-sos                  Guardian SOS
+  --is-guardian-activated         Is guardian activated
+  --permissions                   Permissions
+  --poll-arm-state <TRANSACTIONID FUTURESTATE>...
+                                  Poll arm state
+  --poll-lock-state <TRANSACTIONID DEVICELABEL FUTURESTATE>...
+                                  Poll lock state
+  --remaining-sms                 Get remaing number of SMS
+  --set-smartplug <DEVICELABEL BOOLEAN>...
+                                  Set state of smart plug
+  --smart-button                  Get smart button state
+  --smart-lock                    Get smart lock state
+  --smartplug DEVICELABEL         Read status of a single smart plug
+  --smartplugs                    Read status of all smart plugs
+  --user-trackings                Read user tracking status
   --help                          Show this message and exit.
 
 ```
 
 ### Read alarm status
 
-``` vsure user@example.com mypassword armstate ```
+``` vsure user@example.com mypassword --arm-state ```
 
 output:
 
 ```
 {
-    "name": "Alex Poe",
-    "cid": "12345678",
-    "state": true,
-    "changedVia": "CODE",
-    "date": "2017-03-11T21:04:40.000Z",
-    "statusType": "ARMED_HOME"
+    "data": {
+        "installation": {
+            "armState": {
+                "type": null,
+                "statusType": "DISARMED",
+                "date": "2020-03-11T21:04:40.000Z",
+                "name": "Alex Poe",
+                "changedVia": "CODE",
+                "__typename": "ArmState"
+            },
+            "__typename": "Installation"
+        }
+    }
 }
 ```
 
-### Read status from all devices
+### Read status from alarm and door-window
 
-``` vsure user@example.com mypassword overview ```
+``` vsure user@example.com mypassword --arm-state --door-window ```
+
+
+# DEPRICATED BELOW THIS LINE
+
 
 ### Filter out door lock status from overview 
 
