@@ -59,7 +59,8 @@ class Session(object):
         self._cookieFileName = os.path.expanduser(cookieFileName)
         self._request_headers = {
             'APPLICATION_ID': 'PS_PYTHON',
-            'Accept': 'application/json'}
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'}
         self._request_cookies = None
         self._giid = None
         self.installations = None

@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.7.1 Fix content type for post
 1.7.0 New login URL
 1.6.1 Add LICENSE in MANIFESt.in
 1.6.0 Add get firmware status
