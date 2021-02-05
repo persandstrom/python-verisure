@@ -88,7 +88,7 @@ class Session(object):
                 self._get_installations()
                 return
         except Exception:
-            self._cookies = None
+            self._request_cookies = None
 
         # The login with stored cookies failed, try to get a new one
         for login_url in ['https://automation01.verisure.com/auth/login',
@@ -101,7 +101,7 @@ class Session(object):
                 _validate_response(response)
                 with open(self._cookieFileName, 'wb') as f:
                     pickle.dump(response.cookies, f)
-                self._request_cookies = {'vid': pickle.load(f)['vid']}
+                self._request_cookies = {'vid': response.cookies['vid']}
                 self._get_installations()
             except requests.exceptions.RequestException as ex:
                 raise LoginError(ex)
