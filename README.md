@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.7.3 Raise error on login failure on both hosts
 1.7.2 Handle non-existing or corrupt cookie file
 1.7.1 Fix content type for post
 1.7.0 New login URL
