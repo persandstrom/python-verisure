@@ -91,6 +91,7 @@ class Session(object):
             self._request_cookies = None
 
         # The login with stored cookies failed, try to get a new one
+        last_exception = None
         for login_url in ['https://automation01.verisure.com/auth/login',
                           'https://automation02.verisure.com/auth/login']:
             try:
@@ -103,11 +104,13 @@ class Session(object):
                     pickle.dump(response.cookies, f)
                 self._request_cookies = {'vid': response.cookies['vid']}
                 self._get_installations()
+                return
             except requests.exceptions.RequestException as ex:
                 raise LoginError(ex)
             except Exception as ex:
-                print(ex)
-                pass
+                last_exception = ex
+
+        raise LoginError(last_exception)
 
     def _get_installations(self):
         """ Get information about installations """
