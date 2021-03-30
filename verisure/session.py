@@ -84,22 +84,31 @@ class Session(object):
         # First try with the stored cookies, then the full sequence
         try:
             with open(self._cookieFileName, 'rb') as f:
-                self._request_cookies = {'vid': pickle.load(f)['vid']}
+                cookies = pickle.load(f)
+                self._request_cookies = {}
+                for cookie in cookies:
+                    if any(cn in cookie.name for cn in
+                           ["vid", "vs-access", "vs-trust"]):
+                        self._request_cookies[cookie.name] = cookie.value
                 self._get_installations()
                 return
         except Exception:
             self._request_cookies = None
 
         # The login with stored cookies failed, try to get a new one
+        # This will only work for non-mfa
         last_exception = None
-        for login_url in ['https://automation01.verisure.com/auth/login',
-                          'https://automation02.verisure.com/auth/login']:
+        for login_url in urls.LOGIN_URLS:
+            urls.LOGIN_URL = login_url
             try:
                 response = requests.post(
-                    login_url,
+                    urls.login(),
                     headers={'APPLICATION_ID': 'PS_PYTHON'},
                     auth=(self._username, self._password))
                 _validate_response(response)
+                if "stepUpToken" in response.text:
+                    raise LoginError("Multifactor authentication enabled, "
+                                     "disable or create MFA cookie")
                 with open(self._cookieFileName, 'wb') as f:
                     pickle.dump(response.cookies, f)
                 self._request_cookies = {'vid': response.cookies['vid']}
@@ -111,6 +120,52 @@ class Session(object):
                 last_exception = ex
 
         raise LoginError(last_exception)
+
+    def login_mfa(self):
+        last_exception = None
+        for login_url in urls.LOGIN_URLS:
+            urls.LOGIN_URL = login_url
+            try:
+                login_response = requests.post(
+                    urls.login(),
+                    headers={'APPLICATION_ID': 'PS_PYTHON'},
+                    auth=(self._username, self._password))
+                _validate_response(login_response)
+
+                self._stepup = login_response.cookies['vs-stepup']
+                request_mfa_response = requests.post(
+                    urls.request_mfa(),
+                    headers={'APPLICATION_ID': 'PS_PYTHON'},
+                    cookies={'vs-stepup': self._stepup})
+                _validate_response(request_mfa_response)
+                return
+            except requests.exceptions.RequestException as ex:
+                raise LoginError(ex)
+            except Exception as ex:
+                last_exception = ex
+
+        raise LoginError(last_exception)
+
+    def mfa_validate(self, code, trust_device):
+        validate_mfa_response = requests.post(
+            urls.validate_mfa(),
+            headers=self._request_headers,
+            cookies={'vs-stepup': self._stepup},
+            data=json.dumps({"token": code}))
+        _validate_response(validate_mfa_response)
+
+        cookies = validate_mfa_response.cookies
+
+        if (trust_device):
+            trust_mfa_response = requests.post(
+                urls.trust_mfa(),
+                headers={'APPLICATION_ID': 'PS_PYTHON'},
+                cookies=cookies)
+            for cookie in trust_mfa_response.cookies:
+                cookies.set(cookie.name, cookie.value, domain=cookie.domain)
+
+        with open(self._cookieFileName, 'wb') as f:
+            pickle.dump(cookies, f)
 
     def _get_installations(self):
         """ Get information about installations """
@@ -472,7 +527,7 @@ class Session(object):
         response = None
         try:
             response = requests.delete(
-                urls.login(),
+                urls.logout(),
                 headers=self._request_headers,
                 cookies=self._request_cookies)
         except requests.exceptions.RequestException as ex:
