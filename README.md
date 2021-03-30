@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.8.0 Support for multi factor authentication
 1.7.3 Raise error on login failure on both hosts
 1.7.2 Handle non-existing or corrupt cookie file
 1.7.1 Fix content type for post
@@ -49,21 +50,20 @@ or
 ```
 usage: verisure.py [-h] [-i INSTALLATION] [-c COOKIE]
                    username password
-                   {installations,overview,set,history,eventlog,capture,imageseries,getimage}
-                   ...
+                   username password {installations,overview,armstate,set,climate,eventlog,capture,imageseries,getimage,vacationmode,door_window,test_ethernet,firmware_status,mfa} ...
 
 Read or change status of verisure devices
 
 positional arguments:
   username              MyPages username
   password              MyPages password
-  {installations,overview,set,history,eventlog,capture,imageseries,getimage}
+  {installations,overview,armstate,set,climate,eventlog,capture,imageseries,getimage,vacationmode,door_window,test_ethernet,firmware_status,mfa}
                         commands
     installations       Get information about installations
     overview            Read status of one or many device types
     armstate            Get arm state
     set                 Set status of a device
-    climate             Get climate history
+    climate             get climate history
     eventlog            Get event log
     capture             Capture image
     imageseries         Get image series
@@ -72,14 +72,40 @@ positional arguments:
     door_window         Get door/window status
     test_ethernet       Update ethernet status
     firmware_status     Get firmware status
+    mfa                 Create new MFA token
 
 optional arguments:
   -h, --help            show this help message and exit
   -i INSTALLATION, --installation INSTALLATION
                         Installation number
   -c COOKIE, --cookie COOKIE
-                           File to store cookie in
+                        File to store cookie in
+```
 
+### Multi factor authentication
+
+By default multifactor authentication is enabled, and you have two options for authentication. 
+
+* Disabled MFA at mypages.verisure.com, this would allow for regular username and password authentication.
+* Create a MFA token, which will be stored in your cookie file.
+
+To create a token using command line: 
+
+``` vsure user@example.com mypassword mfa ```
+
+You will be promted to enter the code that is sent to your registerd phone, and if this is a trusted device or not. 
+
+An example how the same thing is done programatically:
+
+ ```
+import verisure
+
+
+session = verisure.Session('user@example.com', 'mypassword')
+session.login_mfa()
+code = input("Enter verification code: ")
+trusted_device = input("Is this a trusted device [y/n]? ")
+session.mfa_validate(code, trusted_device.lower() in ['y', 'yes'])
 ```
 
 ### Read alarm status
@@ -126,8 +152,6 @@ output:
 ## Module usage
 
 ### Read alarm status
-
-
 ```
 import verisure
 

@@ -18,6 +18,7 @@ COMMAND_DOOR_WINDOW = 'door_window'
 COMMAND_VACATIONMODE = 'vacationmode'
 COMMAND_TEST_ETHERNET = 'test_ethernet'
 COMMAND_FIRMWARE_STATUS = 'firmware_status'
+COMMAND_MFA = 'mfa'
 
 
 def print_result(overview, *names):
@@ -215,8 +216,21 @@ def main():
         COMMAND_FIRMWARE_STATUS,
         help='Get firmware status')
 
+    # Create MFA cookie
+    commandsparser.add_parser(
+        COMMAND_MFA,
+        help='Create new MFA cookie')
+
     args = parser.parse_args()
     session = verisure.Session(args.username, args.password, args.cookie)
+
+    if args.command == COMMAND_MFA:
+        session.login_mfa()
+        code = input("Enter verification code: ")
+        trusted_device = input("Is this a trusted device [y/n]? ")
+        session.mfa_validate(code, trusted_device.lower() in ['y', 'yes'])
+        exit(0)
+
     session.login()
     try:
         session.set_giid(session.installations[args.installation - 1]['giid'])

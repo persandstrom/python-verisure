@@ -16,6 +16,32 @@ BASE_URLS = [
 ]
 BASE_URL = None
 
+LOGIN_URLS = [
+    'https://automation01.verisure.com',
+    'https://automation02.verisure.com',
+]
+LOGIN_URL = None
+
+
+def login():
+    return '{login_url}/auth/login'.format(
+        login_url=LOGIN_URL)
+
+
+def request_mfa():
+    return '{login_url}/auth/mfa'.format(
+        login_url=LOGIN_URL)
+
+
+def validate_mfa():
+    return '{login_url}/auth/mfa/validate'.format(
+        login_url=LOGIN_URL)
+
+
+def trust_mfa():
+    return '{login_url}/auth/trust'.format(
+        login_url=LOGIN_URL)
+
 
 def installation(guid):
     return '{base_url}/xbn/2/installation/{guid}/'.format(
@@ -23,7 +49,7 @@ def installation(guid):
         guid=guid)
 
 
-def login():
+def logout():
     return '{base_url}/xbn/2/cookie'.format(
         base_url=BASE_URL)
 
