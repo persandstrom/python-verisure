@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+1.8.1 Support MFA for python 2
 1.8.0 Support for multi factor authentication
 1.7.3 Raise error on login failure on both hosts
 1.7.2 Handle non-existing or corrupt cookie file
