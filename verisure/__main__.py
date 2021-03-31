@@ -33,6 +33,13 @@ def print_result(overview, *names):
         print(json.dumps(overview, indent=4, separators=(',', ': ')))
 
 
+def read_input(text):
+    """ read input, backwards compatible with Python 2 """
+    if hasattr(__builtins__, 'raw_input'):
+        return raw_input(text)  # noqa: F821
+    return input(text)
+
+
 # pylint: disable=too-many-locals,too-many-statements
 def main():
     """ Start verisure command line """
@@ -226,8 +233,8 @@ def main():
 
     if args.command == COMMAND_MFA:
         session.login_mfa()
-        code = input("Enter verification code: ")
-        trusted_device = input("Is this a trusted device [y/n]? ")
+        code = read_input("Enter verification code: ")
+        trusted_device = read_input("Is this a trusted device [y/n]? ")
         session.mfa_validate(code, trusted_device.lower() in ['y', 'yes'])
         exit(0)
 
