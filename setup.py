@@ -22,6 +22,7 @@ setup(
         'Programming Language :: Python :: 3.8',
     ],
     keywords='home automation verisure',
+    setup_requires=['wheel'],
     install_requires=[
         'requests>=2.25.1',
         'click>=8.0.0a1'],
