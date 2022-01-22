@@ -30,6 +30,6 @@ setup(
     zip_safe=True,
     entry_points='''
         [console_scripts]
-        vsure=vsure:cli
+        vsure=verisure.__main__:cli
     '''
     )
