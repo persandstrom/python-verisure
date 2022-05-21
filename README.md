@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+2.1.2 Installation istructions for m-api branch
 2.1.1 Cleaned up readme
 2.1.0 Add door-lock-configuration command
 2.0.0 Move to GraphQL API, major changes
@@ -14,9 +15,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 ```
 
 ## Installation
-``` pip install vsure ```
-or
-``` pip install git+https://github.com/persandstrom/python-verisure.git ```
+``` pip install git+https://github.com/persandstrom/python-verisure.git@m-api ```
 
 
 ## Command line usage
