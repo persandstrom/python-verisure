@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+2.1.1 Cleaned up readme
 2.1.0 Add door-lock-configuration command
 2.0.0 Move to GraphQL API, major changes
 1.0.0 Move to app-API, major changes
@@ -90,81 +91,3 @@ output:
 
 ``` vsure user@example.com mypassword --arm-state --door-window ```
 
-
-# DEPRICATED BELOW THIS LINE
-
-
-### Filter out door lock status from overview 
-
-``` vsure user@example.com mypassword overview doorLockStatusList ```
-
-### Disarm
-
-``` vsure user@example.com mypassword set alarm 1234 DISARMED ```
-
-### Unlock door
-
-``` vsure user@example.com mypassword set lock 123456 '6EA1 A422' unlock ```
-
-### Turn on smartplug 
-
-``` vsure user@example.com mypassword set smartplug '5AC2 4LXH' on ```
-
-### Get event log with filter for arm and disarm events
-
-``` vsure user@example.com mypassword eventlog -f ARM DISARM ```
-
-## Module usage
-
-### Read alarm status
-
-
-```
-import verisure
-
-session = verisure.Session('user@example.com', 'mypassword')
-session.login()
-armstate = session.get_arm_state()
-session.logout()
-print(armstate["statusType"])
-```
-
-### Set alarm status
-```
-import verisure
-
-session = verisure.Session('user@example.com', 'mypassword')
-session.login()
-session.set_arm_state('1234', 'ARMED_HOME')
-session.logout()
-```
-
-### Turn on smartplug
-```
-import verisure
-
-session = verisure.Session('user@example.com', 'mypassword')
-session.login()
-session.set_smartplug_state('1A2B 3C4D', True)
-session.logout()
-```
-
-### Read status of all devices
-```
-import verisure
-
-session = verisure.Session('user@example.com', 'mypassword')
-session.login()
-overview = session.get_overview()
-session.logout()
-```
-
-### Get event log
-```
-import verisure
-
-session = verisure.Session('user@example.com', 'mypassword')
-session.login()
-events = session.get_history(('ARM', 'DISARM'))
-session.logout()
-```
