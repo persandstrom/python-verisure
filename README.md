@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+2.3.0 Add event-log command
 2.2.0 Add set-autolock-enabled command
 2.1.2 Installation instructions for m-api branch
 2.1.1 Cleaned up readme

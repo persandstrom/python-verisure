@@ -308,6 +308,24 @@ class Session(object):
         }
 
     @query_func
+    def event_log(self):
+        """Read event log"""
+        return {
+            "operationName": "EventLog",
+            "variables": {
+                "giid": self._giid,
+                "offset": 0,
+                "pagesize": 15,
+                "eventCategories": ["INTRUSION", "FIRE", "SOS", "WATER", "ANIMAL", "TECHNICAL", "WARNING", "ARM", "DISARM", "LOCK", "UNLOCK", "PICTURE", "CLIMATE", "CAMERA_SETTINGS"],  # noqa: E501
+                "eventContactIds": [],
+                "eventDeviceLabels": [],
+                "fromDate": None,
+                "toDate": None
+            },
+            "query": "query EventLog($giid: String!, $offset: Int!, $pagesize: Int!, $eventCategories: [String], $fromDate: String, $toDate: String, $eventContactIds: [String], $eventDeviceLabels: [String]) {\n  installation(giid: $giid) {\n    eventLog(offset: $offset, pagesize: $pagesize, eventCategories: $eventCategories, eventContactIds: $eventContactIds, eventDeviceLabels: $eventDeviceLabels, fromDate: $fromDate, toDate: $toDate) {\n      moreDataAvailable\n      pagedList {\n        device {\n          deviceLabel\n          area\n          gui {\n            label\n            __typename\n          }\n          __typename\n        }\n        arloDevice {\n          name\n          __typename\n        }\n        gatewayArea\n        eventType\n        eventCategory\n        eventSource\n        eventId\n        eventTime\n        userName\n        armState\n        userType\n        climateValue\n        sensorType\n        eventCount\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
     def fetch_all_installations(self):
         """Fetch installations"""
         return {
