@@ -267,6 +267,23 @@ class Session(object):
         }
 
     @query_func
+    def set_autolock_enabled(self,
+                             deviceLabel: VariableTypes.DeviceLabel,
+                             autoLockEnabled: bool):
+        """Enable or disable autolock"""
+        return {
+            "operationName": "DoorLockUpdateConfig",
+            "variables": {
+                "giid": self._giid,
+                "deviceLabel": deviceLabel,
+                "input": {
+                    "autoLockEnabled": autoLockEnabled
+                }
+            },
+            "query": "mutation DoorLockUpdateConfig($giid: String!, $deviceLabel: String!, $input: DoorLockUpdateConfigInput!) {\n  DoorLockUpdateConfig(giid: $giid, deviceLabel: $deviceLabel, input: $input)\n}\n",  # noqa: E501
+        }
+
+    @query_func
     def door_unlock(self,
                     deviceLabel: VariableTypes.DeviceLabel,
                     code: VariableTypes.Code):
