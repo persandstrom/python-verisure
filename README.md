@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+2.1.0 Add door-lock-configuration command
 2.0.0 Move to GraphQL API, major changes
 1.0.0 Move to app-API, major changes
 ```
@@ -36,6 +37,8 @@ Options:
   --climate                       Get climate
   --disarm CODE                   Disarm alarm
   --door-lock DEVICELABEL         Get door lock status
+  --door-lock-configuration DEVICELABEL
+                                  Get door lock configuration 
   --door-unlock <DEVICELABEL CODE>...
                                   Unlock door
   --door-window                   Read status of door and window sensors

@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='vsure',
-    version='2.0.0',
+    version='2.1.0',
     description='Read and change status of verisure devices through mypages.',
     long_description='A python3 module for reading and changing status of '
     + 'verisure devices through mypages.',

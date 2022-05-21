@@ -255,6 +255,18 @@ class Session(object):
         }
 
     @query_func
+    def door_lock_configuration(self,
+                                deviceLabel: VariableTypes.DeviceLabel):
+        """Get door lock configuration"""
+        return {
+            "operationName": "DoorLockConfiguration",
+            "variables": {
+                "giid": self._giid,
+                "deviceLabel": deviceLabel},
+            "query": "query DoorLockConfiguration($giid: String!, $deviceLabel: String!) {\n  installation(giid: $giid) {\n    smartLocks(filter: {deviceLabels: [$deviceLabel]}) {\n      device {\n        area\n        deviceLabel\n        __typename\n      }\n      configuration {\n        ... on YaleLockConfiguration {\n          autoLockEnabled\n          voiceLevel\n          volume\n          __typename\n        }\n        ... on DanaLockConfiguration {\n          holdBackLatchDuration\n          twistAssistEnabled\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
     def door_unlock(self,
                     deviceLabel: VariableTypes.DeviceLabel,
                     code: VariableTypes.Code):
