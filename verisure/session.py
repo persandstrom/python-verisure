@@ -244,13 +244,18 @@ class Session(object):
 
     @query_func
     def door_lock(self,
-                  deviceLabel: VariableTypes.DeviceLabel):
+                  deviceLabel: VariableTypes.DeviceLabel,
+                  code: VariableTypes.Code):
         """Get door lock status"""
         return {
             "operationName": "DoorLock",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel},
+                "deviceLabel": deviceLabel,
+                "input": {
+                    "code": code,
+                },
+            },
             "query": "mutation DoorLock($giid: String!, $deviceLabel: String!, $input: LockDoorInput!) {\n  DoorLock(giid: $giid, deviceLabel: $deviceLabel, input: $input)\n}\n",  # noqa: E501
         }
 
@@ -292,8 +297,11 @@ class Session(object):
             "operationName": "DoorUnlock",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel},
-            "input": code,
+                "deviceLabel": deviceLabel,
+                "input": {
+                    "code": code,
+                },
+            },
             "query": "mutation DoorUnlock($giid: String!, $deviceLabel: String!, $input: LockDoorInput!) {\n  DoorUnlock(giid: $giid, deviceLabel: $deviceLabel, input: $input)\n}\n",  # noqa: E501
         }
 
