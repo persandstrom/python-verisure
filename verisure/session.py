@@ -75,6 +75,7 @@ class Session(object):
                  cookieFileName='~/.verisure-cookie'):
         self._username = username
         self._password = password
+        self._cookies = None
         self._cookieFileName = os.path.expanduser(cookieFileName)
         self._giid = None
         self._base_url = None
