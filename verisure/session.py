@@ -297,8 +297,11 @@ class Session(object):
             "operationName": "DoorUnlock",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel},
-            "input": code,
+                "deviceLabel": deviceLabel,
+                "input": {
+                    "code": code,
+                },
+            },
             "query": "mutation DoorUnlock($giid: String!, $deviceLabel: String!, $input: LockDoorInput!) {\n  DoorUnlock(giid: $giid, deviceLabel: $deviceLabel, input: $input)\n}\n",  # noqa: E501
         }
 
