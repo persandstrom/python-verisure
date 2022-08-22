@@ -350,7 +350,7 @@ class Session(object):
             "operationName": "ChargeSms",
             "variables": {
                 "giid": self._giid},
-            "query": "query ChargeSms($giid: String!) {\n  installation(giid: $giid) {\n    chargeSms {\n      chargeSmartPlugOnOff\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+            "query": "query ChargeSms($giid: String!) {\n  installation(giid: $giid) {\n    chargeSms {\n      chargeSmartPlugOnOff\n      chargeLockUnlock\n      chargeArmDisarm\n      chargeNotifications\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
