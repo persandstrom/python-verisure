@@ -47,6 +47,9 @@ class VariableTypes:
     class TransactionId(str):
         pass
 
+    class RequestId(str):
+        pass
+
     class ArmFutureState(str):
         # ARMED_AWAY, DISARMED, ARMED_HOME
         pass
@@ -72,6 +75,7 @@ class Session(object):
                  cookieFileName='~/.verisure-cookie'):
         self._username = username
         self._password = password
+        self._cookies = None
         self._cookieFileName = os.path.expanduser(cookieFileName)
         self._giid = None
         self._base_url = None
@@ -217,7 +221,7 @@ class Session(object):
             "operationName": "ChargeSms",
             "variables": {
                 "giid": self._giid},
-            "query": "query ChargeSms($giid: String!) {\n  installation(giid: $giid) {\n    chargeSms {\n      chargeSmartPlugOnOff\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+            "query": "query ChargeSms($giid: String!) {\n  installation(giid: $giid) {\n    chargeSms {\n      chargeSmartPlugOnOff\n      chargeLockUnlock\n      chargeArmDisarm\n      chargeNotifications\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
@@ -244,13 +248,18 @@ class Session(object):
 
     @query_func
     def door_lock(self,
-                  deviceLabel: VariableTypes.DeviceLabel):
+                  deviceLabel: VariableTypes.DeviceLabel,
+                  code: VariableTypes.Code):
         """Get door lock status"""
         return {
             "operationName": "DoorLock",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel},
+                "deviceLabel": deviceLabel,
+                "input": {
+                    "code": code,
+                },
+            },
             "query": "mutation DoorLock($giid: String!, $deviceLabel: String!, $input: LockDoorInput!) {\n  DoorLock(giid: $giid, deviceLabel: $deviceLabel, input: $input)\n}\n",  # noqa: E501
         }
 
@@ -292,8 +301,11 @@ class Session(object):
             "operationName": "DoorUnlock",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel},
-            "input": code,
+                "deviceLabel": deviceLabel,
+                "input": {
+                    "code": code,
+                },
+            },
             "query": "mutation DoorUnlock($giid: String!, $deviceLabel: String!, $input: LockDoorInput!) {\n  DoorUnlock(giid: $giid, deviceLabel: $deviceLabel, input: $input)\n}\n",  # noqa: E501
         }
 
@@ -470,4 +482,50 @@ class Session(object):
             "variables": {
                 "giid": self._giid},
             "query": "query userTrackings($giid: String!) {\n  installation(giid: $giid) {\n    userTrackings {\n      isCallingUser\n      webAccount\n      status\n      xbnContactId\n      currentLocationName\n      deviceId\n      name\n      initials\n      currentLocationTimestamp\n      deviceName\n      currentLocationId\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+            }
+
+    @query_func
+    def cameras(self):
+        """Get cameras state"""
+        return {
+            "operationName": "Camera",
+            "variables": {
+                "all": True,
+                "giid": self._giid},
+            "query": "query Camera($giid: String!, $all: Boolean!) {\n    installation(giid: $giid) {\n        cameras(allCameras: $all) {\n            visibleOnCard\n            initiallyConfigured\n            imageCaptureAllowed\n            imageCaptureAllowedByArmstate\n            device {\n        deviceLabel\n        area\n        __typename\n      }\n            latestCameraSeries {\n                image {\n                    imageId\n                    imageStatus\n                    captureTime\n                    url\n                }\n            }\n        }\n    }\n}",  # noqa: E501
+            }
+
+    @query_func
+    def cameras_last_image(self):
+        """Get cameras last image"""
+        return {
+            "variables": {
+                "giid": self._giid},
+            "query": "query queryCaptureImageRequestStatus($giid: String!) {\n  installation(giid: $giid) {\n    cameraContentProvider {\n      latestImage {\n        deviceLabel\n        mediaId\n        contentType\n        contentUrl\n        timestamp\n        duration\n        thumbnailUrl\n        bitRate\n        width\n        height\n        codec\n      }\n    }\n  }\n}",  # noqa: E501
+            }
+
+    @query_func
+    def camera_get_requestId(self,
+                             deviceLabel: VariableTypes.DeviceLabel):
+        """Get requestId for camera_capture"""
+        return {
+            "variables": {
+                "deviceIdentifier": "RandomString",
+                "deviceLabel": deviceLabel,
+                "giid": self._giid,
+                "resolution": "high"},
+            "query": "mutation cccp($giid: String!, $deviceLabel: String!, $resolution: String!, $deviceIdentifier: String) {\n  ContentProviderCaptureImageRequest(giid: $giid, deviceLabel: $deviceLabel, resolution: $resolution, deviceIdentifier: $deviceIdentifier) {\n    requestId\n  }\n}",  # noqa: E501
+            }
+
+    @query_func
+    def camera_capture(self,
+                       deviceLabel: VariableTypes.DeviceLabel,
+                       requestId: VariableTypes.RequestId):
+        """Capture a new image from a camera"""
+        return {
+            "variables": {
+                "deviceLabel": deviceLabel,
+                "giid": self._giid,
+                "requestId": requestId},
+            "query": "query queryCaptureImageRequestStatus($giid: String!, $deviceLabel: String!, $requestId: BigInt!) {\n  installation(giid: $giid) {\n    cameraContentProvider {\n      captureImageRequestStatus(deviceLabel: $deviceLabel, requestId: $requestId) {\n        mediaRequestStatus\n      }\n    }\n  }\n}",  # noqa: E501
             }

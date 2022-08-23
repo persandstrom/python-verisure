@@ -28,6 +28,10 @@ class TransactionId(click.ParamType):
     name = "TransactionId"
 
 
+class RequestId(click.ParamType):
+    name = "RequestId"
+
+
 class Code(click.ParamType):
     name = "Code"
 
@@ -43,6 +47,7 @@ VariableTypeMap = {
     VariableTypes.LockFutureState: LockFutureState(),
     bool: click.BOOL,
     VariableTypes.TransactionId: TransactionId(),
+    VariableTypes.RequestId: RequestId(),
     VariableTypes.Code: Code(),
 }
 
