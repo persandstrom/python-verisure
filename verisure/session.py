@@ -23,6 +23,11 @@ class LoginError(Error):
     pass
 
 
+class LogoutError(Error):
+    ''' Logout failed '''
+    pass
+
+
 class ResponseError(Error):
     ''' Unexcpected response '''
     def __init__(self, status_code, text):
@@ -204,6 +209,20 @@ class Session(object):
             pickle.dump(cookies, f)
 
         return True
+
+    def logout(self):
+        """ Log out from the verisure app api """
+        try:
+            requests.delete(
+                url="{base_url}/auth/logout".format(base_url=self._base_url),
+                headers={'APPLICATION_ID': 'PS_PYTHON'},
+                cookies=self._cookies)
+            self._base_url = None
+            self._giid = None
+            self._cookies = None
+            self._stepup = None
+        except Exception:
+            raise LogoutError("Failed to log out")
 
     def request(self, *operations):
         response = requests.post(
