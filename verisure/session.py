@@ -205,6 +205,7 @@ class Session(object):
             except Exception:
                 raise LoginError("Failed to trust device")
 
+        self._cookies = cookies
         with open(self._cookieFileName, 'wb') as f:
             pickle.dump(cookies, f)
 
