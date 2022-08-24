@@ -173,10 +173,10 @@ class Session(object):
 
         raise LoginError(last_exception)
 
-    def validate_mfa(self, code, trust_device):
+    def validate_mfa(self, code):
         """ Validate mfa request """
         try:
-            validate_mfa_response = requests.post(
+            response = requests.post(
                 url="{base_url}/auth/mfa/validate".format(
                     base_url=self._base_url),
                 headers={
@@ -185,31 +185,11 @@ class Session(object):
                     'Content-Type': 'application/json'},
                 cookies={'vs-stepup': self._stepup},
                 data=json.dumps({"token": code}))
-            cookies = validate_mfa_response.cookies
+            with open(self._cookieFileName, 'wb') as f:
+                pickle.dump(response.cookies, f)
+            self._cookies = response.cookies
         except Exception:
             raise LoginError("Failed to validate mfa")
-
-        if (trust_device is True):
-            try:
-                trust_mfa_response = requests.post(
-                    url="{base_url}/auth/trust".format(
-                        base_url=self._base_url),
-                    headers={'APPLICATION_ID': 'PS_PYTHON'},
-                    cookies=cookies)
-
-                for cookie in trust_mfa_response.cookies:
-                    cookies.set(
-                        cookie.name,
-                        cookie.value,
-                        domain=cookie.domain)
-            except Exception:
-                raise LoginError("Failed to trust device")
-
-        self._cookies = cookies
-        with open(self._cookieFileName, 'wb') as f:
-            pickle.dump(cookies, f)
-
-        return True
 
     def logout(self):
         """ Log out from the verisure app api """
@@ -224,6 +204,8 @@ class Session(object):
             self._stepup = None
         except Exception:
             raise LogoutError("Failed to log out")
+        finally:
+            os.remove(self._cookieFileName)
 
     def request(self, *operations):
         response = requests.post(
