@@ -135,6 +135,76 @@ class Session(object):
 
         raise LoginError("Failed to log in")
 
+    def login_mfa(self):
+        """ Login to verisure app api with mfa
+
+        Login before calling any read or write commands
+
+        """
+        last_exception = None
+        for url in ['https://m-api01.verisure.com',
+                    'https://m-api02.verisure.com']:
+            try:
+                login_response = requests.post(
+                    url=url + "/auth/login",
+                    headers={'APPLICATION_ID': 'PS_PYTHON'},
+                    auth=(self._username, self._password))
+                self._stepup = login_response.cookies.get('vs-stepup')
+            except Exception as ex:
+                last_exception = ex
+                continue
+
+            try:
+                request_mfa_response = requests.post(
+                    url=url + "/auth/mfa",
+                    headers={'APPLICATION_ID': 'PS_PYTHON'},
+                    cookies={'vs-stepup': self._stepup})
+                if request_mfa_response.status_code == 200:
+                    self._base_url = url
+                    return True
+            except Exception as ex:
+                last_exception = ex
+                pass
+
+        raise LoginError(last_exception)
+
+    def validate_mfa(self, code, trust_device):
+        """ Validate mfa request """
+        try:
+            validate_mfa_response = requests.post(
+                url="{base_url}/auth/mfa/validate".format(
+                    base_url=self._base_url),
+                headers={
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'},
+                cookies={'vs-stepup': self._stepup},
+                data=json.dumps({"token": code}))
+            cookies = validate_mfa_response.cookies
+        except Exception:
+            raise LoginError("Failed to validate mfa")
+
+        if (trust_device is True):
+            try:
+                trust_mfa_response = requests.post(
+                    url="{base_url}/auth/trust".format(
+                        base_url=self._base_url),
+                    headers={'APPLICATION_ID': 'PS_PYTHON'},
+                    cookies=cookies)
+
+                for cookie in trust_mfa_response.cookies:
+                    cookies.set(
+                        cookie.name,
+                        cookie.value,
+                        domain=cookie.domain)
+            except Exception:
+                raise LoginError("Failed to trust device")
+
+        with open(self._cookieFileName, 'wb') as f:
+            pickle.dump(cookies, f)
+
+        return True
+
     def request(self, *operations):
         response = requests.post(
             '{base_url}/graphql'.format(base_url=self._base_url),
