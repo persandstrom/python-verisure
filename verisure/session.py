@@ -154,19 +154,25 @@ class Session(object):
                     url=url + "/auth/login",
                     headers={'APPLICATION_ID': 'PS_PYTHON'},
                     auth=(self._username, self._password))
-                self._stepup = login_response.cookies.get('vs-stepup')
+                if login_response.status_code == 200:
+                    self._base_url = url
+                    self._stepup = login_response.cookies.get('vs-stepup')
+                    break
             except Exception as ex:
                 last_exception = ex
                 continue
+        else:
+            raise LoginError(last_exception)
 
+        for type in ['phone', 'email']:
             try:
-                request_mfa_response = requests.post(
-                    url=url + "/auth/mfa",
+                mfa_response = requests.post(
+                    url="{base_url}/auth/mfa?type={type}".format(
+                        base_url=self._base_url, type=type),
                     headers={'APPLICATION_ID': 'PS_PYTHON'},
                     cookies={'vs-stepup': self._stepup})
-                if request_mfa_response.status_code == 200:
-                    self._base_url = url
-                    return True
+                if mfa_response.status_code == 200:
+                    return
             except Exception as ex:
                 last_exception = ex
                 pass
