@@ -126,6 +126,9 @@ class Session(object):
                     login_url,
                     headers={'APPLICATION_ID': 'PS_PYTHON'},
                     auth=(self._username, self._password))
+                if "stepUpToken" in response.text:
+                    raise LoginError("Multifactor authentication enabled, "
+                                     "disable or create MFA cookie")
                 with open(self._cookieFileName, 'wb') as f:
                     pickle.dump(response.cookies, f)
                 self._cookies = response.cookies
