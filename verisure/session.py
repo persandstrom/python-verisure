@@ -610,3 +610,14 @@ class Session(object):
                 "requestId": requestId},
             "query": "query queryCaptureImageRequestStatus($giid: String!, $deviceLabel: String!, $requestId: BigInt!) {\n  installation(giid: $giid) {\n    cameraContentProvider {\n      captureImageRequestStatus(deviceLabel: $deviceLabel, requestId: $requestId) {\n        mediaRequestStatus\n      }\n    }\n  }\n}",  # noqa: E501
             }
+
+    def download_image(self, image_url, file_name):
+        """Download image from url"""
+        try:
+            response = requests.get(image_url, stream=True)
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        with open(file_name, 'wb') as image_file:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    image_file.write(chunk)
