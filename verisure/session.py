@@ -586,6 +586,18 @@ class Session(object):
             }
 
     @query_func
+    def cameras_image_series(self, limit=50, offset=0):
+        """Get the cameras image series"""
+        return {
+            "operationName": "GQL_CCCP_SearchMedia",
+            "variables": {
+                "giid": self._giid,
+                "limit": limit,
+                "offset": offset},
+            "query": "mutation GQL_CCCP_SearchMedia(\n	$giid: BigInt!\n	$offset: Int\n	$limit: Int\n	$fromDate: Date\n	$toDate: Date) {\n\n	ContentProviderMediaSearch(\n		giid: $giid\n		offset: $offset\n		limit: $limit\n		fromDate: $fromDate\n		toDate: $toDate\n	) {\n		totalNumberOfMediaSeries\n		mediaSeriesList {\n			seriesId\n			storageType\n			viewed\n			timestamp\n			deviceMediaList {\n				contentUrl\n				mediaAvailable\n				deviceLabel\n				mediaId\n				contentType\n				timestamp\n				requestTimestamp\n				duration\n				expiryDate\n				viewed\n				thumbnailUrl\n				bitRate\n				width\n				height\n				codec\n			}\n		}\n	}\n}",  # noqa: E501}
+        }
+
+    @query_func
     def camera_get_requestId(self,
                              deviceLabel: VariableTypes.DeviceLabel):
         """Get requestId for camera_capture"""
