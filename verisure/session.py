@@ -505,6 +505,18 @@ class Session(object):
             }
 
     @query_func
+    def cameras_image_series(self, limit=50, offset=0):
+        """Get the cameras image series"""
+        return {
+            "operationName": "GQL_CCCP_SearchMedia",
+            "variables": {
+                "giid": self._giid,
+                "limit": limit,
+                "offset": offset},
+            "query": "mutation GQL_CCCP_SearchMedia(\n	$giid: BigInt!\n	$offset: Int\n	$limit: Int\n	$fromDate: Date\n	$toDate: Date) {\n\n	ContentProviderMediaSearch(\n		giid: $giid\n		offset: $offset\n		limit: $limit\n		fromDate: $fromDate\n		toDate: $toDate\n	) {\n		totalNumberOfMediaSeries\n		mediaSeriesList {\n			seriesId\n			storageType\n			viewed\n			timestamp\n			deviceMediaList {\n				contentUrl\n				mediaAvailable\n				deviceLabel\n				mediaId\n				contentType\n				timestamp\n				requestTimestamp\n				duration\n				expiryDate\n				viewed\n				thumbnailUrl\n				bitRate\n				width\n				height\n				codec\n			}\n		}\n	}\n}",  # noqa: E501}
+        }
+
+    @query_func
     def camera_get_requestId(self,
                              deviceLabel: VariableTypes.DeviceLabel):
         """Get requestId for camera_capture"""
@@ -529,3 +541,14 @@ class Session(object):
                 "requestId": requestId},
             "query": "query queryCaptureImageRequestStatus($giid: String!, $deviceLabel: String!, $requestId: BigInt!) {\n  installation(giid: $giid) {\n    cameraContentProvider {\n      captureImageRequestStatus(deviceLabel: $deviceLabel, requestId: $requestId) {\n        mediaRequestStatus\n      }\n    }\n  }\n}",  # noqa: E501
             }
+
+    def download_image(self, image_url, file_name):
+        """Download image from url"""
+        try:
+            response = requests.get(image_url, stream=True)
+        except requests.exceptions.RequestException as ex:
+            raise RequestError(ex)
+        with open(file_name, 'wb') as image_file:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    image_file.write(chunk)
