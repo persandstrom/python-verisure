@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+2.5.0 Add MFA login
 2.4.1 Add download_image
 2.4.0 Add camera support
 2.3.0 Add event-log command

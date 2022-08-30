@@ -23,6 +23,11 @@ class LoginError(Error):
     pass
 
 
+class LogoutError(Error):
+    ''' Logout failed '''
+    pass
+
+
 class ResponseError(Error):
     ''' Unexcpected response '''
     def __init__(self, status_code, text):
@@ -121,6 +126,9 @@ class Session(object):
                     login_url,
                     headers={'APPLICATION_ID': 'PS_PYTHON'},
                     auth=(self._username, self._password))
+                if "stepUpToken" in response.text:
+                    raise LoginError("Multifactor authentication enabled, "
+                                     "disable or create MFA cookie")
                 with open(self._cookieFileName, 'wb') as f:
                     pickle.dump(response.cookies, f)
                 self._cookies = response.cookies
@@ -134,6 +142,79 @@ class Session(object):
                 pass
 
         raise LoginError("Failed to log in")
+
+    def login_mfa(self):
+        """ Login to verisure app api with mfa
+
+        Login before calling any read or write commands
+
+        """
+        last_exception = None
+        for url in ['https://m-api01.verisure.com',
+                    'https://m-api02.verisure.com']:
+            try:
+                login_response = requests.post(
+                    url=url + "/auth/login",
+                    headers={'APPLICATION_ID': 'PS_PYTHON'},
+                    auth=(self._username, self._password))
+                if login_response.status_code == 200:
+                    self._base_url = url
+                    self._stepup = login_response.cookies.get('vs-stepup')
+                    break
+            except Exception as ex:
+                last_exception = ex
+                continue
+        else:
+            raise LoginError(last_exception)
+
+        for type in ['phone', 'email']:
+            try:
+                mfa_response = requests.post(
+                    url="{base_url}/auth/mfa?type={type}".format(
+                        base_url=self._base_url, type=type),
+                    headers={'APPLICATION_ID': 'PS_PYTHON'},
+                    cookies={'vs-stepup': self._stepup})
+                if mfa_response.status_code == 200:
+                    return
+            except Exception as ex:
+                last_exception = ex
+                pass
+
+        raise LoginError(last_exception)
+
+    def validate_mfa(self, code):
+        """ Validate mfa request """
+        try:
+            response = requests.post(
+                url="{base_url}/auth/mfa/validate".format(
+                    base_url=self._base_url),
+                headers={
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'},
+                cookies={'vs-stepup': self._stepup},
+                data=json.dumps({"token": code}))
+            with open(self._cookieFileName, 'wb') as f:
+                pickle.dump(response.cookies, f)
+            self._cookies = response.cookies
+        except Exception:
+            raise LoginError("Failed to validate mfa")
+
+    def logout(self):
+        """ Log out from the verisure app api """
+        try:
+            requests.delete(
+                url="{base_url}/auth/logout".format(base_url=self._base_url),
+                headers={'APPLICATION_ID': 'PS_PYTHON'},
+                cookies=self._cookies)
+            self._base_url = None
+            self._giid = None
+            self._cookies = None
+            self._stepup = None
+        except Exception:
+            raise LogoutError("Failed to log out")
+        finally:
+            os.remove(self._cookieFileName)
 
     def request(self, *operations):
         response = requests.post(
