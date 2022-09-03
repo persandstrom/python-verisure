@@ -93,12 +93,24 @@ def make_query(session, name, arguments):
 @click.argument('password')
 @click.option('-i', '--installation', 'installation', help='Installation number', type=int, default=0)  # noqa: E501
 @click.option('-c', '--cookie', 'cookie', help='File to store cookie in', default='~/.verisure-cookie')  # noqa: E501
+@click.option('--mfa', 'mfa', help='Login using MFA', default=False, is_flag=True)  # noqa: E501
 @options_from_operator_list()
-def cli(username, password, installation, cookie, *args, **kwargs):
+def cli(username, password, installation, cookie, mfa, *args, **kwargs):
     """Read and change status of verisure devices through verisure app API"""
     try:
         session = Session(username, password, cookie)
-        installations = session.login()
+
+        # try using the cookie first
+        installations = session.login_cookie()
+
+        if mfa and not installations:
+            session.request_mfa()
+            code = input("Enter verification code: ")
+            session.validate_mfa(code)
+            installations = session.login_cookie()
+        elif not installations:
+            installations = session.login()
+
         session.set_giid(
             installations['data']['account']
             ['installations'][installation]['giid'])
