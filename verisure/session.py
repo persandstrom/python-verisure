@@ -91,34 +91,10 @@ class Session(object):
 
     def login(self):
         """ Login to verisure app api
-
         Login before calling any read or write commands
-
+        Return installations
         """
 
-        # Read the cookie
-        try:
-            with open(self._cookieFileName, 'rb') as f:
-                self._cookies = pickle.load(f)
-        except Exception:
-            # Maybe an stderr print would be good?
-            pass
-
-        # First try with the cookie, then the full sequence
-        if self._cookies:
-            for url in ['https://m-api01.verisure.com',
-                        'https://m-api02.verisure.com']:
-                try:
-                    self._base_url = url
-                    installations = self.get_installations()
-                    if 'errors' not in installations:
-                        return installations
-                except Exception:
-                    # This is "normal"
-                    # But maybe an stderr print would be good?
-                    pass
-
-        # The login with stored cookies failed, try to get a new one
         for login_url in ['https://automation01.verisure.com/auth/login',
                           'https://automation02.verisure.com/auth/login']:
             try:
@@ -143,12 +119,9 @@ class Session(object):
 
         raise LoginError("Failed to log in")
 
-    def login_mfa(self):
-        """ Login to verisure app api with mfa
+    def request_mfa(self):
+        """ Request MFA verification code """
 
-        Login before calling any read or write commands
-
-        """
         last_exception = None
         for url in ['https://m-api01.verisure.com',
                     'https://m-api02.verisure.com']:
@@ -181,6 +154,34 @@ class Session(object):
                 pass
 
         raise LoginError(last_exception)
+
+    def login_cookie(self):
+        """ Login using cookie
+        Return installations on success, else None
+        """
+
+        # Load cookie from file
+        try:
+            with open(self._cookieFileName, 'rb') as f:
+                self._cookies = pickle.load(f)
+        except Exception:
+            # Maybe an stderr print would be good?
+            pass
+
+        # Try using Cookie
+        if self._cookies:
+            for url in ['https://m-api01.verisure.com',
+                        'https://m-api02.verisure.com']:
+                try:
+                    self._base_url = url
+                    installations = self.get_installations()
+                    if 'errors' not in installations:
+                        return installations
+                except Exception as e:
+                    # This is "normal"
+                    # But maybe an stderr print would be good?
+                    pass
+        return None
 
     def validate_mfa(self, code):
         """ Validate mfa request """
@@ -338,7 +339,7 @@ class Session(object):
     def door_lock(self,
                   deviceLabel: VariableTypes.DeviceLabel,
                   code: VariableTypes.Code):
-        """Get door lock status"""
+        """Lock door"""
         return {
             "operationName": "DoorLock",
             "variables": {
