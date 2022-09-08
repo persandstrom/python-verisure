@@ -218,16 +218,23 @@ class Session(object):
             os.remove(self._cookieFileName)
 
     def request(self, *operations):
-        response = requests.post(
-            '{base_url}/graphql'.format(base_url=self._base_url),
-            headers={
-                'APPLICATION_ID': 'PS_PYTHON',
-                'Accept': 'application/json'},
-            cookies=self._cookies,
-            data=json.dumps(list(operations))
-        )
-        if response.status_code != 200:
-            raise ResponseError(response.status_code, response.text)
+        for url in (self._base_url,
+                    *['https://m-api01.verisure.com',
+                      'https://m-api02.verisure.com']):
+            self._base_url = url
+            response = requests.post(
+                '{base_url}/graphql'.format(base_url=self._base_url),
+                headers={
+                    'APPLICATION_ID': 'PS_PYTHON',
+                    'Accept': 'application/json'},
+                cookies=self._cookies,
+                data=json.dumps(list(operations))
+            )
+            if response.status_code == 200 and "SYS_00004" in response.text:
+                continue
+            if response.status_code != 200:
+                raise ResponseError(response.status_code, response.text)
+
         return json.loads(response.text)
 
     def get_installations(self):
