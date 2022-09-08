@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+2.5.1 Update CLI, split cookie login to separate function, rename mfa functions
 2.5.0 Add MFA login
 2.4.1 Add download_image
 2.4.0 Add camera support
@@ -33,20 +34,30 @@ Usage: python -m verisure [OPTIONS] USERNAME PASSWORD
 Options:
   -i, --installation INTEGER      Installation number
   -c, --cookie TEXT               File to store cookie in
+  --mfa                           Login using MFA
   --arm-away CODE                 Set arm status away
   --arm-home CODE                 Set arm state home
   --arm-state                     Read arm state
   --broadband                     Get broadband status
+  --camera-capture <DEVICELABEL REQUESTID>...
+                                  Capture a new image from a camera
+  --camera-get-requestId DEVICELABEL
+                                  Get requestId for camera_capture
+  --cameras                       Get cameras state
+  --cameras-image-series          Get the cameras image series
+  --cameras-last-image            Get cameras last image
   --capability                    Get capability
   --charge-sms                    Charge SMS
   --climate                       Get climate
   --disarm CODE                   Disarm alarm
-  --door-lock DEVICELABEL         Get door lock status
+  --door-lock <DEVICELABEL CODE>...
+                                  Lock door
   --door-lock-configuration DEVICELABEL
-                                  Get door lock configuration 
+                                  Get door lock configuration
   --door-unlock <DEVICELABEL CODE>...
                                   Unlock door
   --door-window                   Read status of door and window sensors
+  --event-log                     Read event log
   --fetch-all-installations       Fetch installations
   --guardian-sos                  Guardian SOS
   --is-guardian-activated         Is guardian activated
@@ -56,6 +67,8 @@ Options:
   --poll-lock-state <TRANSACTIONID DEVICELABEL FUTURESTATE>...
                                   Poll lock state
   --remaining-sms                 Get remaing number of SMS
+  --set-autolock-enabled <DEVICELABEL BOOLEAN>...
+                                  Enable or disable autolock
   --set-smartplug <DEVICELABEL BOOLEAN>...
                                   Set state of smart plug
   --smart-button                  Get smart button state
