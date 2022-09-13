@@ -177,7 +177,7 @@ class Session(object):
                     installations = self.get_installations()
                     if 'errors' not in installations:
                         return installations
-                except Exception as e:
+                except Exception:
                     # This is "normal"
                     # But maybe an stderr print would be good?
                     pass
