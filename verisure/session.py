@@ -258,9 +258,10 @@ class Session(object):
 
     def request(self, *operations):
         self._update_cookies()
-        for url in (self._base_url,
-                    *['https://m-api01.verisure.com',
-                      'https://m-api02.verisure.com']):
+        urls = ['https://m-api01.verisure.com',
+                'https://m-api02.verisure.com']
+        urls = urls if urls[0] == self._base_url else urls[::-1]
+        for url in urls:
             self._base_url = url
             response = requests.post(
                 '{base_url}/graphql'.format(base_url=self._base_url),
