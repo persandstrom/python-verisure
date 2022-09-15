@@ -121,7 +121,7 @@ class Session(object):
         if 'errors' not in installations:
             return installations
 
-        raise LoginError("Failed to login")
+        raise LoginError("Failed to log in")
 
     def request_mfa(self):
         """ Request MFA verification code """
@@ -164,7 +164,7 @@ class Session(object):
         if last_exception is not None:
             raise LoginError(last_exception)
 
-        raise LoginError("Failed to login")
+        raise LoginError("Failed to log in")
 
     def validate_mfa(self, code):
         """ Validate mfa request """
@@ -251,7 +251,7 @@ class Session(object):
             self._cookies = None
             self._stepup = None
         except Exception:
-            raise LogoutError("Failed to logout")
+            raise LogoutError("Failed to log out")
         finally:
             if os.path.exists(self._cookieFileName):
                 os.remove(self._cookieFileName)
