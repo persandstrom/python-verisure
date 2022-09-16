@@ -187,7 +187,7 @@ class Session(object):
         if 'errors' not in installations:
             return installations
 
-        raise LoginError("Failed to login")
+        raise LoginError("Failed to log in")
 
     def login_cookie(self):
         """ Login using cookie
