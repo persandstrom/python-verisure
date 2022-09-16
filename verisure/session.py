@@ -117,6 +117,9 @@ class Session(object):
                              "disable or create MFA cookie")
 
         self._cookies = response.cookies
+        with open(self._cookieFileName, 'wb') as f:
+            pickle.dump(self._cookies, f)
+
         installations = self.get_installations()
         if 'errors' not in installations:
             return installations
@@ -179,9 +182,12 @@ class Session(object):
                     'Content-Type': 'application/json'},
                 cookies=self._cookies,
                 data=json.dumps({"token": code}))
-            self._cookies = response.cookies
         except Exception:
             raise LoginError("Failed to validate mfa")
+
+        self._cookies = response.cookies
+        with open(self._cookieFileName, 'wb') as f:
+            pickle.dump(self._cookies, f)
 
         installations = self.get_installations()
         if 'errors' not in installations:
@@ -199,25 +205,9 @@ class Session(object):
             with open(self._cookieFileName, 'rb') as f:
                 self._cookies = pickle.load(f)
         except Exception:
-            # Maybe an stderr print would be good?
-            pass
+            raise LoginError("Failed to read cookie")
 
         # Try using Cookie
-        if self._cookies:
-            for url in ['https://m-api01.verisure.com',
-                        'https://m-api02.verisure.com']:
-                try:
-                    self._base_url = url
-                    installations = self.get_installations()
-                    if 'errors' not in installations:
-                        return installations
-                except Exception:
-                    # This is "normal"
-                    # But maybe an stderr print would be good?
-                    pass
-        return None
-
-    def _update_cookies(self):
         last_exception = None
         for url in ['https://m-api01.verisure.com',
                     'https://m-api02.verisure.com']:
@@ -228,7 +218,9 @@ class Session(object):
                     cookies=self._cookies,
                 )
                 if response.status_code == 200:
+                    self._base_url = url
                     break
+                raise LoginError("Failed to log in")
             except Exception as ex:
                 last_exception = ex
 
@@ -238,6 +230,12 @@ class Session(object):
         self._cookies.update(response.cookies)
         with open(self._cookieFileName, 'wb') as f:
             pickle.dump(response.cookies, f)
+
+        installations = self.get_installations()
+        if 'errors' not in installations:
+            return installations
+
+        raise LoginError("Failed to log in")
 
     def logout(self):
         """ Log out from the verisure app api """
@@ -257,7 +255,6 @@ class Session(object):
                 os.remove(self._cookieFileName)
 
     def request(self, *operations):
-        self._update_cookies()
         urls = ['https://m-api01.verisure.com',
                 'https://m-api02.verisure.com']
         urls = urls if urls[0] == self._base_url else urls[::-1]
@@ -271,10 +268,12 @@ class Session(object):
                 cookies=self._cookies,
                 data=json.dumps(list(operations))
             )
-            if response.status_code == 200 and "SYS_00004" in response.text:
-                continue
             if response.status_code != 200:
                 raise ResponseError(response.status_code, response.text)
+            if response.status_code == 200:
+                if "SYS_00004" in response.text:
+                    continue
+                break
 
         return json.loads(response.text)
 
