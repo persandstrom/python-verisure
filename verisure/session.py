@@ -170,7 +170,9 @@ class Session(object):
         raise LoginError("Failed to log in")
 
     def validate_mfa(self, code):
-        """ Validate mfa request """
+        """ Validate mfa request
+        Return installations
+        """
 
         try:
             response = requests.post(
@@ -197,7 +199,7 @@ class Session(object):
 
     def login_cookie(self):
         """ Login using cookie
-        Return installations on success, else None
+        Return installations
         """
 
         # Load cookie from file
@@ -218,7 +220,7 @@ class Session(object):
 
     def update_cookie(self):
         """ Update expired cookie
-        Cookie can last 5 minutes before it expires.
+        Cookie can last 5 minutes before it needs to be updated.
         """
 
         last_exception = None
