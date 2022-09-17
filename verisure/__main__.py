@@ -81,9 +81,9 @@ def options_from_operator_list():
 
 
 def make_query(session, name, arguments):
-    if(arguments is True):
+    if (arguments is True):
         return getattr(session, name)()
-    if(type(arguments) is str):
+    if (type(arguments) is str):
         return getattr(session, name)(arguments)
     return getattr(session, name)(*arguments)
 
