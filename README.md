@@ -1,12 +1,17 @@
 # python-verisure
-A python3 module for reading and changing status of verisure devices through verisure app API.
 
-### Legal Disclaimer
-This software is not affiliated with Verisure Holding AB and the developers take no legal responsibility for the functionality or security of your Verisure Alarms and devices.
+A python3 module for reading and changing status of verisure devices through verisure
+app API.
 
+## Legal Disclaimer
 
-### Version History
-```
+This software is not affiliated with Verisure Holding AB and the developers take no
+legal responsibility for the functionality or security of your Verisure Alarms and
+devices.
+
+## Version History
+
+```txt
 2.5.3 Refactor login
 2.5.2 Fix XBN Database is not activated
 2.5.1 Update CLI, split cookie login to separate function, rename mfa functions
@@ -23,12 +28,14 @@ This software is not affiliated with Verisure Holding AB and the developers take
 ```
 
 ## Installation
-``` pip install git+https://github.com/persandstrom/python-verisure.git@m-api ```
 
+```sh
+pip install git+https://github.com/persandstrom/python-verisure.git@m-api
+```
 
 ## Command line usage
 
-```
+```txt
 Usage: python -m verisure [OPTIONS] USERNAME PASSWORD
 
   Read and change status of verisure devices through verisure app API
@@ -84,11 +91,13 @@ Options:
 
 ### Read alarm status
 
-``` vsure user@example.com mypassword --arm-state ```
+```sh
+vsure user@example.com mypassword --arm-state
+```
 
 output:
 
-```
+```json
 {
     "data": {
         "installation": {
@@ -108,5 +117,6 @@ output:
 
 ### Read status from alarm and door-window
 
-``` vsure user@example.com mypassword --arm-state --door-window ```
-
+```sh
+vsure user@example.com mypassword --arm-state --door-window
+```
