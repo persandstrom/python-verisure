@@ -200,7 +200,14 @@ class Session(object):
         Return installations on success, else None
         """
 
-        # Load and update cookie
+        # Load cookie from file
+        try:
+            with open(self._cookieFileName, 'rb') as f:
+                self._cookies = pickle.load(f)
+        except Exception:
+            raise LoginError("Failed to read cookie")
+
+        # Update cookie
         self.update_cookie()
 
         installations = self.get_installations()
@@ -214,14 +221,6 @@ class Session(object):
         Cookie can last 5 minutes before it expires.
         """
 
-        # Load cookie from file
-        try:
-            with open(self._cookieFileName, 'rb') as f:
-                self._cookies = pickle.load(f)
-        except Exception:
-            raise LoginError("Failed to read cookie")
-
-        # Try using Cookie
         last_exception = None
         for url in ['https://m-api01.verisure.com',
                     'https://m-api02.verisure.com']:
