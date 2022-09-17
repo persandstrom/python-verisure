@@ -229,13 +229,7 @@ class Session(object):
 
         self._cookies.update(response.cookies)
         with open(self._cookieFileName, 'wb') as f:
-            pickle.dump(response.cookies, f)
-
-        installations = self.get_installations()
-        if 'errors' not in installations:
-            return installations
-
-        raise LoginError("Failed to log in")
+            pickle.dump(self._cookies, f)
 
     def logout(self):
         """ Log out from the verisure app api """
