@@ -200,6 +200,20 @@ class Session(object):
         Return installations on success, else None
         """
 
+        # Load and update cookie
+        self.update_cookie()
+
+        installations = self.get_installations()
+        if 'errors' not in installations:
+            return installations
+
+        raise LoginError("Failed to log in")
+
+    def update_cookie(self):
+        """ Update expired cookie
+        Cookie can last 5 minutes before it expires.
+        """
+
         # Load cookie from file
         try:
             with open(self._cookieFileName, 'rb') as f:
@@ -220,7 +234,7 @@ class Session(object):
                 if response.status_code == 200:
                     self._base_url = url
                     break
-                raise LoginError("Failed to log in")
+                raise LoginError("Failed to get new cookie")
             except Exception as ex:
                 last_exception = ex
 
