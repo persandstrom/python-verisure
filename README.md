@@ -7,6 +7,7 @@ This software is not affiliated with Verisure Holding AB and the developers take
 
 ### Version History
 ```
+2.5.3 Refactor login
 2.5.2 Fix XBN Database is not activated
 2.5.1 Update CLI, split cookie login to separate function, rename mfa functions
 2.5.0 Add MFA login

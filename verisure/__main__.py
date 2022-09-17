@@ -4,7 +4,7 @@ import click
 import inspect
 import json
 import re
-from verisure import VariableTypes, Session, ResponseError
+from verisure import VariableTypes, Session, ResponseError, LoginError
 
 
 class DeviceLabel(click.ParamType):
@@ -81,9 +81,9 @@ def options_from_operator_list():
 
 
 def make_query(session, name, arguments):
-    if(arguments is True):
+    if (arguments is True):
         return getattr(session, name)()
-    if(type(arguments) is str):
+    if (type(arguments) is str):
         return getattr(session, name)(arguments)
     return getattr(session, name)(*arguments)
 
@@ -97,12 +97,16 @@ def make_query(session, name, arguments):
 @options_from_operator_list()
 def cli(username, password, installation, cookie, mfa, *args, **kwargs):
     """Read and change status of verisure devices through verisure app API"""
-    try:
-        session = Session(username, password, cookie)
 
+    session = Session(username, password, cookie)
+
+    try:
         # try using the cookie first
         installations = session.login_cookie()
+    except LoginError:
+        installations = None
 
+    try:
         if mfa and not installations:
             session.request_mfa()
             code = input("Enter verification code: ")
