@@ -36,7 +36,7 @@ pip install git+https://github.com/persandstrom/python-verisure.git@m-api
 ## Command line usage
 
 ```txt
-Usage: python -m verisure [OPTIONS] USERNAME PASSWORD
+Usage: vsure [OPTIONS] USERNAME PASSWORD
 
   Read and change status of verisure devices through verisure app API
 
@@ -86,7 +86,6 @@ Options:
   --smartplugs                    Read status of all smart plugs
   --user-trackings                Read user tracking status
   --help                          Show this message and exit.
-
 ```
 
 ### Read alarm status
