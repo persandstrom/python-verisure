@@ -32,29 +32,31 @@ class ResponseError(Error):
 
 
 def query_func(f):
+    """A wrapper that indicates that the function is a query (used by CLI)"""
     f.is_query = True
     return f
 
 
 class VariableTypes:
+    """Types for query parameters"""
     class DeviceLabel(str):
-        pass
+        """Device label"""
 
     class TransactionId(str):
-        pass
+        """Transaction ID"""
 
     class RequestId(str):
-        pass
+        """Request ID"""
 
     class ArmFutureState(str):
+        """Arm state"""
         # ARMED_AWAY, DISARMED, ARMED_HOME
-        pass
 
     class LockFutureState(str):
-        pass
+        """Lock state"""
 
     class Code(str):
-        pass
+        """Code"""
 
 
 class Session(object):
@@ -178,8 +180,8 @@ class Session(object):
             data=json.dumps({"token": code}))
 
         self._cookies = response.cookies
-        with open(self._cookie_file_name, 'wb') as f:
-            pickle.dump(self._cookies, f)
+        with open(self._cookie_file_name, 'wb') as cookie_file:
+            pickle.dump(self._cookies, cookie_file)
 
         installations = self.get_installations()
         if 'errors' not in installations:
@@ -194,8 +196,8 @@ class Session(object):
 
         # Load cookie from file
         try:
-            with open(self._cookie_file_name, 'rb') as f:
-                self._cookies = pickle.load(f)
+            with open(self._cookie_file_name, 'rb') as cookie_file:
+                self._cookies = pickle.load(cookie_file)
         except Exception as ex:
             raise LoginError("Failed to read cookie") from ex
 
@@ -219,8 +221,8 @@ class Session(object):
             cookies=self._cookies)
 
         self._cookies.update(response.cookies)
-        with open(self._cookie_file_name, 'wb') as f:
-            pickle.dump(self._cookies, f)
+        with open(self._cookie_file_name, 'wb') as cookie_file:
+            pickle.dump(self._cookies, cookie_file)
 
     def logout(self):
         """ Log out from the verisure app api """
@@ -348,14 +350,14 @@ class Session(object):
 
     @query_func
     def door_lock(self,
-                  deviceLabel: VariableTypes.DeviceLabel,
+                  device_label: VariableTypes.DeviceLabel,
                   code: VariableTypes.Code):
         """Lock door"""
         return {
             "operationName": "DoorLock",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel,
+                "deviceLabel": device_label,
                 "input": {
                     "code": code,
                 },
@@ -365,28 +367,28 @@ class Session(object):
 
     @query_func
     def door_lock_configuration(self,
-                                deviceLabel: VariableTypes.DeviceLabel):
+                                device_label: VariableTypes.DeviceLabel):
         """Get door lock configuration"""
         return {
             "operationName": "DoorLockConfiguration",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel},
+                "deviceLabel": device_label},
             "query": "query DoorLockConfiguration($giid: String!, $deviceLabel: String!) {\n  installation(giid: $giid) {\n    smartLocks(filter: {deviceLabels: [$deviceLabel]}) {\n      device {\n        area\n        deviceLabel\n        __typename\n      }\n      configuration {\n        ... on YaleLockConfiguration {\n          autoLockEnabled\n          voiceLevel\n          volume\n          __typename\n        }\n        ... on DanaLockConfiguration {\n          holdBackLatchDuration\n          twistAssistEnabled\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def set_autolock_enabled(self,
-                             deviceLabel: VariableTypes.DeviceLabel,
-                             autoLockEnabled: bool):
+                             device_label: VariableTypes.DeviceLabel,
+                             auto_lock_enabled: bool):
         """Enable or disable autolock"""
         return {
             "operationName": "DoorLockUpdateConfig",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel,
+                "deviceLabel": device_label,
                 "input": {
-                    "autoLockEnabled": autoLockEnabled
+                    "autoLockEnabled": auto_lock_enabled
                 }
             },
             "query": "mutation DoorLockUpdateConfig($giid: String!, $deviceLabel: String!, $input: DoorLockUpdateConfigInput!) {\n  DoorLockUpdateConfig(giid: $giid, deviceLabel: $deviceLabel, input: $input)\n}\n",  # noqa: E501
@@ -394,14 +396,14 @@ class Session(object):
 
     @query_func
     def door_unlock(self,
-                    deviceLabel: VariableTypes.DeviceLabel,
+                    device_label: VariableTypes.DeviceLabel,
                     code: VariableTypes.Code):
         """Unlock door"""
         return {
             "operationName": "DoorUnlock",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel,
+                "deviceLabel": device_label,
                 "input": {
                     "code": code,
                 },
@@ -480,31 +482,31 @@ class Session(object):
 
     @query_func
     def poll_arm_state(self,
-                       transactionId: VariableTypes.TransactionId,
-                       futureState: VariableTypes.ArmFutureState):
+                       transaction_id: VariableTypes.TransactionId,
+                       future_state: VariableTypes.ArmFutureState):
         """Poll arm state"""
         return {
             "operationName": "pollArmState",
             "variables": {
                 "giid": self._giid,
-                "transactionId": transactionId,
-                "futureState": futureState},
+                "transactionId": transaction_id,
+                "futureState": future_state},
             "query": "query pollArmState($giid: String!, $transactionId: String, $futureState: ArmStateStatusTypes!) {\n  installation(giid: $giid) {\n    armStateChangePollResult(transactionId: $transactionId, futureState: $futureState) {\n      result\n      createTime\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def poll_lock_state(self,
-                        transactionId: VariableTypes.TransactionId,
-                        deviceLabel: VariableTypes.DeviceLabel,
-                        futureState: VariableTypes.LockFutureState):
+                        transaction_id: VariableTypes.TransactionId,
+                        device_label: VariableTypes.DeviceLabel,
+                        future_state: VariableTypes.LockFutureState):
         """Poll lock state"""
         return {
             "operationName": "pollLockState",
             "variables": {
                 "giid": self._giid,
-                "transactionId": transactionId,
-                "deviceLabel": deviceLabel,
-                "futureState": futureState},
+                "transactionId": transaction_id,
+                "deviceLabel": device_label,
+                "futureState": future_state},
             "query": "query pollLockState($giid: String!, $transactionId: String, $deviceLabel: String!, $futureState: DoorLockState!) {\n  installation(giid: $giid) {\n    doorLockStateChangePollResult(transactionId: $transactionId, deviceLabel: $deviceLabel, futureState: $futureState) {\n      result\n      createTime\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
@@ -540,27 +542,27 @@ class Session(object):
 
     @query_func
     def set_smartplug(self,
-                      deviceLabel: VariableTypes.DeviceLabel,
+                      device_label: VariableTypes.DeviceLabel,
                       state: bool):
         """Set state of smart plug"""
         return {
             "operationName": "UpdateState",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel,
+                "deviceLabel": device_label,
                 "state": state},
             "query": "mutation UpdateState($giid: String!, $deviceLabel: String!, $state: Boolean!) {\n  SmartPlugSetState(giid: $giid, input: [{deviceLabel: $deviceLabel, state: $state}])}",  # noqa: E501
         }
 
     @query_func
     def smartplug(self,
-                  deviceLabel: VariableTypes.DeviceLabel):
+                  device_label: VariableTypes.DeviceLabel):
         """Read status of a single smart plug"""
         return {
             "operationName": "SmartPlug",
             "variables": {
                 "giid": self._giid,
-                "deviceLabel": deviceLabel},
+                "deviceLabel": device_label},
             "query": "query SmartPlug($giid: String!, $deviceLabel: String!) {\n  installation(giid: $giid) {\n    smartplugs(filter: {deviceLabels: [$deviceLabel]}) {\n      device {\n        deviceLabel\n        area\n        __typename\n      }\n      currentState\n      icon\n      isHazardous\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
             }
 
@@ -617,13 +619,13 @@ class Session(object):
         }
 
     @query_func
-    def camera_get_requestId(self,
-                             deviceLabel: VariableTypes.DeviceLabel):
+    def camera_get_request_id(self,
+                             device_label: VariableTypes.DeviceLabel):
         """Get requestId for camera_capture"""
         return {
             "variables": {
                 "deviceIdentifier": "RandomString",
-                "deviceLabel": deviceLabel,
+                "deviceLabel": device_label,
                 "giid": self._giid,
                 "resolution": "high"},
             "query": "mutation cccp($giid: String!, $deviceLabel: String!, $resolution: String!, $deviceIdentifier: String) {\n  ContentProviderCaptureImageRequest(giid: $giid, deviceLabel: $deviceLabel, resolution: $resolution, deviceIdentifier: $deviceIdentifier) {\n    requestId\n  }\n}",  # noqa: E501
@@ -631,14 +633,14 @@ class Session(object):
 
     @query_func
     def camera_capture(self,
-                       deviceLabel: VariableTypes.DeviceLabel,
-                       requestId: VariableTypes.RequestId):
+                       device_label: VariableTypes.DeviceLabel,
+                       request_id: VariableTypes.RequestId):
         """Capture a new image from a camera"""
         return {
             "variables": {
-                "deviceLabel": deviceLabel,
+                "deviceLabel": device_label,
                 "giid": self._giid,
-                "requestId": requestId},
+                "requestId": request_id},
             "query": "query queryCaptureImageRequestStatus($giid: String!, $deviceLabel: String!, $requestId: BigInt!) {\n  installation(giid: $giid) {\n    cameraContentProvider {\n      captureImageRequestStatus(deviceLabel: $deviceLabel, requestId: $requestId) {\n        mediaRequestStatus\n      }\n    }\n  }\n}",  # noqa: E501
             }
 
@@ -647,7 +649,7 @@ class Session(object):
         try:
             response = requests.get(image_url, stream=True)
         except requests.exceptions.RequestException as ex:
-            raise RequestError(ex)
+            raise RequestError("Failed to get image") from ex
         with open(file_name, 'wb') as image_file:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
