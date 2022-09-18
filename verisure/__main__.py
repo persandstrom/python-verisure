@@ -1,6 +1,5 @@
 """ Command line interface for Verisure MyPages """
 
-from argparse import ArgumentError
 import inspect
 import json
 import re
