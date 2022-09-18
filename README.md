@@ -1,12 +1,17 @@
 # python-verisure
-A python3 module for reading and changing status of verisure devices through verisure app API.
 
-### Legal Disclaimer
-This software is not affiliated with Verisure Holding AB and the developers take no legal responsibility for the functionality or security of your Verisure Alarms and devices.
+A python3 module for reading and changing status of verisure devices through verisure
+app API.
 
+## Legal Disclaimer
 
-### Version History
-```
+This software is not affiliated with Verisure Holding AB and the developers take no
+legal responsibility for the functionality or security of your Verisure Alarms and
+devices.
+
+## Version History
+
+```txt
 2.5.3 Refactor login
 2.5.2 Fix XBN Database is not activated
 2.5.1 Update CLI, split cookie login to separate function, rename mfa functions
@@ -23,13 +28,132 @@ This software is not affiliated with Verisure Holding AB and the developers take
 ```
 
 ## Installation
-``` pip install git+https://github.com/persandstrom/python-verisure.git@m-api ```
 
+```sh
+pip install git+https://github.com/persandstrom/python-verisure.git@m-api
+```
+
+## Usage
+
+```py
+# example_usage.py
+
+import verisure
+
+USERNAME = "example@domain.org"
+PASSWORD = "MySuperSecretP@ssword"
+
+session = verisure.session(USERNAME, PASSWORD)
+
+# Login without Multifactor Authentication
+installations = session.login()
+# Or with Multicator Authentication, check your phone and mailbox
+session.request_mfa()
+installations = session.validate_mfa(input("code:"))
+
+# Get the `giid` for your installation
+giids = {
+  inst['alias']: inst['giid']
+  for inst in installations['data']['account']['installations']
+}
+print(giids)
+# {'MY STREET': '123456789000'}
+
+# Set the giid
+session.set_giid(giids["MY STREET"])
+```
+
+### Read alarm status (py)
+
+```py
+arm_state = session.request(session.arm_state())
+```
+
+output
+
+```json
+{
+    "data": {
+        "installation": {
+            "armState": {
+                "type": null,
+                "statusType": "DISARMED",
+                "date": "2020-03-11T21:04:40.000Z",
+                "name": "Alex Poe",
+                "changedVia": "CODE",
+                "__typename": "ArmState"
+            },
+            "__typename": "Installation"
+        }
+    }
+}
+```
+
+### Read status from alarm and door-window (py)
+
+```py
+output = session.request([session.arm_state(), session.door_window()])
+```
+
+output
+
+```json
+[
+    {
+        "data": {
+            "installation": {
+                "armState": {
+                    "type": null,
+                    "statusType": "DISARMED",
+                    "date": "2022-01-01T00:00:00.000Z",
+                    "name": "Alex Poe",
+                    "changedVia": "CODE",
+                    "__typename": "ArmState"
+                },
+                "__typename": "Installation"
+            }
+        }
+    },
+    {
+        "data": {
+            "installation": {
+                "doorWindows": [
+                    {
+                        "device": {
+                            "deviceLabel": "ABCD EFGH",
+                            "__typename": "Device"
+                        },
+                        "type": null,
+                        "area": "Front Door",
+                        "state": "CLOSE",
+                        "wired": false,
+                        "reportTime": "2022-01-01T00:00:00.000Z",
+                        "__typename": "DoorWindow"
+                    },
+                    {
+                        "device": {
+                            "deviceLabel": "IJKL MNOP",
+                            "__typename": "Device"
+                        },
+                        "type": null,
+                        "area": "Back Door",
+                        "state": "CLOSE",
+                        "wired": false,
+                        "reportTime": "2022-01-01T00:00:00.000Z",
+                        "__typename": "DoorWindow"
+                    }
+                ],
+                "__typename": "Installation"
+            }
+        }
+    }
+]
+```
 
 ## Command line usage
 
-```
-Usage: python -m verisure [OPTIONS] USERNAME PASSWORD
+```txt
+Usage: vsure [OPTIONS] USERNAME PASSWORD
 
   Read and change status of verisure devices through verisure app API
 
@@ -79,16 +203,17 @@ Options:
   --smartplugs                    Read status of all smart plugs
   --user-trackings                Read user tracking status
   --help                          Show this message and exit.
-
 ```
 
-### Read alarm status
+### Read alarm status (cli)
 
-``` vsure user@example.com mypassword --arm-state ```
-
-output:
-
+```sh
+vsure user@example.com mypassword --arm-state
 ```
+
+The output is the same as above [Read alarm status (py)](#read-alarm-status-py)
+
+```json
 {
     "data": {
         "installation": {
@@ -106,7 +231,8 @@ output:
 }
 ```
 
-### Read status from alarm and door-window
+### Read status from alarm and door-window (cli)
 
-``` vsure user@example.com mypassword --arm-state --door-window ```
-
+```sh
+vsure user@example.com mypassword --arm-state --door-window
+```
