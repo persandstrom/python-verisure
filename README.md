@@ -12,7 +12,7 @@ devices.
 ## Version History
 
 ```txt
-2.5.4 Refactoring and resolving lint warnings
+2.5.4 Add possibility to set giid to all queries, refactoring and resolve lint warnings
 2.5.3 Refactor login
 2.5.2 Fix XBN Database is not activated
 2.5.1 Update CLI, split cookie login to separate function, rename mfa functions

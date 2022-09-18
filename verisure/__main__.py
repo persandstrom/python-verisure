@@ -67,6 +67,9 @@ def options_from_operator_list():
             if not hasattr(operation, 'is_query'):
                 continue
             variables = list(operation.__annotations__.values())
+            # Remove Giid type from variables, not supported by CLI
+            if VariableTypes.Giid in variables:
+                variables.remove(VariableTypes.Giid)
             dashed_name = name.replace('_', '-')
             if len(variables) == 0:
                 click.option(
