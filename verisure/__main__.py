@@ -1,13 +1,15 @@
 """ Command line interface for Verisure MyPages """
 
-import click
+from argparse import ArgumentError
 import inspect
 import json
 import re
+import click
 from verisure import VariableTypes, Session, ResponseError, LoginError
 
 
 class DeviceLabel(click.ParamType):
+    """Click param for device label"""
     name = "DeviceLabel"
 
     def convert(self, value, param, ctx):
@@ -17,22 +19,27 @@ class DeviceLabel(click.ParamType):
 
 
 class ArmFutureState(click.ParamType):
+    """Click param for arm future state"""
     name = "FutureState"
 
 
 class LockFutureState(click.ParamType):
+    """Click param for lock future state"""
     name = "FutureState"
 
 
 class TransactionId(click.ParamType):
+    """Click param for transaction id"""
     name = "TransactionId"
 
 
 class RequestId(click.ParamType):
+    """Click param for request id"""
     name = "RequestId"
 
 
 class Code(click.ParamType):
+    """Click param for code"""
     name = "Code"
 
     def convert(self, value, param, ctx):
@@ -53,6 +60,7 @@ VariableTypeMap = {
 
 
 def options_from_operator_list():
+    """Get all query operations and build query cli"""
     def decorator(f):
         ops = inspect.getmembers(Session, predicate=inspect.isfunction)
         for name, operation in reversed(ops):
@@ -81,9 +89,10 @@ def options_from_operator_list():
 
 
 def make_query(session, name, arguments):
-    if (arguments is True):
+    """make query operation"""
+    if arguments is True:
         return getattr(session, name)()
-    if (type(arguments) is str):
+    if isinstance(arguments, str):
         return getattr(session, name)(arguments)
     return getattr(session, name)(*arguments)
 

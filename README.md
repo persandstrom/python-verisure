@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.5.4 Refactoring and resolving lint warnings
 2.5.3 Refactor login
 2.5.2 Fix XBN Database is not activated
 2.5.1 Update CLI, split cookie login to separate function, rename mfa functions
@@ -43,7 +44,7 @@ import verisure
 USERNAME = "example@domain.org"
 PASSWORD = "MySuperSecretP@ssword"
 
-session = verisure.session(USERNAME, PASSWORD)
+session = verisure.Session(USERNAME, PASSWORD)
 
 # Login without Multifactor Authentication
 installations = session.login()
@@ -92,7 +93,7 @@ output
 ### Read status from alarm and door-window (py)
 
 ```py
-output = session.request([session.arm_state(), session.door_window()])
+output = session.request(session.arm_state(), session.door_window())
 ```
 
 output
@@ -153,7 +154,7 @@ output
 ## Command line usage
 
 ```txt
-Usage: vsure [OPTIONS] USERNAME PASSWORD
+Usage: python -m verisure [OPTIONS] USERNAME PASSWORD
 
   Read and change status of verisure devices through verisure app API
 
@@ -167,7 +168,7 @@ Options:
   --broadband                     Get broadband status
   --camera-capture <DEVICELABEL REQUESTID>...
                                   Capture a new image from a camera
-  --camera-get-requestId DEVICELABEL
+  --camera-get-request-id DEVICELABEL
                                   Get requestId for camera_capture
   --cameras                       Get cameras state
   --cameras-image-series          Get the cameras image series
