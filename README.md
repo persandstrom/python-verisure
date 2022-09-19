@@ -31,7 +31,7 @@ devices.
 ## Installation
 
 ```sh
-pip install git+https://github.com/persandstrom/python-verisure.git@m-api
+pip install git+https://github.com/persandstrom/python-verisure.git@version-2
 ```
 
 ## Usage
