@@ -41,9 +41,9 @@ This software is not affiliated with Verisure Holding AB and the developers take
 ```
 
 ## Installation
-``` pip install vsure ```
+``` pip install vsure==1.* ```
 or
-``` pip install git+https://github.com/persandstrom/python-verisure.git ```
+``` pip install git+https://github.com/persandstrom/python-verisure.git@version-1 ```
 
 
 ## Command line usage
