@@ -31,6 +31,12 @@ devices.
 ## Installation
 
 ```sh
+pip install vsure
+```
+
+or 
+
+```sh
 pip install git+https://github.com/persandstrom/python-verisure.git@version-2
 ```
 
