@@ -106,7 +106,7 @@ def make_query(session, name, arguments):
 @click.option('-c', '--cookie', 'cookie', help='File to store cookie in', default='~/.verisure-cookie')  # noqa: E501
 @click.option('--mfa', 'mfa', help='Login using MFA', default=False, is_flag=True)  # noqa: E501
 @options_from_operator_list()
-def cli(username, password, installation, cookie, mfa, *args, **kwargs):
+def cli(username, password, installation, cookie, mfa, **kwargs):
     """Read and change status of verisure devices through verisure app API"""
 
     session = Session(username, password, cookie)
@@ -137,7 +137,7 @@ def cli(username, password, installation, cookie, mfa, *args, **kwargs):
         click.echo(json.dumps(result, indent=4, separators=(',', ': ')))
 
     except ResponseError as ex:
-        print(ex.text)
+        click.echo(ex,err=True)
 
 
 if __name__ == "__main__":
