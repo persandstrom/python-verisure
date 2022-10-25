@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.5.6 Fix docstring, cookie lasts 15 minutes
 2.5.5 Solved bug during response error except using CLI
 2.5.4 Add possibility to set giid to all queries, refactoring and resolve lint warnings
 2.5.3 Refactor login
