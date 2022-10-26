@@ -211,7 +211,7 @@ class Session(object):
 
     def update_cookie(self):
         """ Update expired cookie
-        Cookie can last 5 minutes before it needs to be updated.
+        Cookie can last 15 minutes before it needs to be updated.
         """
 
         response = self._get(
