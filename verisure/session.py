@@ -475,6 +475,19 @@ class Session(object):
                 "email": self._username},
             "query": "query fetchAllInstallations($email: String!){\n  account(email: $email) {\n    installations {\n      giid\n      alias\n      customerType\n      dealerId\n      subsidiary\n      pinCodeLength\n      locale\n      address {\n        street\n        city\n        postalNumber\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
             }
+    
+    @query_func
+    def firmware(self,
+                 giid: VariableTypes.Giid=None):
+        """Get firmware information"""
+        assert giid or self._giid, "Set default giid or pass explicit"
+        return {
+	        "operationName": "Firmware",
+	        "variables": {
+		        "giid": giid or self._giid
+	        },
+	        "query": "query Firmware($giid: String!) {\n  installation(giid: $giid) {\n    firmware {\n      status {\n        latestFirmware\n        requestedFirmware\n        upgradeable\n        status\n        gateways {\n          reportedRunningFirmware\n          deviceLabel\n          status\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n" # noqa: E501
+        }
 
     @query_func
     def guardian_sos(self):

@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.6.0 Add Get Firmware Version
 2.5.6 Fix docstring, cookie lasts 15 minutes
 2.5.5 Solved bug during response error except using CLI
 2.5.4 Add possibility to set giid to all queries, refactoring and resolve lint warnings
@@ -194,6 +195,7 @@ Options:
   --door-window                   Read status of door and window sensors
   --event-log                     Read event log
   --fetch-all-installations       Fetch installations
+  --firmware                      Get firmware information
   --guardian-sos                  Guardian SOS
   --is-guardian-activated         Is guardian activated
   --permissions                   Permissions
