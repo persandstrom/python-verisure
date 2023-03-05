@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.6.1 Move to automation subdomain
 2.6.0 Add Get Firmware Version
 2.5.6 Fix docstring, cookie lasts 15 minutes
 2.5.5 Solved bug during response error except using CLI
