@@ -81,8 +81,8 @@ class Session(object):
         self._giid = None
         self._base_url = None
         self._stepup = None
-        self._base_urls = ['https://m-api01.verisure.com',
-                           'https://m-api02.verisure.com']
+        self._base_urls = ['https://automation01.verisure.com',
+                           'https://automation02.verisure.com']
         self._post = self._wrap_request(requests.post)
         self._delete = self._wrap_request(requests.delete)
         self._get = self._wrap_request(requests.get)
