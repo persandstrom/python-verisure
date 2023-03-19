@@ -8,6 +8,9 @@ import pickle
 import requests
 
 
+class Query(dict):
+    ''' Verisure Query '''
+
 class Error(Exception):
     ''' Verisure session error '''
 
@@ -264,7 +267,7 @@ class Session(object):
     @query_func
     def arm_away(self,
                  code: VariableTypes.Code,
-                 giid: VariableTypes.Giid=None):
+                 giid: VariableTypes.Giid=None) -> Query:
         """Set arm status away"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -278,7 +281,7 @@ class Session(object):
     @query_func
     def arm_home(self,
                  code: VariableTypes.Code,
-                 giid: VariableTypes.Giid=None):
+                 giid: VariableTypes.Giid=None) -> Query:
         """Set arm state home"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -291,7 +294,7 @@ class Session(object):
 
     @query_func
     def arm_state(self,
-                  giid: VariableTypes.Giid=None):
+                  giid: VariableTypes.Giid=None) -> Query:
         """Read arm state"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -303,7 +306,7 @@ class Session(object):
 
     @query_func
     def broadband(self,
-                  giid: VariableTypes.Giid=None):
+                  giid: VariableTypes.Giid=None) -> Query:
         """Get broadband status"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -315,7 +318,7 @@ class Session(object):
 
     @query_func
     def capability(self,
-                   giid: VariableTypes.Giid=None):
+                   giid: VariableTypes.Giid=None) -> Query:
         """Get capability"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -327,7 +330,7 @@ class Session(object):
 
     @query_func
     def charge_sms(self,
-                   giid: VariableTypes.Giid=None):
+                   giid: VariableTypes.Giid=None) -> Query:
         """Charge SMS"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -339,7 +342,7 @@ class Session(object):
 
     @query_func
     def climate(self,
-                giid: VariableTypes.Giid=None):
+                giid: VariableTypes.Giid=None) -> Query:
         """Get climate"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -352,7 +355,7 @@ class Session(object):
     @query_func
     def disarm(self,
                code: VariableTypes.Code,
-               giid: VariableTypes.Giid=None):
+               giid: VariableTypes.Giid=None) -> Query:
         """Disarm alarm"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -367,7 +370,7 @@ class Session(object):
     def door_lock(self,
                   device_label: VariableTypes.DeviceLabel,
                   code: VariableTypes.Code,
-                  giid: VariableTypes.Giid=None):
+                  giid: VariableTypes.Giid=None) -> Query:
         """Lock door"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -385,7 +388,7 @@ class Session(object):
     @query_func
     def door_lock_configuration(self,
                                 device_label: VariableTypes.DeviceLabel,
-                                giid: VariableTypes.Giid=None):
+                                giid: VariableTypes.Giid=None) -> Query:
         """Get door lock configuration"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -400,7 +403,7 @@ class Session(object):
     def set_autolock_enabled(self,
                              device_label: VariableTypes.DeviceLabel,
                              auto_lock_enabled: bool,
-                             giid: VariableTypes.Giid=None):
+                             giid: VariableTypes.Giid=None) -> Query:
         """Enable or disable autolock"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -419,7 +422,7 @@ class Session(object):
     def door_unlock(self,
                     device_label: VariableTypes.DeviceLabel,
                     code: VariableTypes.Code,
-                    giid: VariableTypes.Giid=None):
+                    giid: VariableTypes.Giid=None) -> Query:
         """Unlock door"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -436,7 +439,7 @@ class Session(object):
 
     @query_func
     def door_window(self,
-                    giid: VariableTypes.Giid=None):
+                    giid: VariableTypes.Giid=None) -> Query:
         """Read status of door and window sensors"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -448,7 +451,7 @@ class Session(object):
 
     @query_func
     def event_log(self,
-                  giid: VariableTypes.Giid=None):
+                  giid: VariableTypes.Giid=None) -> Query:
         """Read event log"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -467,7 +470,7 @@ class Session(object):
         }
 
     @query_func
-    def fetch_all_installations(self):
+    def fetch_all_installations(self) -> Query:
         """Fetch installations"""
         return {
             "operationName": "fetchAllInstallations",
@@ -478,7 +481,7 @@ class Session(object):
     
     @query_func
     def firmware(self,
-                 giid: VariableTypes.Giid=None):
+                 giid: VariableTypes.Giid=None) -> Query:
         """Get firmware information"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -490,7 +493,7 @@ class Session(object):
         }
 
     @query_func
-    def guardian_sos(self):
+    def guardian_sos(self) -> Query:
         """Guardian SOS"""
         return {
             "operationName": "GuardianSos",
@@ -500,7 +503,7 @@ class Session(object):
 
     @query_func
     def is_guardian_activated(self,
-                              giid: VariableTypes.Giid=None):
+                              giid: VariableTypes.Giid=None) -> Query:
         """Is guardian activated"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -513,7 +516,7 @@ class Session(object):
 
     @query_func
     def permissions(self,
-                    giid: VariableTypes.Giid=None):
+                    giid: VariableTypes.Giid=None) -> Query:
         """Permissions"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -528,7 +531,7 @@ class Session(object):
     def poll_arm_state(self,
                        transaction_id: VariableTypes.TransactionId,
                        future_state: VariableTypes.ArmFutureState,
-                       giid: VariableTypes.Giid=None):
+                       giid: VariableTypes.Giid=None) -> Query:
         """Poll arm state"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -545,7 +548,7 @@ class Session(object):
                         transaction_id: VariableTypes.TransactionId,
                         device_label: VariableTypes.DeviceLabel,
                         future_state: VariableTypes.LockFutureState,
-                        giid: VariableTypes.Giid=None):
+                        giid: VariableTypes.Giid=None) -> Query:
         """Poll lock state"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -560,7 +563,7 @@ class Session(object):
 
     @query_func
     def remaining_sms(self,
-                      giid: VariableTypes.Giid=None):
+                      giid: VariableTypes.Giid=None) -> Query:
         """Get remaing number of SMS"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -572,7 +575,7 @@ class Session(object):
 
     @query_func
     def smart_button(self,
-                     giid: VariableTypes.Giid=None):
+                     giid: VariableTypes.Giid=None) -> Query:
         """Get smart button state"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -584,7 +587,7 @@ class Session(object):
 
     @query_func
     def smart_lock(self,
-                   giid: VariableTypes.Giid=None):
+                   giid: VariableTypes.Giid=None) -> Query:
         """Get smart lock state"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -598,7 +601,7 @@ class Session(object):
     def set_smartplug(self,
                       device_label: VariableTypes.DeviceLabel,
                       state: bool,
-                      giid: VariableTypes.Giid=None):
+                      giid: VariableTypes.Giid=None) -> Query:
         """Set state of smart plug"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -613,7 +616,7 @@ class Session(object):
     @query_func
     def smartplug(self,
                   device_label: VariableTypes.DeviceLabel,
-                  giid: VariableTypes.Giid=None):
+                  giid: VariableTypes.Giid=None) -> Query:
         """Read status of a single smart plug"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -626,7 +629,7 @@ class Session(object):
 
     @query_func
     def smartplugs(self,
-                   giid: VariableTypes.Giid=None):
+                   giid: VariableTypes.Giid=None) -> Query:
         """Read status of all smart plugs"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -638,7 +641,7 @@ class Session(object):
 
     @query_func
     def user_trackings(self,
-                       giid: VariableTypes.Giid=None):
+                       giid: VariableTypes.Giid=None) -> Query:
         """Read user tracking status"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -650,7 +653,7 @@ class Session(object):
 
     @query_func
     def cameras(self,
-                giid: VariableTypes.Giid=None):
+                giid: VariableTypes.Giid=None) -> Query:
         """Get cameras state"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -663,7 +666,7 @@ class Session(object):
 
     @query_func
     def cameras_last_image(self,
-                           giid: VariableTypes.Giid=None):
+                           giid: VariableTypes.Giid=None) -> Query:
         """Get cameras last image"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -676,7 +679,7 @@ class Session(object):
     def cameras_image_series(self, 
                              limit=50,
                              offset=0,
-                             giid: VariableTypes.Giid=None):
+                             giid: VariableTypes.Giid=None) -> Query:
         """Get the cameras image series"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -691,7 +694,7 @@ class Session(object):
     @query_func
     def camera_get_request_id(self,
                              device_label: VariableTypes.DeviceLabel,
-                             giid: VariableTypes.Giid=None):
+                             giid: VariableTypes.Giid=None) -> Query:
         """Get requestId for camera_capture"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
@@ -707,7 +710,7 @@ class Session(object):
     def camera_capture(self,
                        device_label: VariableTypes.DeviceLabel,
                        request_id: VariableTypes.RequestId,
-                       giid: VariableTypes.Giid=None):
+                       giid: VariableTypes.Giid=None) -> Query:
         """Capture a new image from a camera"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {

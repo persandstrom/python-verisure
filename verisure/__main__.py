@@ -4,7 +4,7 @@ import inspect
 import json
 import re
 import click
-from verisure import VariableTypes, Session, ResponseError, LoginError
+from verisure import VariableTypes, Session, ResponseError, LoginError, Query
 
 
 class DeviceLabel(click.ParamType):
@@ -69,6 +69,9 @@ def options_from_operator_list():
             # Remove Giid type from variables, not supported by CLI
             if VariableTypes.Giid in variables:
                 variables.remove(VariableTypes.Giid)
+            # Remove Query type from variables, not used CLI
+            if Query in variables:
+                variables.remove(Query)
             dashed_name = name.replace('_', '-')
             if len(variables) == 0:
                 click.option(
