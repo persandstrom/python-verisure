@@ -105,7 +105,7 @@ class Session(object):
                             self._base_urls.reverse()
                             continue
                         return response
-                    raise ResponseError(response.status_code, response.text)
+                    response.raise_for_status()
                 except requests.exceptions.RequestException as ex:
                     last_exception = ex
                 self._base_urls.reverse()
