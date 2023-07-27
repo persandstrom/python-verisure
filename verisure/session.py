@@ -110,7 +110,6 @@ class Session(object):
                         break
                     if response.status_code == 200:
                         return response
-                    response.raise_for_status()
                 except requests.exceptions.RequestException as ex:
                     last_exception = RequestError(str(ex))
                 self._base_urls.reverse()
