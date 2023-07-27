@@ -101,13 +101,20 @@ class Session(object):
             for base_url in base_urls:
                 try:
                     response = function(base_url+url, *args, **kwargs)
+                    if response.status_code >= 500:
+                        last_exception = ResponseError(response.status_code, response.text)
+                        self._base_urls.reverse()
+                        continue
+                    if response.status_code >= 400:
+                        last_exception = LoginError(response.text)
+                        break
                     if response.status_code == 200:
                         return response
                     response.raise_for_status()
                 except requests.exceptions.RequestException as ex:
-                    last_exception = ex
+                    last_exception = RequestError(str(ex))
                 self._base_urls.reverse()
-            raise Error from last_exception
+            raise last_exception
         return wrapper
 
 
