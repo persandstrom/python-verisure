@@ -101,9 +101,6 @@ class Session(object):
                 try:
                     response = function(base_url+url, *args, **kwargs)
                     if response.status_code == 200:
-                        if "SYS_00004" in response.text:
-                            self._base_urls.reverse()
-                            continue
                         return response
                     response.raise_for_status()
                 except requests.exceptions.RequestException as ex:
