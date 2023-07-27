@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.6.3 Differentiate response errors
 2.6.2 Fix request wrapper
 2.6.1 Move to automation subdomain
 2.6.0 Add Get Firmware Version
