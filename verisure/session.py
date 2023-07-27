@@ -5,6 +5,7 @@ Verisure session, using verisure app api
 import json
 import os
 import pickle
+
 import requests
 
 
