@@ -109,7 +109,11 @@ class Session(object):
                         last_exception = LoginError(response.text)
                         break
                     if response.status_code == 200:
+                        if "SYS_00004" in response.text:
+                            self._base_urls.reverse()
+                            continue
                         return response
+ 
                 except requests.exceptions.RequestException as ex:
                     last_exception = RequestError(str(ex))
                 self._base_urls.reverse()
