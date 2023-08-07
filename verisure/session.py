@@ -19,6 +19,9 @@ class RequestError(Error):
 
 class LoginError(Error):
     ''' Login failed '''
+    def __init__(self, text, status_code = None):
+        super().__init__(
+            f'Login error, status code: {status_code} - Data: {text}')
 
 
 class LogoutError(Error):
@@ -106,8 +109,9 @@ class Session(object):
                         self._base_urls.reverse()
                         continue
                     if response.status_code >= 400:
-                        last_exception = LoginError(response.text)
-                        break
+                        last_exception = LoginError(response.text, response.status_code)
+                        self._base_urls.reverse()
+                        continue
                     if response.status_code == 200:
                         if "SYS_00004" in response.text:
                             self._base_urls.reverse()
