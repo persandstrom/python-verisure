@@ -3,10 +3,13 @@ Verisure session, using verisure app api
 '''
 
 import json
+import logging
 import os
 import pickle
 
 import requests
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Error(Exception):
@@ -105,14 +108,17 @@ class Session(object):
                 try:
                     response = function(base_url+url, *args, **kwargs)
                     if response.status_code >= 500:
+                        _LOGGER.warning(f'Error from {base_url}: {response.status_code} - {response.text}')
                         last_exception = ResponseError(response.status_code, response.text)
                         self._base_urls.reverse()
                         continue
                     if response.status_code >= 400:
+                        _LOGGER.warning(f'Error from {base_url}: {response.status_code} - {response.text}')
                         last_exception = LoginError(response.text, response.status_code)
                         self._base_urls.reverse()
                         continue
                     if response.status_code == 200:
+                        _LOGGER.debug(f'OK from {base_url}: {response.status_code}')
                         if "SYS_00004" in response.text:
                             self._base_urls.reverse()
                             continue
