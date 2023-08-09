@@ -3,10 +3,13 @@ Verisure session, using verisure app api
 '''
 
 import json
+import logging
 import os
 import pickle
 
 import requests
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Error(Exception):
@@ -19,6 +22,9 @@ class RequestError(Error):
 
 class LoginError(Error):
     ''' Login failed '''
+    def __init__(self, text, status_code = None):
+        super().__init__(
+            f'Login error, status code: {status_code} - Data: {text}')
 
 
 class LogoutError(Error):
@@ -102,20 +108,32 @@ class Session(object):
                 try:
                     response = function(base_url+url, *args, **kwargs)
                     if response.status_code >= 500:
+                        _LOGGER.warning(f'Error from {base_url}: {response.status_code} - {response.text}')
                         last_exception = ResponseError(response.status_code, response.text)
                         self._base_urls.reverse()
                         continue
                     if response.status_code >= 400:
-                        last_exception = LoginError(response.text)
-                        break
+                        _LOGGER.warning(f'Error from {base_url}: {response.status_code} - {response.text}')
+                        if "Session has expired" in response.text:
+                            raise LoginError(response.text, response.status_code)
+                        elif "Username/password does not match any valid login" in response.text:
+                            raise ResponseError(response.status_code, response.text)
+
+                        last_exception = LoginError(response.text, response.status_code)
+                        self._base_urls.reverse()
+                        continue
                     if response.status_code == 200:
+                        _LOGGER.debug(f'OK from {base_url}: {response.status_code}')
                         if "SYS_00004" in response.text:
                             self._base_urls.reverse()
                             continue
                         return response
+                    _LOGGER.debug(f'Unknown status from {base_url}: {response.status_code} - {response.text}')
  
                 except requests.exceptions.RequestException as ex:
+                    _LOGGER.debug(f'Exception from {base_url}: {ex}')
                     last_exception = RequestError(str(ex))
+                _LOGGER.debug(f'Switching active base_url')
                 self._base_urls.reverse()
             raise last_exception
         return wrapper
