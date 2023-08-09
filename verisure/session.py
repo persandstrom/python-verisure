@@ -114,6 +114,11 @@ class Session(object):
                         continue
                     if response.status_code >= 400:
                         _LOGGER.warning(f'Error from {base_url}: {response.status_code} - {response.text}')
+                        if "Session has expired" in response.text:
+                            raise LoginError(response.text, response.status_code)
+                        elif "Username/password does not match any valid login" in response.text:
+                            raise ResponseError(response.status_code, response.text)
+
                         last_exception = LoginError(response.text, response.status_code)
                         self._base_urls.reverse()
                         continue
@@ -123,9 +128,12 @@ class Session(object):
                             self._base_urls.reverse()
                             continue
                         return response
+                    _LOGGER.debug(f'Unknown status from {base_url}: {response.status_code} - {response.text}')
  
                 except requests.exceptions.RequestException as ex:
+                    _LOGGER.debug(f'Exception from {base_url}: {ex}')
                     last_exception = RequestError(str(ex))
+                _LOGGER.debug(f'Switching active base_url')
                 self._base_urls.reverse()
             raise last_exception
         return wrapper
