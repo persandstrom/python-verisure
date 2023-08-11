@@ -79,6 +79,7 @@ class Session(object):
         self._password = password
         self._cookies = None
         self._cookie_file_name = os.path.expanduser(cookie_file_name)
+        self._trust_token = None
         self._giid = None
         self._base_url = None
         self._base_urls = ['https://automation01.verisure.com',
@@ -189,6 +190,16 @@ class Session(object):
         with open(self._cookie_file_name, 'wb') as cookie_file:
             pickle.dump(self._cookies, cookie_file)
 
+        trust_response = self._post(
+            url="/auth/trust",
+            headers={
+                'APPLICATION_ID': 'PS_PYTHON',
+                'Accept': 'application/json',
+            },
+            cookies=self._cookies)
+        self._cookies.update(trust_response.cookies)
+        self._trust_token = trust_response.json()
+
         installations = self.get_installations()
         if 'errors' not in installations:
             return installations
@@ -233,6 +244,15 @@ class Session(object):
     def logout(self):
         """ Log out from the verisure app api """
         try:
+            if self._trust_token is not None:
+                token = self._trust_token['trustTokenValue']
+                self._delete(
+                    url=f"/auth/trust/{token}",
+                    headers={
+                        'APPLICATION_ID': 'PS_PYTHON',
+                        'Accept': 'application/json',
+                    },
+                    cookies=self._cookies)
             self._delete(
                 url="/auth/logout",
                 headers={'APPLICATION_ID': 'PS_PYTHON'},
@@ -241,6 +261,7 @@ class Session(object):
             self._base_url = None
             self._giid = None
             self._cookies = None
+            self._trust_token = None
             if os.path.exists(self._cookie_file_name):
                 os.remove(self._cookie_file_name)
 
