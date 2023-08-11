@@ -81,7 +81,6 @@ class Session(object):
         self._cookie_file_name = os.path.expanduser(cookie_file_name)
         self._giid = None
         self._base_url = None
-        self._stepup = None
         self._base_urls = ['https://automation01.verisure.com',
                            'https://automation02.verisure.com']
         self._post = self._wrap_request(requests.post)
@@ -242,7 +241,6 @@ class Session(object):
             self._base_url = None
             self._giid = None
             self._cookies = None
-            self._stepup = None
             if os.path.exists(self._cookie_file_name):
                 os.remove(self._cookie_file_name)
 
