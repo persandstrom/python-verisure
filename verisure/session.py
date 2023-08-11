@@ -218,8 +218,16 @@ class Session(object):
         except Exception as ex:
             raise LoginError("Failed to read cookie") from ex
 
-        # Update cookie
-        self.update_cookie()
+        # Login
+        response = self._post(
+            "/auth/login",
+            headers={
+                'APPLICATION_ID': 'PS_PYTHON',
+                'Accept': 'application/json',
+            },
+            auth=(self._username, self._password),
+            cookies=self._cookies)
+        self._cookies.update(response.cookies)
 
         installations = self.get_installations()
         if 'errors' not in installations:
