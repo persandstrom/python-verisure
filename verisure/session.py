@@ -185,10 +185,7 @@ class Session(object):
                 'Content-Type': 'application/json'},
             cookies=self._cookies,
             data=json.dumps({"token": code}))
-
         self._cookies = response.cookies
-        with open(self._cookie_file_name, 'wb') as cookie_file:
-            pickle.dump(self._cookies, cookie_file)
 
         trust_response = self._post(
             url="/auth/trust",
@@ -198,6 +195,8 @@ class Session(object):
             },
             cookies=self._cookies)
         self._cookies.update(trust_response.cookies)
+        with open(self._cookie_file_name, 'wb') as cookie_file:
+            pickle.dump(self._cookies, cookie_file)
         self._trust_token = trust_response.json()
 
         installations = self.get_installations()
