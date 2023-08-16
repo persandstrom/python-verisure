@@ -217,8 +217,19 @@ class Session(object):
         except Exception as ex:
             raise LoginError("Failed to read cookie") from ex
 
-        # Update cookie
-        self.update_cookie()
+        # Login
+        cookie_jar = requests.sessions.RequestsCookieJar()
+        for name, value in self._cookies.items():
+            if 'vs-trust' in name:
+                cookie_jar.set(name, value)
+        response = self._post(
+            url="/auth/login",
+            headers={'APPLICATION_ID': 'PS_PYTHON'},
+            auth=(self._username, self._password),
+            cookies=cookie_jar)
+        self._cookies.update(response.cookies)
+        with open(self._cookie_file_name, 'wb') as f:
+            pickle.dump(self._cookies, f)
 
         installations = self.get_installations()
         if 'errors' not in installations:
