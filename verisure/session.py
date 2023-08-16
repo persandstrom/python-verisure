@@ -231,10 +231,13 @@ class Session(object):
         Cookie can last 15 minutes before it needs to be updated.
         """
 
+        cookie_jar = requests.sessions.RequestsCookieJar()
+        cookie_jar['vid'] = self._cookies['vid']
+        cookie_jar['vs-refresh'] = self._cookies['vs-refresh']
         response = self._get(
             url="/auth/token",
             headers={'APPLICATION_ID': 'PS_PYTHON'},
-            cookies=self._cookies)
+            cookies=cookie_jar)
 
         self._cookies.update(response.cookies)
         with open(self._cookie_file_name, 'wb') as cookie_file:
