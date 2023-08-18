@@ -3,10 +3,13 @@ Verisure session, using verisure app api
 '''
 
 import json
+import logging
 import os
 import pickle
 
 import requests
+
+LOGGER = logging.getLogger(__package__)
 
 
 class Error(Exception):
@@ -75,6 +78,7 @@ class Session(object):
 
     def __init__(self, username, password,
                  cookie_file_name='~/.verisure-cookie'):
+        LOGGER.info(f"Initialize Session ({username=}, {cookie_file_name=})")
         self._username = username
         self._password = password
         self._cookies = None
@@ -101,6 +105,11 @@ class Session(object):
             for base_url in base_urls:
                 try:
                     response = function(base_url+url, *args, **kwargs)
+                    if response.status_code > 200 or "errors" in response.text:
+                        LOGGER.debug(
+                            f"{response.request.method} {response.request.url} "
+                            f"{response.status_code} f{response.text}"
+                        )
                     if response.status_code >= 500:
                         last_exception = ResponseError(response.status_code, response.text)
                         self._base_urls.reverse()
@@ -115,6 +124,7 @@ class Session(object):
                         return response
  
                 except requests.exceptions.RequestException as ex:
+                    LOGGER.warning(f"Unexpected error on '{base_url}{url}' ({ex=})")
                     last_exception = RequestError(str(ex))
                 self._base_urls.reverse()
             raise last_exception
@@ -230,6 +240,7 @@ class Session(object):
         self._cookies.update(response.cookies)
         with open(self._cookie_file_name, 'wb') as cookie_file:
             pickle.dump(self._cookies, cookie_file)
+        LOGGER.debug(f"Saved cookies: {[cookie for cookie in self._cookies.keys()]}")
 
     def logout(self):
         """ Log out from the verisure app api """
@@ -268,6 +279,7 @@ class Session(object):
             giid (str): Installation identifier
         """
         self._giid = giid
+        LOGGER.info(f"Installation identifier set ({giid=})")
 
     @query_func
     def arm_away(self,
