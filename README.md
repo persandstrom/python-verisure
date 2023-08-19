@@ -12,7 +12,8 @@ devices.
 ## Version History
 
 ```txt
-2.6.5 Enable trust
+2.6.6 Enable trust
+2.6.5 Add logging
 2.6.4 Handle "SYS_00004" response again (was removed in 2.6.3)
 2.6.3 Differentiate response errors
 2.6.2 Fix request wrapper
