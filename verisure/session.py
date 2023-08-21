@@ -253,8 +253,10 @@ class Session(object):
         """
 
         cookie_jar = requests.sessions.RequestsCookieJar()
-        cookie_jar['vid'] = self._cookies['vid']
-        cookie_jar['vs-refresh'] = self._cookies['vs-refresh']
+        if self._cookies is not None:
+            for name, value in self._cookies.items():
+                if name in ['vid', 'vs-refresh']:
+                    cookie_jar[name] = value
         response = self._get(
             url="/auth/token",
             headers={'APPLICATION_ID': 'PS_PYTHON'},
