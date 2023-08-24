@@ -83,9 +83,9 @@ class Session(object):
         self._password = password
         self._cookies = None
         self._cookie_file_name = os.path.expanduser(cookie_file_name)
+        self._trust_token = None
         self._giid = None
         self._base_url = None
-        self._stepup = None
         self._base_urls = ['https://automation01.verisure.com',
                            'https://automation02.verisure.com']
         self._post = self._wrap_request(requests.post)
@@ -195,10 +195,19 @@ class Session(object):
                 'Content-Type': 'application/json'},
             cookies=self._cookies,
             data=json.dumps({"token": code}))
-
         self._cookies = response.cookies
+
+        trust_response = self._post(
+            url="/auth/trust",
+            headers={
+                'APPLICATION_ID': 'PS_PYTHON',
+                'Accept': 'application/json',
+            },
+            cookies=self._cookies)
+        self._cookies.update(trust_response.cookies)
         with open(self._cookie_file_name, 'wb') as cookie_file:
             pickle.dump(self._cookies, cookie_file)
+        self._trust_token = trust_response.json()
 
         installations = self.get_installations()
         if 'errors' not in installations:
@@ -218,8 +227,19 @@ class Session(object):
         except Exception as ex:
             raise LoginError("Failed to read cookie") from ex
 
-        # Update cookie
-        self.update_cookie()
+        # Login
+        cookie_jar = requests.sessions.RequestsCookieJar()
+        for name, value in self._cookies.items():
+            if 'vs-trust' in name:
+                cookie_jar.set(name, value)
+        response = self._post(
+            url="/auth/login",
+            headers={'APPLICATION_ID': 'PS_PYTHON'},
+            auth=(self._username, self._password),
+            cookies=cookie_jar)
+        self._cookies.update(response.cookies)
+        with open(self._cookie_file_name, 'wb') as f:
+            pickle.dump(self._cookies, f)
 
         installations = self.get_installations()
         if 'errors' not in installations:
@@ -232,10 +252,15 @@ class Session(object):
         Cookie can last 15 minutes before it needs to be updated.
         """
 
+        cookie_jar = requests.sessions.RequestsCookieJar()
+        if self._cookies is not None:
+            for name, value in self._cookies.items():
+                if name in ['vid', 'vs-refresh']:
+                    cookie_jar[name] = value
         response = self._get(
             url="/auth/token",
             headers={'APPLICATION_ID': 'PS_PYTHON'},
-            cookies=self._cookies)
+            cookies=cookie_jar)
 
         self._cookies.update(response.cookies)
         with open(self._cookie_file_name, 'wb') as cookie_file:
@@ -245,6 +270,15 @@ class Session(object):
     def logout(self):
         """ Log out from the verisure app api """
         try:
+            if self._trust_token is not None:
+                token = self._trust_token['trustTokenValue']
+                self._delete(
+                    url=f"/auth/trust/{token}",
+                    headers={
+                        'APPLICATION_ID': 'PS_PYTHON',
+                        'Accept': 'application/json',
+                    },
+                    cookies=self._cookies)
             self._delete(
                 url="/auth/logout",
                 headers={'APPLICATION_ID': 'PS_PYTHON'},
@@ -253,7 +287,7 @@ class Session(object):
             self._base_url = None
             self._giid = None
             self._cookies = None
-            self._stepup = None
+            self._trust_token = None
             if os.path.exists(self._cookie_file_name):
                 os.remove(self._cookie_file_name)
 
