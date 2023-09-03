@@ -293,6 +293,9 @@ class Session(object):
 
     def request(self, *operations):
         """Request operations"""
+        if not operations:
+            # Return empty json if no operations were requested
+            return json.loads("{}")
         response = self._post(
             '/graphql',
             headers={
