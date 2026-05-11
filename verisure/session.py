@@ -215,17 +215,23 @@ class Session(object):
 
         raise LoginError("Failed to log in")
 
+    def _load_cookie_file_into_memory(self):
+        """Populate ``_cookies`` from the persisted pickle (used by cookie login paths)."""
+
+        try:
+            with open(self._cookie_file_name, 'rb') as cookie_file:
+                self._cookies = pickle.load(cookie_file)
+        except OSError as ex:
+            raise LoginError("Failed to read cookie") from ex
+        except (EOFError, pickle.UnpicklingError, AttributeError, TypeError, ValueError) as ex:
+            raise LoginError("Failed to read cookie") from ex
+
     def login_cookie(self):
         """ Login using cookie
         Return installations
         """
 
-        # Load cookie from file
-        try:
-            with open(self._cookie_file_name, 'rb') as cookie_file:
-                self._cookies = pickle.load(cookie_file)
-        except Exception as ex:
-            raise LoginError("Failed to read cookie") from ex
+        self._load_cookie_file_into_memory()
 
         # Login
         cookie_jar = requests.sessions.RequestsCookieJar()
@@ -250,7 +256,13 @@ class Session(object):
     def update_cookie(self):
         """ Update expired cookie
         Cookie can last 15 minutes before it needs to be updated.
+
+        Long-running callers may reset ``self._cookies`` while a valid pickle remains
+        on disk; hydrate from the file before calling ``/auth/token`` so the request
+        is not sent with an empty cookie jar.
         """
+        if self._cookies is None:
+            self._load_cookie_file_into_memory()
 
         cookie_jar = requests.sessions.RequestsCookieJar()
         if self._cookies is not None:
