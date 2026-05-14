@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.6.9 Load cookie file before token refresh when in-memory jars are empty
 2.6.8 Added prompt for password
 2.6.7 Add logging option for CLI, do not send empty requests
 2.6.6 Enable trust

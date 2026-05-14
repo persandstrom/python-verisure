@@ -6,6 +6,7 @@ verisure app API.
 __all__ = [
     'Error',
     'LoginError',
+    'RequestError',
     'ResponseError',
     'Session',
 ]
@@ -13,6 +14,7 @@ __all__ = [
 from .session import ( # NOQA
     Error,
     LoginError,
+    RequestError,
     VariableTypes,
     ResponseError,
     Session,
