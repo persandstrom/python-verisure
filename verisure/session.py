@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import pickle
+import time
 
 import requests
 
@@ -17,11 +18,27 @@ class Error(Exception):
 
 
 class RequestError(Error):
-    ''' Request '''
+    ''' Network or transport failure '''
 
 
 class LoginError(Error):
     ''' Login failed '''
+
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+        self.status_code = status_code
+
+
+class AuthenticationError(LoginError):
+    ''' Credentials rejected or session expired '''
+
+
+class CookieReadError(LoginError):
+    ''' Cookie file missing or corrupt '''
+
+
+class RateLimitError(Error):
+    ''' API rate limit exceeded '''
 
 
 class LogoutError(Error):
@@ -29,10 +46,35 @@ class LogoutError(Error):
 
 
 class ResponseError(Error):
-    ''' Unexcpected response '''
+    ''' Unexpected response '''
+
     def __init__(self, status_code, text):
+        self.status_code = status_code
+        self.text = text
         super().__init__(
             f'Invalid response, status code: {status_code} - Data: {text}')
+
+
+def _response_signals_rate_limit(text: str) -> bool:
+    """Return True when the API rejected the call for rate or quota limits."""
+    lower = text.lower()
+    return (
+        'aut_00021' in lower
+        or 'request limit' in lower
+        or 'rate limit' in lower
+        or 'too many requests' in lower
+    )
+
+
+def _http_error_from_response(status_code: int, text: str) -> Error:
+    """Map an HTTP error response to a structured Verisure exception."""
+    if status_code in (401, 403):
+        return AuthenticationError(text, status_code=status_code)
+    if status_code == 429 or _response_signals_rate_limit(text):
+        return RateLimitError(text)
+    if status_code >= 500:
+        return ResponseError(status_code, text)
+    return LoginError(text, status_code=status_code)
 
 
 def query_func(f):
@@ -111,13 +153,17 @@ class Session(object):
                             f"{response.status_code} f{response.text}"
                         )
                     if response.status_code >= 500:
-                        last_exception = ResponseError(response.status_code, response.text)
+                        last_exception = ResponseError(
+                            response.status_code, response.text)
                         self._base_urls.reverse()
                         continue
                     if response.status_code >= 400:
-                        last_exception = LoginError(response.text)
+                        last_exception = _http_error_from_response(
+                            response.status_code, response.text)
                         break
                     if response.status_code == 200:
+                        if _response_signals_rate_limit(response.text):
+                            raise RateLimitError(response.text)
                         if "SYS_00004" in response.text:
                             self._base_urls.reverse()
                             continue
@@ -222,9 +268,61 @@ class Session(object):
             with open(self._cookie_file_name, 'rb') as cookie_file:
                 self._cookies = pickle.load(cookie_file)
         except OSError as ex:
-            raise LoginError("Failed to read cookie") from ex
+            raise CookieReadError("Failed to read cookie") from ex
         except (EOFError, pickle.UnpicklingError, AttributeError, TypeError, ValueError) as ex:
-            raise LoginError("Failed to read cookie") from ex
+            raise CookieReadError("Failed to read cookie") from ex
+
+    def _update_cookie_once(self):
+        """Refresh the session cookie once via ``/auth/token``."""
+        if self._cookies is None:
+            self._load_cookie_file_into_memory()
+
+        cookie_jar = requests.sessions.RequestsCookieJar()
+        if self._cookies is not None:
+            for name, value in self._cookies.items():
+                if name in ['vid', 'vs-refresh']:
+                    cookie_jar[name] = value
+        response = self._get(
+            url="/auth/token",
+            headers={'APPLICATION_ID': 'PS_PYTHON'},
+            cookies=cookie_jar)
+
+        self._cookies.update(response.cookies)
+        with open(self._cookie_file_name, 'wb') as cookie_file:
+            pickle.dump(self._cookies, cookie_file)
+        LOGGER.debug(f"Saved cookies: {[cookie for cookie in self._cookies.keys()]}")
+
+    def update_cookie(self, attempts=3, delay=1.0):
+        """ Update expired cookie
+        Cookie can last 15 minutes before it needs to be updated.
+
+        Retries token refresh when the API returns a recoverable login error.
+        Authentication and cookie-read failures are raised immediately.
+
+        Long-running callers may reset ``self._cookies`` while a valid pickle remains
+        on disk; hydrate from the file before calling ``/auth/token`` so the request
+        is not sent with an empty cookie jar.
+        """
+        last_login_error = None
+        for attempt in range(attempts):
+            try:
+                self._update_cookie_once()
+                return
+            except LoginError as ex:
+                if isinstance(ex, (AuthenticationError, CookieReadError)):
+                    raise
+                last_login_error = ex
+                if attempt + 1 < attempts:
+                    LOGGER.debug(
+                        "Cookie refresh login error attempt %s, retrying: %s",
+                        attempt + 1,
+                        ex,
+                    )
+                    time.sleep(delay)
+                    continue
+                raise
+        if last_login_error is not None:
+            raise last_login_error
 
     def login_cookie(self):
         """ Login using cookie
@@ -252,32 +350,6 @@ class Session(object):
             return installations
 
         raise LoginError("Failed to log in")
-
-    def update_cookie(self):
-        """ Update expired cookie
-        Cookie can last 15 minutes before it needs to be updated.
-
-        Long-running callers may reset ``self._cookies`` while a valid pickle remains
-        on disk; hydrate from the file before calling ``/auth/token`` so the request
-        is not sent with an empty cookie jar.
-        """
-        if self._cookies is None:
-            self._load_cookie_file_into_memory()
-
-        cookie_jar = requests.sessions.RequestsCookieJar()
-        if self._cookies is not None:
-            for name, value in self._cookies.items():
-                if name in ['vid', 'vs-refresh']:
-                    cookie_jar[name] = value
-        response = self._get(
-            url="/auth/token",
-            headers={'APPLICATION_ID': 'PS_PYTHON'},
-            cookies=cookie_jar)
-
-        self._cookies.update(response.cookies)
-        with open(self._cookie_file_name, 'wb') as cookie_file:
-            pickle.dump(self._cookies, cookie_file)
-        LOGGER.debug(f"Saved cookies: {[cookie for cookie in self._cookies.keys()]}")
 
     def logout(self):
         """ Log out from the verisure app api """

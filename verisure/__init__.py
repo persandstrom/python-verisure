@@ -4,16 +4,22 @@ verisure app API.
 """
 
 __all__ = [
+    'AuthenticationError',
+    'CookieReadError',
     'Error',
     'LoginError',
+    'RateLimitError',
     'RequestError',
     'ResponseError',
     'Session',
 ]
 
 from .session import ( # NOQA
+    AuthenticationError,
+    CookieReadError,
     Error,
     LoginError,
+    RateLimitError,
     RequestError,
     VariableTypes,
     ResponseError,
