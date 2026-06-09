@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.7.1 Reuse MFA login cookies to avoid duplicate /auth/login, classify ACC_00002 step-up rate limits as RateLimitError
 2.7.0 Structured session errors (AuthenticationError, CookieReadError, RateLimitError), HTTP status on exceptions, update_cookie retries
 2.6.9 Load cookie file before token refresh when in-memory jars are empty
 2.6.8 Added prompt for password

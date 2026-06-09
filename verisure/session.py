@@ -55,11 +55,19 @@ class ResponseError(Error):
             f'Invalid response, status code: {status_code} - Data: {text}')
 
 
+MFA_REQUIRED_MESSAGE = (
+    'Multifactor authentication enabled, disable or create MFA cookie'
+)
+
+
 def _response_signals_rate_limit(text: str) -> bool:
     """Return True when the API rejected the call for rate or quota limits."""
     lower = text.lower()
     return (
         'aut_00021' in lower
+        or 'acc_00002' in lower
+        or 'toomanystepuptokens' in lower
+        or 'too many step up tokens' in lower
         or 'request limit' in lower
         or 'rate limit' in lower
         or 'too many requests' in lower
@@ -68,10 +76,10 @@ def _response_signals_rate_limit(text: str) -> bool:
 
 def _http_error_from_response(status_code: int, text: str) -> Error:
     """Map an HTTP error response to a structured Verisure exception."""
-    if status_code in (401, 403):
-        return AuthenticationError(text, status_code=status_code)
     if status_code == 429 or _response_signals_rate_limit(text):
         return RateLimitError(text)
+    if status_code in (401, 403):
+        return AuthenticationError(text, status_code=status_code)
     if status_code >= 500:
         return ResponseError(status_code, text)
     return LoginError(text, status_code=status_code)
@@ -126,6 +134,7 @@ class Session(object):
         self._cookies = None
         self._cookie_file_name = os.path.expanduser(cookie_file_name)
         self._trust_token = None
+        self._mfa_login_pending = False
         self._giid = None
         self._base_url = None
         self._base_urls = ['https://automation01.verisure.com',
@@ -189,9 +198,11 @@ class Session(object):
             auth=(self._username, self._password))
 
         if "stepUpToken" in response.text:
-            raise LoginError("Multifactor authentication enabled, "
-                             "disable or create MFA cookie")
+            self._cookies = response.cookies
+            self._mfa_login_pending = True
+            raise LoginError(MFA_REQUIRED_MESSAGE)
 
+        self._mfa_login_pending = False
         self._cookies = response.cookies
         with open(self._cookie_file_name, 'wb') as f:
             pickle.dump(self._cookies, f)
@@ -205,16 +216,20 @@ class Session(object):
     def request_mfa(self):
         """ Request MFA verification code """
 
-        response = self._post(
-            url="/auth/login",
-            headers={'APPLICATION_ID': 'PS_PYTHON'},
-            auth=(self._username, self._password))
+        if not self._mfa_login_pending:
+            response = self._post(
+                url="/auth/login",
+                headers={'APPLICATION_ID': 'PS_PYTHON'},
+                auth=(self._username, self._password))
 
-        if "stepUpToken" not in response.text:
-            raise LoginError("Multifactor authentication disabled, "
-                             "use regular login instead")
+            if "stepUpToken" not in response.text:
+                raise LoginError("Multifactor authentication disabled, "
+                                 "use regular login instead")
 
-        self._cookies = response.cookies
+            self._cookies = response.cookies
+            self._mfa_login_pending = True
+
+        self._mfa_login_pending = False
         for mfa_type in ['phone', 'email']:
             try:
                 mfa_response = self._post(
@@ -372,6 +387,7 @@ class Session(object):
             self._giid = None
             self._cookies = None
             self._trust_token = None
+            self._mfa_login_pending = False
             if os.path.exists(self._cookie_file_name):
                 os.remove(self._cookie_file_name)
 
