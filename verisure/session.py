@@ -421,29 +421,33 @@ class Session(object):
     @query_func
     def arm_away(self,
                  code: VariableTypes.Code,
-                 giid: VariableTypes.Giid=None):
+                 giid: VariableTypes.Giid=None,
+                 force_arm: bool=False):
         """Set arm status away"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
             "operationName": "armAway",
             "variables": {
                 "giid": giid or self._giid,
-                "code": code},
-            "query": "mutation armAway($giid: String!, $code: String!) {\n  armStateArmAway(giid: $giid, code: $code)\n}\n",  # noqa: E501
+                "code": code,
+                "forceArm": force_arm},
+            "query": "mutation armAway($giid: String!, $code: String!, $forceArm: Boolean) {\n  armStateArmAway(giid: $giid, code: $code, forceArm: $forceArm)\n}\n",  # noqa: E501
         }
 
     @query_func
     def arm_home(self,
                  code: VariableTypes.Code,
-                 giid: VariableTypes.Giid=None):
+                 giid: VariableTypes.Giid=None,
+                 force_arm: bool=False):
         """Set arm state home"""
         assert giid or self._giid, "Set default giid or pass explicit"
         return {
             "operationName": "armHome",
             "variables": {
                 "giid": giid or self._giid,
-                "code": code},
-            "query": "mutation armHome($giid: String!, $code: String!) {\n  armStateArmHome(giid: $giid, code: $code)\n}\n",  # noqa: E501
+                "code": code,
+                "forceArm": force_arm},
+            "query": "mutation armHome($giid: String!, $code: String!, $forceArm: Boolean) {\n  armStateArmHome(giid: $giid, code: $code, forceArm: $forceArm)\n}\n",  # noqa: E501
         }
 
     @query_func
