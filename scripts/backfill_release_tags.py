@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -101,6 +102,7 @@ def plan_backfill(
         )
     return rows
 
+
 def print_table(rows: list[BackfillRow]) -> None:
     headers = ("version", "commit", "source", "score", "action")
     print(
@@ -124,7 +126,19 @@ def apply_backfill(rows: list[BackfillRow], *, dry_run: bool) -> int:
             print(f"DRY RUN would create tag {row.version} at {row.commit}")
             created += 1
             continue
-        create_release(row.version, row.notes, row.commit)
+        try:
+            create_release(row.version, row.notes, row.commit)
+        except subprocess.CalledProcessError as exc:
+            command = subprocess.list2cmdline(exc.cmd)
+            print(
+                f"Failed to create tag/release for {row.version}: {command}",
+                file=sys.stderr,
+            )
+            if exc.stdout:
+                print(exc.stdout, file=sys.stderr, end="")
+            if exc.stderr:
+                print(exc.stderr, file=sys.stderr, end="")
+            return 1
         print(f"Created tag and release {row.version} at {row.commit}")
         created += 1
     return created
@@ -185,7 +199,11 @@ def main() -> int:
     if creatable == 0:
         return 0
 
-    created = apply_backfill(rows, dry_run=dry_run)
+    result = apply_backfill(rows, dry_run=dry_run)
+    if isinstance(result, int) and result == 1 and not dry_run:
+        return 1
+
+    created = result
     if dry_run:
         print(f"DRY RUN complete ({created} tag(s) would be created)")
     else:
