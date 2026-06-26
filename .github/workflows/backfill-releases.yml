@@ -1,0 +1,68 @@
+name: Backfill Releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      since:
+        description: Include PyPI releases at or after this version
+        required: false
+        default: "2.6.2"
+      versions:
+        description: Comma-separated explicit versions (overrides since)
+        required: false
+        default: ""
+      min_score:
+        description: Minimum PyPI fingerprint match score (0-1)
+        required: false
+        default: "0.95"
+      dry_run:
+        description: Preview matches without creating tags
+        required: true
+        default: true
+        type: boolean
+      confirm:
+        description: Set to I-have-reviewed-the-table to create tags when dry_run is false
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all branches
+        run: git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Plan backfill
+        id: plan
+        run: |
+          set -euo pipefail
+          args=(
+            --since "${{ inputs.since }}"
+            --min-score "${{ inputs.min_score }}"
+          )
+          if [ -n "${{ inputs.versions }}" ]; then
+            args+=(--versions "${{ inputs.versions }}")
+          fi
+          if [ "${{ inputs.dry_run }}" = "false" ]; then
+            args+=(--apply --confirm "${{ inputs.confirm }}")
+          fi
+          python scripts/backfill_release_tags.py "${args[@]}" | tee backfill-plan.txt
+
+      - name: Upload backfill plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: backfill-plan
+          path: backfill-plan.txt

@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - version-2
+    paths:
+      - setup.py
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or commit to release from
+        required: false
+        default: version-2
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Detect version bump
+        id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: python scripts/release_utils.py detect-bump --event-name "$EVENT_NAME" --github-output
+
+      - name: Create tag and GitHub Release
+        if: steps.detect.outputs.should_release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/release_utils.py create-release \
+            --version "${{ steps.detect.outputs.version }}" \
+            --notes "${{ steps.detect.outputs.notes }}"
