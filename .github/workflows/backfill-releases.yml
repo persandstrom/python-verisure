@@ -47,6 +47,8 @@ jobs:
 
       - name: Plan backfill
         id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           args=(

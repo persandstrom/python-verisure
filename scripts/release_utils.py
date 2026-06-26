@@ -103,6 +103,16 @@ def tag_exists(version: str) -> bool:
     return result.returncode == 0
 
 
+def remote_tag_exists(version: str) -> bool:
+    result = run("git", "ls-remote", "--tags", "origin", version, check=False)
+    return result.returncode == 0 and bool(result.stdout.strip())
+
+
+def release_exists(version: str) -> bool:
+    result = run("gh", "release", "view", version, check=False)
+    return result.returncode == 0
+
+
 def detect_bump(event_name: str, ref: str | None = None) -> VersionBump:
     current = parse_setup_version()
     notes = parse_readme_release_note(current)
@@ -337,8 +347,12 @@ def create_release(version: str, notes: str, commit: str | None = None) -> None:
     subject = f"Release {version}"
     body = notes if notes else "See README Version History"
 
-    run("git", "tag", "-a", version, target, "-m", subject)
-    run("git", "push", "origin", version)
+    if not tag_exists(version):
+        run("git", "tag", "-a", version, target, "-m", subject)
+    if not remote_tag_exists(version):
+        run("git", "push", "origin", version)
+    if release_exists(version):
+        return
     run(
         "gh",
         "release",
@@ -348,8 +362,6 @@ def create_release(version: str, notes: str, commit: str | None = None) -> None:
         subject,
         "--notes",
         body,
-        "--target",
-        target,
     )
 
 
