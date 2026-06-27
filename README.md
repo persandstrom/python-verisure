@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.8.0 Add force_arm option to arm_away and arm_home
 2.7.2 Allow optional tokens in CLI
 2.7.1 Reuse MFA login cookies to avoid duplicate /auth/login, classify ACC_00002 step-up rate limits as RateLimitError
 2.7.0 Structured session errors (AuthenticationError, CookieReadError, RateLimitError), HTTP status on exceptions, update_cookie retries
@@ -186,8 +187,10 @@ Options:
   -c, --cookie TEXT               File to store cookie in
   --mfa                           Login using MFA
   --log-level [debug|info|warning|error|critical]
-  --arm-away CODE                 Set arm status away
-  --arm-home CODE                 Set arm state home
+  --arm-away CODE [FORCE_ARM=False]
+                                  Set arm status away
+  --arm-home CODE [FORCE_ARM=False]
+                                  Set arm state home
   --arm-state                     Read arm state
   --broadband                     Get broadband status
   --camera-capture <DEVICELABEL REQUESTID>...
