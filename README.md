@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.7.2 Allow optional tokens in CLI
 2.7.1 Reuse MFA login cookies to avoid duplicate /auth/login, classify ACC_00002 step-up rate limits as RateLimitError
 2.7.0 Structured session errors (AuthenticationError, CookieReadError, RateLimitError), HTTP status on exceptions, update_cookie retries
 2.6.9 Load cookie file before token refresh when in-memory jars are empty
@@ -174,14 +175,17 @@ output
 ## Command line usage
 
 ```txt
-Usage: python -m verisure [OPTIONS] USERNAME PASSWORD
+Usage: python -m verisure [OPTIONS] USERNAME [PASSWORD]
 
   Read and change status of verisure devices through verisure app API
+
+  PASSWORD will be prompted without echoing if not provided as an argument
 
 Options:
   -i, --installation INTEGER      Installation number
   -c, --cookie TEXT               File to store cookie in
   --mfa                           Login using MFA
+  --log-level [debug|info|warning|error|critical]
   --arm-away CODE                 Set arm status away
   --arm-home CODE                 Set arm state home
   --arm-state                     Read arm state
@@ -191,7 +195,8 @@ Options:
   --camera-get-request-id DEVICELABEL
                                   Get requestId for camera_capture
   --cameras                       Get cameras state
-  --cameras-image-series          Get the cameras image series
+  --cameras-image-series [LIMIT=50] [OFFSET=0]
+                                  Get the cameras image series
   --cameras-last-image            Get cameras last image
   --capability                    Get capability
   --charge-sms                    Charge SMS
