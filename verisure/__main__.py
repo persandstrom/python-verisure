@@ -53,6 +53,7 @@ VariableTypeMap = {
     VariableTypes.DeviceLabel: DeviceLabel(),
     VariableTypes.ArmFutureState: ArmFutureState(),
     VariableTypes.LockFutureState: LockFutureState(),
+    int: click.INT,
     bool: click.BOOL,
     VariableTypes.TransactionId: TransactionId(),
     VariableTypes.RequestId: RequestId(),

@@ -7,6 +7,7 @@ import logging
 import os
 import pickle
 import time
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import requests
 
@@ -85,10 +86,10 @@ def _http_error_from_response(status_code: int, text: str) -> Error:
     return LoginError(text, status_code=status_code)
 
 
-def query_func(f):
+def query_func(func: Callable[..., Any]) -> Callable[..., Any]:
     """A wrapper that indicates that the function is a query (used by CLI)"""
-    f.is_query = True
-    return f
+    setattr(func, 'is_query', True)
+    return func
 
 
 class VariableTypes:
@@ -120,28 +121,36 @@ class Session(object):
     """ Verisure app session
 
     Args:
-        username (str): Username used to login to verisure app
-        password (str): Password used to login to verisure app
-        cookie_file_name (str): path to cookie file
-
+        username (str): Username used to login to verisure app.
+        password (str): Password used to login to verisure app.
+        cookie_file_name (str): path to cookie file.
+        request_timeout (Tuple[float, float]): connect/read timeout in seconds.
     """
 
-    def __init__(self, username, password,
-                 cookie_file_name='~/.verisure-cookie'):
+    def __init__(self, username: str, password: str,
+                 cookie_file_name: str = '~/.verisure-cookie',
+                 request_timeout: Tuple[float, float] = (10.0, 30.0)):
         LOGGER.info(f"Initialize Session ({username=}, {cookie_file_name=})")
         self._username = username
         self._password = password
         self._cookies = None
         self._cookie_file_name = os.path.expanduser(cookie_file_name)
+        self._request_timeout = request_timeout
         self._trust_token = None
         self._mfa_login_pending = False
-        self._giid = None
+        self._giid: Optional[str] = None
         self._base_url = None
         self._base_urls = ['https://automation01.verisure.com',
                            'https://automation02.verisure.com']
         self._post = self._wrap_request(requests.post)
         self._delete = self._wrap_request(requests.delete)
         self._get = self._wrap_request(requests.get)
+
+    def _resolve_giid(self, giid: Optional[VariableTypes.Giid] = None) -> str:
+        resolved_giid = giid or self._giid
+        if resolved_giid is None:
+            raise ValueError("Set default giid or pass explicit")
+        return resolved_giid
 
 
     def _wrap_request(self, function):
@@ -155,6 +164,7 @@ class Session(object):
             base_urls = self._base_urls.copy()
             for base_url in base_urls:
                 try:
+                    kwargs.setdefault('timeout', self._request_timeout)
                     response = function(base_url+url, *args, **kwargs)
                     if response.status_code > 200 or "errors" in response.text:
                         LOGGER.debug(
@@ -409,7 +419,7 @@ class Session(object):
         """ Get information about installations """
         return self.request(self.fetch_all_installations())
 
-    def set_giid(self, giid):
+    def set_giid(self, giid: VariableTypes.Giid):
         """ Set installation giid
 
         Args:
@@ -421,14 +431,14 @@ class Session(object):
     @query_func
     def arm_away(self,
                  code: VariableTypes.Code,
-                 giid: VariableTypes.Giid=None,
-                 force_arm: bool=False):
+                 giid: Optional[VariableTypes.Giid] = None,
+                 force_arm: bool=False) -> Dict[str, object]:
         """Set arm status away"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "armAway",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "code": code,
                 "forceArm": force_arm},
             "query": "mutation armAway($giid: String!, $code: String!, $forceArm: Boolean) {\n  armStateArmAway(giid: $giid, code: $code, forceArm: $forceArm)\n}\n",  # noqa: E501
@@ -437,14 +447,14 @@ class Session(object):
     @query_func
     def arm_home(self,
                  code: VariableTypes.Code,
-                 giid: VariableTypes.Giid=None,
-                 force_arm: bool=False):
+                 giid: Optional[VariableTypes.Giid] = None,
+                 force_arm: bool=False) -> Dict[str, object]:
         """Set arm state home"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "armHome",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "code": code,
                 "forceArm": force_arm},
             "query": "mutation armHome($giid: String!, $code: String!, $forceArm: Boolean) {\n  armStateArmHome(giid: $giid, code: $code, forceArm: $forceArm)\n}\n",  # noqa: E501
@@ -452,74 +462,74 @@ class Session(object):
 
     @query_func
     def arm_state(self,
-                  giid: VariableTypes.Giid=None):
+                  giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Read arm state"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "ArmState",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query ArmState($giid: String!) {\n  installation(giid: $giid) {\n    armState {\n      type\n      statusType\n      date\n      name\n      changedVia\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def broadband(self,
-                  giid: VariableTypes.Giid=None):
+                  giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get broadband status"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "Broadband",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query Broadband($giid: String!) {\n  installation(giid: $giid) {\n    broadband {\n      testDate\n      isBroadbandConnected\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def capability(self,
-                   giid: VariableTypes.Giid=None):
+                   giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get capability"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "Capability",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query Capability($giid: String!) {\n  installation(giid: $giid) {\n    capability {\n      current\n      gained {\n        capability\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def charge_sms(self,
-                   giid: VariableTypes.Giid=None):
+                   giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Charge SMS"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "ChargeSms",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query ChargeSms($giid: String!) {\n  installation(giid: $giid) {\n    chargeSms {\n      chargeSmartPlugOnOff\n      chargeLockUnlock\n      chargeArmDisarm\n      chargeNotifications\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def climate(self,
-                giid: VariableTypes.Giid=None):
+                giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get climate"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "Climate",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query Climate($giid: String!) {\n  installation(giid: $giid) {\n    climates {\n      device {\n        deviceLabel\n        area\n        gui {\n          label\n          __typename\n        }\n        __typename\n      }\n      humidityEnabled\n      humidityTimestamp\n      humidityValue\n      temperatureTimestamp\n      temperatureValue\n      thresholds {\n        aboveMaxAlert\n        belowMinAlert\n        sensorType\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def disarm(self,
                code: VariableTypes.Code,
-               giid: VariableTypes.Giid=None):
+               giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Disarm alarm"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "disarm",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "code": code},
             "query": "mutation disarm($giid: String!, $code: String!) {\n  armStateDisarm(giid: $giid, code: $code)\n}\n",  # noqa: E501
         }
@@ -528,13 +538,13 @@ class Session(object):
     def door_lock(self,
                   device_label: VariableTypes.DeviceLabel,
                   code: VariableTypes.Code,
-                  giid: VariableTypes.Giid=None):
+                  giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Lock door"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "DoorLock",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "deviceLabel": device_label,
                 "input": {
                     "code": code,
@@ -546,13 +556,13 @@ class Session(object):
     @query_func
     def door_lock_configuration(self,
                                 device_label: VariableTypes.DeviceLabel,
-                                giid: VariableTypes.Giid=None):
+                                giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get door lock configuration"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "DoorLockConfiguration",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "deviceLabel": device_label},
             "query": "query DoorLockConfiguration($giid: String!, $deviceLabel: String!) {\n  installation(giid: $giid) {\n    smartLocks(filter: {deviceLabels: [$deviceLabel]}) {\n      device {\n        area\n        deviceLabel\n        __typename\n      }\n      configuration {\n        ... on YaleLockConfiguration {\n          autoLockEnabled\n          voiceLevel\n          volume\n          __typename\n        }\n        ... on DanaLockConfiguration {\n          holdBackLatchDuration\n          twistAssistEnabled\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
@@ -561,13 +571,13 @@ class Session(object):
     def set_autolock_enabled(self,
                              device_label: VariableTypes.DeviceLabel,
                              auto_lock_enabled: bool,
-                             giid: VariableTypes.Giid=None):
+                             giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Enable or disable autolock"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "DoorLockUpdateConfig",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "deviceLabel": device_label,
                 "input": {
                     "autoLockEnabled": auto_lock_enabled
@@ -580,13 +590,13 @@ class Session(object):
     def door_unlock(self,
                     device_label: VariableTypes.DeviceLabel,
                     code: VariableTypes.Code,
-                    giid: VariableTypes.Giid=None):
+                    giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Unlock door"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "DoorUnlock",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "deviceLabel": device_label,
                 "input": {
                     "code": code,
@@ -597,25 +607,25 @@ class Session(object):
 
     @query_func
     def door_window(self,
-                    giid: VariableTypes.Giid=None):
+                    giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Read status of door and window sensors"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "DoorWindow",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query DoorWindow($giid: String!) {\n  installation(giid: $giid) {\n    doorWindows {\n      device {\n        deviceLabel\n        __typename\n      }\n      type\n      area\n      state\n      wired\n      reportTime\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def event_log(self,
-                  giid: VariableTypes.Giid=None):
+                  giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Read event log"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "EventLog",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "offset": 0,
                 "pagesize": 15,
                 "eventCategories": ["INTRUSION", "FIRE", "SOS", "WATER", "ANIMAL", "TECHNICAL", "WARNING", "ARM", "DISARM", "LOCK", "UNLOCK", "PICTURE", "CLIMATE", "CAMERA_SETTINGS"],  # noqa: E501
@@ -628,7 +638,7 @@ class Session(object):
         }
 
     @query_func
-    def fetch_all_installations(self):
+    def fetch_all_installations(self) -> Dict[str, object]:
         """Fetch installations"""
         return {
             "operationName": "fetchAllInstallations",
@@ -639,19 +649,19 @@ class Session(object):
     
     @query_func
     def firmware(self,
-                 giid: VariableTypes.Giid=None):
+                 giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get firmware information"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
 	        "operationName": "Firmware",
 	        "variables": {
-		        "giid": giid or self._giid
+		        "giid": resolved_giid
 	        },
 	        "query": "query Firmware($giid: String!) {\n  installation(giid: $giid) {\n    firmware {\n      status {\n        latestFirmware\n        requestedFirmware\n        upgradeable\n        status\n        gateways {\n          reportedRunningFirmware\n          deviceLabel\n          status\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n" # noqa: E501
         }
 
     @query_func
-    def guardian_sos(self):
+    def guardian_sos(self) -> Dict[str, object]:
         """Guardian SOS"""
         return {
             "operationName": "GuardianSos",
@@ -661,26 +671,26 @@ class Session(object):
 
     @query_func
     def is_guardian_activated(self,
-                              giid: VariableTypes.Giid=None):
+                              giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Is guardian activated"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "IsGuardianActivated",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "featureName": "GUARDIAN"},
             "query": "query IsGuardianActivated($giid: String!, $featureName: String!) {\n  installation(giid: $giid) {\n    activatedFeature {\n      isFeatureActivated(featureName: $featureName)\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def permissions(self,
-                    giid: VariableTypes.Giid=None):
+                    giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Permissions"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "Permissions",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "email": self._username},
             "query": "query Permissions($giid: String!, $email: String!) {\n  permissions(giid: $giid, email: $email) {\n    accountPermissionsHash\n    name\n    __typename\n  }\n}\n",  # noqa: E501
         }
@@ -689,13 +699,13 @@ class Session(object):
     def poll_arm_state(self,
                        transaction_id: VariableTypes.TransactionId,
                        future_state: VariableTypes.ArmFutureState,
-                       giid: VariableTypes.Giid=None):
+                       giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Poll arm state"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "pollArmState",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "transactionId": transaction_id,
                 "futureState": future_state},
             "query": "query pollArmState($giid: String!, $transactionId: String, $futureState: ArmStateStatusTypes!) {\n  installation(giid: $giid) {\n    armStateChangePollResult(transactionId: $transactionId, futureState: $futureState) {\n      result\n      createTime\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
@@ -706,13 +716,13 @@ class Session(object):
                         transaction_id: VariableTypes.TransactionId,
                         device_label: VariableTypes.DeviceLabel,
                         future_state: VariableTypes.LockFutureState,
-                        giid: VariableTypes.Giid=None):
+                        giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Poll lock state"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "pollLockState",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "transactionId": transaction_id,
                 "deviceLabel": device_label,
                 "futureState": future_state},
@@ -721,37 +731,37 @@ class Session(object):
 
     @query_func
     def remaining_sms(self,
-                      giid: VariableTypes.Giid=None):
+                      giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get remaing number of SMS"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "RemainingSms",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query RemainingSms($giid: String!) {\n  installation(giid: $giid) {\n    remainingSms\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def smart_button(self,
-                     giid: VariableTypes.Giid=None):
+                     giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get smart button state"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "SmartButton",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query SmartButton($giid: String!) {\n  installation(giid: $giid) {\n    smartButton {\n      entries {\n        smartButtonId\n        icon\n        label\n        color\n        active\n        action {\n          actionType\n          expectedState\n          target {\n            ... on Installation {\n              alias\n              __typename\n            }\n            ... on Device {\n              deviceLabel\n              area\n              gui {\n                label\n                __typename\n              }\n              featureStatuses(type: \"SmartPlug\") {\n                device {\n                  deviceLabel\n                  __typename\n                }\n                ... on SmartPlug {\n                  icon\n                  isHazardous\n                  __typename\n                }\n                __typename\n              }\n              __typename\n            }\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
     @query_func
     def smart_lock(self,
-                   giid: VariableTypes.Giid=None):
+                   giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get smart lock state"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "SmartLock",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query SmartLock($giid: String!) {\n  installation(giid: $giid) {\n    smartLocks {\n      lockStatus\n      doorState\n      lockMethod\n      eventTime\n      doorLockType\n      secureMode\n      device {\n        deviceLabel\n        area\n        __typename\n      }\n      user {\n        name\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
         }
 
@@ -759,13 +769,13 @@ class Session(object):
     def set_smartplug(self,
                       device_label: VariableTypes.DeviceLabel,
                       state: bool,
-                      giid: VariableTypes.Giid=None):
+                      giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Set state of smart plug"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "UpdateState",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "deviceLabel": device_label,
                 "state": state},
             "query": "mutation UpdateState($giid: String!, $deviceLabel: String!, $state: Boolean!) {\n  SmartPlugSetState(giid: $giid, input: [{deviceLabel: $deviceLabel, state: $state}])}",  # noqa: E501
@@ -774,76 +784,76 @@ class Session(object):
     @query_func
     def smartplug(self,
                   device_label: VariableTypes.DeviceLabel,
-                  giid: VariableTypes.Giid=None):
+                  giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Read status of a single smart plug"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "SmartPlug",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "deviceLabel": device_label},
             "query": "query SmartPlug($giid: String!, $deviceLabel: String!) {\n  installation(giid: $giid) {\n    smartplugs(filter: {deviceLabels: [$deviceLabel]}) {\n      device {\n        deviceLabel\n        area\n        __typename\n      }\n      currentState\n      icon\n      isHazardous\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
             }
 
     @query_func
     def smartplugs(self,
-                   giid: VariableTypes.Giid=None):
+                   giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Read status of all smart plugs"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "SmartPlug",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query SmartPlug($giid: String!) {\n  installation(giid: $giid) {\n    smartplugs {\n      device {\n        deviceLabel\n        area\n        __typename\n      }\n      currentState\n      icon\n      isHazardous\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
             }
 
     @query_func
     def user_trackings(self,
-                       giid: VariableTypes.Giid=None):
+                       giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Read user tracking status"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "userTrackings",
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query userTrackings($giid: String!) {\n  installation(giid: $giid) {\n    userTrackings {\n      isCallingUser\n      webAccount\n      status\n      xbnContactId\n      currentLocationName\n      deviceId\n      name\n      initials\n      currentLocationTimestamp\n      deviceName\n      currentLocationId\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
             }
 
     @query_func
     def cameras(self,
-                giid: VariableTypes.Giid=None):
+                giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get cameras state"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "Camera",
             "variables": {
                 "all": True,
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query Camera($giid: String!, $all: Boolean!) {\n    installation(giid: $giid) {\n        cameras(allCameras: $all) {\n            visibleOnCard\n            initiallyConfigured\n            imageCaptureAllowed\n            imageCaptureAllowedByArmstate\n            device {\n        deviceLabel\n        area\n        __typename\n      }\n            latestCameraSeries {\n                image {\n                    imageId\n                    imageStatus\n                    captureTime\n                    url\n                }\n            }\n        }\n    }\n}",  # noqa: E501
             }
 
     @query_func
     def cameras_last_image(self,
-                           giid: VariableTypes.Giid=None):
+                           giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get cameras last image"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "variables": {
-                "giid": giid or self._giid},
+                "giid": resolved_giid},
             "query": "query queryCaptureImageRequestStatus($giid: String!) {\n  installation(giid: $giid) {\n    cameraContentProvider {\n      latestImage {\n        deviceLabel\n        mediaId\n        contentType\n        contentUrl\n        timestamp\n        duration\n        thumbnailUrl\n        bitRate\n        width\n        height\n        codec\n      }\n    }\n  }\n}",  # noqa: E501
             }
 
     @query_func
     def cameras_image_series(self, 
-                             limit=50,
-                             offset=0,
-                             giid: VariableTypes.Giid=None):
+                             limit: int = 50,
+                             offset: int = 0,
+                             giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get the cameras image series"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "operationName": "GQL_CCCP_SearchMedia",
             "variables": {
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "limit": limit,
                 "offset": offset},
             "query": "mutation GQL_CCCP_SearchMedia(\n	$giid: BigInt!\n	$offset: Int\n	$limit: Int\n	$fromDate: Date\n	$toDate: Date) {\n\n	ContentProviderMediaSearch(\n		giid: $giid\n		offset: $offset\n		limit: $limit\n		fromDate: $fromDate\n		toDate: $toDate\n	) {\n		totalNumberOfMediaSeries\n		mediaSeriesList {\n			seriesId\n			storageType\n			viewed\n			timestamp\n			deviceMediaList {\n				contentUrl\n				mediaAvailable\n				deviceLabel\n				mediaId\n				contentType\n				timestamp\n				requestTimestamp\n				duration\n				expiryDate\n				viewed\n				thumbnailUrl\n				bitRate\n				width\n				height\n				codec\n			}\n		}\n	}\n}",  # noqa: E501}
@@ -852,14 +862,14 @@ class Session(object):
     @query_func
     def camera_get_request_id(self,
                              device_label: VariableTypes.DeviceLabel,
-                             giid: VariableTypes.Giid=None):
+                             giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get requestId for camera_capture"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "variables": {
                 "deviceIdentifier": "RandomString",
                 "deviceLabel": device_label,
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "resolution": "high"},
             "query": "mutation cccp($giid: String!, $deviceLabel: String!, $resolution: String!, $deviceIdentifier: String) {\n  ContentProviderCaptureImageRequest(giid: $giid, deviceLabel: $deviceLabel, resolution: $resolution, deviceIdentifier: $deviceIdentifier) {\n    requestId\n  }\n}",  # noqa: E501
             }
@@ -868,21 +878,21 @@ class Session(object):
     def camera_capture(self,
                        device_label: VariableTypes.DeviceLabel,
                        request_id: VariableTypes.RequestId,
-                       giid: VariableTypes.Giid=None):
+                       giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Capture a new image from a camera"""
-        assert giid or self._giid, "Set default giid or pass explicit"
+        resolved_giid = self._resolve_giid(giid)
         return {
             "variables": {
                 "deviceLabel": device_label,
-                "giid": giid or self._giid,
+                "giid": resolved_giid,
                 "requestId": request_id},
             "query": "query queryCaptureImageRequestStatus($giid: String!, $deviceLabel: String!, $requestId: BigInt!) {\n  installation(giid: $giid) {\n    cameraContentProvider {\n      captureImageRequestStatus(deviceLabel: $deviceLabel, requestId: $requestId) {\n        mediaRequestStatus\n      }\n    }\n  }\n}",  # noqa: E501
             }
 
-    def download_image(self, image_url, file_name):
+    def download_image(self, image_url: str, file_name: str) -> None:
         """Download image from url"""
         try:
-            response = requests.get(image_url, stream=True)
+            response = requests.get(image_url, stream=True, timeout=self._request_timeout)
         except requests.exceptions.RequestException as ex:
             raise RequestError("Failed to get image") from ex
         with open(file_name, 'wb') as image_file:

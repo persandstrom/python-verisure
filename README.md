@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.9.0 Add request timeouts, improve giid validation with explicit errors, and fix CLI integer argument parsing
 2.8.0 Add force_arm option to arm_away and arm_home
 2.7.2 Allow optional tokens in CLI
 2.7.1 Reuse MFA login cookies to avoid duplicate /auth/login, classify ACC_00002 step-up rate limits as RateLimitError
