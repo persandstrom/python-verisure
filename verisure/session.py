@@ -473,6 +473,32 @@ class Session(object):
         }
 
     @query_func
+    def arm_state_dry_run(self,
+                          giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
+        """Start an arm state dry run to check if arming requires force"""
+        resolved_giid = self._resolve_giid(giid)
+        return {
+            "operationName": "ArmStateDryRun",
+            "variables": {
+                "giid": resolved_giid},
+            "query": "mutation ArmStateDryRun($giid: String!) {\n  armStateDryRun(giid: $giid)\n}\n",  # noqa: E501
+        }
+
+    @query_func
+    def arm_state_dry_run_status(self,
+                                 transaction_id: VariableTypes.TransactionId,
+                                 giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
+        """Poll the status of an arm state dry run"""
+        resolved_giid = self._resolve_giid(giid)
+        return {
+            "operationName": "ArmStateDryRunStatus",
+            "variables": {
+                "giid": resolved_giid,
+                "transactionId": transaction_id},
+            "query": "query ArmStateDryRunStatus($giid: String!, $transactionId: String!) {\n  installation(giid: $giid) {\n    armState {\n      dryRunStatus(transactionId: $transactionId) {\n        status {\n          status\n          createTime\n          changeTime\n          __typename\n        }\n        result {\n          created\n          received\n          deviceViolations {\n            deviceLabel\n            violation\n            occurred\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",  # noqa: E501
+        }
+
+    @query_func
     def broadband(self,
                   giid: Optional[VariableTypes.Giid] = None) -> Dict[str, object]:
         """Get broadband status"""
