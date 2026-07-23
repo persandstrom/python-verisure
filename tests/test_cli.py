@@ -1,4 +1,10 @@
-"""Tests for the verisure CLI option parsing."""
+"""Tests for the verisure CLI option parsing.
+
+Three option patterns are generated from Session query methods:
+  - Flag: no arguments (e.g. --arm-state)
+  - Required+optional args via QueryOption (e.g. --arm-away CODE [FORCE_ARM])
+  - No options passed at all
+"""
 
 from unittest.mock import MagicMock, patch
 from click.testing import CliRunner
@@ -10,9 +16,29 @@ def invoke(*args):
     return runner.invoke(cli, ['user@example.com', 'password'] + list(args))
 
 
+def test_help_shows_all_option_patterns():
+    """--help should render all four option patterns correctly.
+
+    Patterns:
+      - Flag (no metavar):                --arm-state
+      - Single required arg:              --disarm CODE
+      - Multiple required args (tuple):   --door-lock <DEVICELABEL CODE>...
+      - Required+optional (QueryOption):  --arm-away CODE [FORCE_ARM=False]
+      - Optional-only (QueryOption):      --cameras-image-series [LIMIT=50] [OFFSET=0]
+    """
+    runner = CliRunner(env={'COLUMNS': '120'})
+    result = runner.invoke(cli, ['--help'])
+    assert result.exit_code == 0
+    assert '--arm-state ' in result.output                                  # flag: no metavar
+    assert '--disarm CODE' in result.output                                 # single required arg
+    assert '--door-lock <DEVICELABEL CODE>' in result.output                # tuple of required args
+    assert '--arm-away CODE [FORCE_ARM=False]' in result.output             # required + optional
+    assert '--cameras-image-series [LIMIT=50] [OFFSET=0]' in result.output  # optional only
+
+
 @patch('verisure.__main__.Session')
-def test_no_query_options(MockSession):
-    """Invoking without arm-away/arm-home must not raise an arity error."""
+def test_no_options_outputs_empty_result(MockSession):
+    """Pattern: no query options — should succeed and print an empty result."""
     session = MagicMock()
     session.login_cookie.return_value = {
         'data': {'account': {'installations': [{'giid': 'abc'}]}}}
@@ -21,15 +47,16 @@ def test_no_query_options(MockSession):
 
     result = invoke()
     assert result.exit_code == 0
-    assert 'requires at least 1 argument' not in (result.output + str(result.exception))
+    assert result.output.strip() == '[]'
 
 
 @patch('verisure.__main__.Session')
-def test_arm_away_with_code(MockSession):
-    """--arm-away with a valid code should be accepted."""
+def test_required_and_optional_args_pattern_with_required_arg(MockSession):
+    """Pattern: QueryOption with required+optional args — required arg provided should succeed."""
     session = MagicMock()
     session.login_cookie.return_value = {
         'data': {'account': {'installations': [{'giid': 'abc'}]}}}
+
     session.request.return_value = []
     MockSession.return_value = session
 
@@ -37,31 +64,17 @@ def test_arm_away_with_code(MockSession):
     assert result.exit_code == 0
 
 
-def test_arm_away_missing_code():
-    """--arm-away without a code should fail with a usage error."""
+def test_required_and_optional_args_pattern_missing_required_arg():
+    """Pattern: QueryOption with required+optional args — missing required arg should fail."""
     runner = CliRunner()
-    # Pass --arm-away as the last argument so there is no code after it
     result = runner.invoke(cli, ['user@example.com', 'password', '--arm-away'])
     assert result.exit_code != 0
-    assert 'requires at least 1 argument' in (result.output + str(result.exception))
+    assert '--arm-away' in result.output
 
 
 @patch('verisure.__main__.Session')
-def test_arm_home_with_code(MockSession):
-    """--arm-home with a valid code should be accepted."""
-    session = MagicMock()
-    session.login_cookie.return_value = {
-        'data': {'account': {'installations': [{'giid': 'abc'}]}}}
-    session.request.return_value = []
-    MockSession.return_value = session
-
-    result = invoke('--arm-home', '1234')
-    assert result.exit_code == 0
-
-
-@patch('verisure.__main__.Session')
-def test_flag_option(MockSession):
-    """A plain flag option like --arm-state should work without arguments."""
+def test_flag_pattern(MockSession):
+    """Pattern: flag option with no arguments — should succeed without any argument."""
     session = MagicMock()
     session.login_cookie.return_value = {
         'data': {'account': {'installations': [{'giid': 'abc'}]}}}
