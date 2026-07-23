@@ -12,6 +12,7 @@ devices.
 ## Version History
 
 ```txt
+2.10.0 Add arm state dry run methods
 2.9.1 Fix bug affecting most CLI commands
 2.9.0 Add request timeouts, improve giid validation with explicit errors, and fix CLI integer argument parsing
 2.8.0 Add force_arm option to arm_away and arm_home
