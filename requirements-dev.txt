@@ -1,3 +1,4 @@
 pep8
 flake8
 pycodestyle>=2.3.0
+pytest>=7.0
