@@ -195,6 +195,10 @@ Options:
   --arm-home CODE [FORCE_ARM=False]
                                   Set arm state home
   --arm-state                     Read arm state
+  --arm-state-dry-run             Start an arm state dry run to check if
+                                  arming requires force
+  --arm-state-dry-run-status TRANSACTIONID
+                                  Poll the status of an arm state dry run
   --broadband                     Get broadband status
   --camera-capture <DEVICELABEL REQUESTID>...
                                   Capture a new image from a camera
