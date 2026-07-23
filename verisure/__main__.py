@@ -95,7 +95,7 @@ class QueryOption(click.Option):
 
     def type_cast_value(self, ctx, value):
         if value is None:
-            value = ()
+            return None
         if not isinstance(value, tuple):
             value = (value,)
 
