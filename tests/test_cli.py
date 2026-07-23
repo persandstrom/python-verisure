@@ -19,7 +19,8 @@ def test_no_query_options(MockSession):
     session.request.return_value = []
     MockSession.return_value = session
 
-    result = invoke('--arm-state')
+    result = invoke()
+    assert result.exit_code == 0
     assert 'requires at least 1 argument' not in (result.output + str(result.exception))
 
 
