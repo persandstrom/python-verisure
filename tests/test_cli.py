@@ -40,8 +40,9 @@ def test_arm_away_missing_code():
     """--arm-away without a code should fail with a usage error."""
     runner = CliRunner()
     # Pass --arm-away as the last argument so there is no code after it
-    result = runner.invoke(cli, ['--arm-away', 'user@example.com', 'password'])
+    result = runner.invoke(cli, ['user@example.com', 'password', '--arm-away'])
     assert result.exit_code != 0
+    assert 'requires at least 1 argument' in (result.output + str(result.exception))
 
 
 @patch('verisure.__main__.Session')
