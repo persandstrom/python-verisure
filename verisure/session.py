@@ -915,10 +915,13 @@ class Session(object):
             "query": "query queryCaptureImageRequestStatus($giid: String!, $deviceLabel: String!, $requestId: BigInt!) {\n  installation(giid: $giid) {\n    cameraContentProvider {\n      captureImageRequestStatus(deviceLabel: $deviceLabel, requestId: $requestId) {\n        mediaRequestStatus\n      }\n    }\n  }\n}",  # noqa: E501
             }
 
-    def download_image(self, image_url: str, file_name: str) -> None:
+    def download_image(self,
+                       image_url: str,
+                       file_name: str) -> None:
         """Download image from url"""
         try:
             response = requests.get(image_url, stream=True, timeout=self._request_timeout)
+            response.raise_for_status()
         except requests.exceptions.RequestException as ex:
             raise RequestError("Failed to get image") from ex
         with open(file_name, 'wb') as image_file:
